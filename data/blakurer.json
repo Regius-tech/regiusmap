@@ -1,0 +1,610 @@
+[
+    {
+        "id": 4,
+        "number": "B 131",
+        "name": "B 131 Asbjørn",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 6,
+        "number": "B 198",
+        "name": "B 198 Bengt",
+        "type": "Varebil Løftelem",
+        "palleplasser": 8,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 12,
+        "number": "Testbil K2",
+        "name": "Testbil K2",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 19,
+        "number": "B 237",
+        "name": "B 237 Knut Aakre",
+        "type": "Varebil Løftelem",
+        "palleplasser": 8,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 22,
+        "number": "B 241",
+        "name": "B 241 Bo",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 27,
+        "number": "B 246",
+        "name": "B 246 Jimmy",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 40,
+        "number": "B 257",
+        "name": "B 257 Jørgen Lastebil",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 41,
+        "number": "B 258",
+        "name": "B 258 Glenn Erik",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 44,
+        "number": "B 261",
+        "name": "B 261 Bjørn Helge",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 45,
+        "number": "B 262",
+        "name": "B 262 Martin",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 47,
+        "number": "B 263",
+        "name": "B 263 Deividas",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 73,
+        "number": "B 290",
+        "name": "B 290 Hans Andreas",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 76,
+        "number": "B 293",
+        "name": "B 293 Sørlandsbilen",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 78,
+        "number": "B 295",
+        "name": "B 295 Brian",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 82,
+        "number": "B 299",
+        "name": "B 299 Asbjørn",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 84,
+        "number": "B 301",
+        "name": "B 301 Jørgen",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 86,
+        "number": "B 303",
+        "name": "B 303 MK Oslo Transport AS",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 88,
+        "number": "B 305",
+        "name": "B 305 Knut",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 90,
+        "number": "B 307",
+        "name": "B 307 Jørgen",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 92,
+        "number": "B 309",
+        "name": "B 309 Wali",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 93,
+        "number": "B 310",
+        "name": "B 310 Sheiken",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 98,
+        "number": "B 315",
+        "name": "B 315 Svein Erik",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 99,
+        "number": "B 99",
+        "name": "B 99 Firmabil",
+        "type": "Varebil Løftelem",
+        "palleplasser": 8,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 100,
+        "number": "B 316",
+        "name": "B 316 Leif",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 104,
+        "number": "B 320",
+        "name": "B 320 Egil",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 110,
+        "number": "B 326",
+        "name": "B 326 Ali",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 112,
+        "number": "B 328",
+        "name": "B 328 Mads",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 114,
+        "number": "B 330",
+        "name": "B 330 Rene",
+        "type": "Varebil Løftelem",
+        "palleplasser": 8,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 115,
+        "number": "B 331",
+        "name": "B 331 Marko",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 116,
+        "number": "B 332",
+        "name": "B 332 Kabath",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 119,
+        "number": "B 335",
+        "name": "B 335 Wayne",
+        "type": "Varebil Løftelem",
+        "palleplasser": 8,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 125,
+        "number": "B 341",
+        "name": "B 341 Andrei",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 126,
+        "number": "B 342",
+        "name": "B 342 Pierre",
+        "type": "Varebil Løftelem",
+        "palleplasser": 8,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 129,
+        "number": "B 345",
+        "name": "B 345 Joakim",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 130,
+        "number": "B 346",
+        "name": "B 346 Hydroscandbil lastebil",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 131,
+        "number": "B 347",
+        "name": "B 347 Helge liten lastebil",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 133,
+        "number": "B 349",
+        "name": "B 349 Edvardas",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 137,
+        "number": "B 353",
+        "name": "B 353 Rufael",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 138,
+        "number": "B 354",
+        "name": "B 354 Mahmoud",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 141,
+        "number": "B 356",
+        "name": "B 356 Trond",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 145,
+        "number": "B 360",
+        "name": "B 360 Tom",
+        "type": "Varebil",
+        "palleplasser": 8,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 147,
+        "number": "B 362",
+        "name": "B 362 Joakim",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 156,
+        "number": "B 370",
+        "name": "B 370 George",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 162,
+        "number": "B 376",
+        "name": "B 376 Nikolai",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 163,
+        "number": "B 377",
+        "name": "B 377 Petre",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 164,
+        "number": "B 378",
+        "name": "B 378 Mahmoud vannbil",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 165,
+        "number": "B 379",
+        "name": "B 379 Dennis",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 166,
+        "number": "B 380",
+        "name": "B 380 Harald",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 167,
+        "number": "B 381",
+        "name": "B 381 Jimmy",
+        "type": "Lastebil",
+        "palleplasser": 18,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 168,
+        "number": "B 382",
+        "name": "B 382 Hydroscandbil",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 169,
+        "number": "B 383",
+        "name": "B 383 Gisle",
+        "type": "Varebil Løftelem",
+        "palleplasser": 8,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 173,
+        "number": "B 387",
+        "name": "B 387 Kim Henrik",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 175,
+        "number": "B 388",
+        "name": "B 388 Adrian",
+        "type": "Varebil Løftelem",
+        "palleplasser": 8,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 177,
+        "number": "B 390",
+        "name": "B 390 Adam",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 179,
+        "number": "B 392",
+        "name": "B 392 Danial",
+        "type": "Varebil Løftelem",
+        "palleplasser": 8,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 181,
+        "number": "B 394",
+        "name": "B 394 Emma",
+        "type": "Varebil Løftelem",
+        "palleplasser": 8,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 182,
+        "number": "B 395",
+        "name": "B 395 Gio",
+        "type": "Varebil Løftelem",
+        "palleplasser": 8,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 184,
+        "number": "B 397",
+        "name": "B 397 Tom",
+        "type": "Varebil Løftelem",
+        "palleplasser": 8,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 185,
+        "number": "B 398",
+        "name": "B 398 Valentino",
+        "type": "Varebil Løftelem",
+        "palleplasser": 8,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 186,
+        "number": "B 500",
+        "name": "B 500 Robert",
+        "type": "Varebil Løftelem",
+        "palleplasser": 8,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 188,
+        "number": "B 400",
+        "name": "B 400 Hydroscandbil / Tahir",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 189,
+        "number": "B 401",
+        "name": "B 401 Osama",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 191,
+        "number": "B 403",
+        "name": "B 403 Hanne Mette",
+        "type": "Lastebil",
+        "palleplasser": 18,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 192,
+        "number": "B 404",
+        "name": "B 404 Sørlandsbilen",
+        "type": "Varebil Løftelem",
+        "palleplasser": 8,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 193,
+        "number": "B 405",
+        "name": "B 405 Joakim",
+        "type": "Varebil Løftelem",
+        "palleplasser": 8,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 194,
+        "number": "B 406",
+        "name": "B 406 Vannbil",
+        "type": "Varebil",
+        "palleplasser": 8,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 195,
+        "number": "B 407",
+        "name": "B 407 Helena",
+        "type": "Varebil Løftelem",
+        "palleplasser": 8,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 196,
+        "number": "B 408",
+        "name": "B 408 Jan Erik",
+        "type": "Varebil Løftelem",
+        "palleplasser": 8,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 197,
+        "number": "B 409",
+        "name": "B 409 Hydroscandbil",
+        "type": "Lastebil",
+        "palleplasser": 18,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 198,
+        "number": "B 410",
+        "name": "B 410 Tahir div bil",
+        "type": "Lastebil",
+        "palleplasser": 18,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 199,
+        "number": "B 411",
+        "name": "B 411 Laurentiu",
+        "type": "Varebil Løftelem",
+        "palleplasser": 8,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 200,
+        "number": "B 412",
+        "name": "B 412 Aziz",
+        "type": "Varebil Løftelem",
+        "palleplasser": 8,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 201,
+        "number": "B 413",
+        "name": "B 413 Josef - Teamfrakt AS",
+        "type": "Lastebil",
+        "palleplasser": 18,
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 202,
+        "number": "B 414",
+        "name": "B 414 OL Transport",
+        "type": "Varebil Løftelem",
+        "palleplasser": 8,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 203,
+        "number": "B 415",
+        "name": "B 415 Nikolai",
+        "type": "Varebil Løftelem",
+        "palleplasser": 8,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 204,
+        "number": "B 501",
+        "name": "B 501 Andre Max",
+        "type": "Varebil Løftelem",
+        "palleplasser": 8,
+        "isParticipant": "TRUE"
+    }
+]

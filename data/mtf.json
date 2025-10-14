@@ -1,0 +1,1226 @@
+[
+    {
+        "id": 1,
+        "number": "AE16015",
+        "name": "MORTEN NORE",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 2,
+        "number": "FT40627",
+        "name": "SEMI MARGRETHES",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 3,
+        "number": "FT41902",
+        "name": "ODDVAR LUNDMO",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 4,
+        "number": "AS54531",
+        "name": "AS54531 STANLEY",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 5,
+        "number": "AS43334",
+        "name": "AS43334",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 6,
+        "number": "AS61755",
+        "name": "MARGRETHES TRANSPORT AS",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 7,
+        "number": "AS46238",
+        "name": "AS46238",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 8,
+        "number": "AS49233",
+        "name": "MARGRETHES TRANSPORT AS",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 10,
+        "number": "AS51510",
+        "name": "AS51510",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 11,
+        "number": "AS51920",
+        "name": "AS51920",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 12,
+        "number": "BR53221",
+        "name": "AHMET EREN",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 13,
+        "number": "DR26457",
+        "name": "ARNFINN PETTERSEN",
+        "type": "2 AKSLER SKAP",
+        "palleplasser": "18",
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 18,
+        "number": "AY38911",
+        "name": "MORRIS INVEST AS",
+        "type": "VAREBIL",
+        "palleplasser": "3",
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 19,
+        "number": "AY35268",
+        "name": "BJØRN MARTIN HAUG",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 20,
+        "number": "AY35269",
+        "name": "UTGÅTT BIL",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 21,
+        "number": "DP49468",
+        "name": "ØYSTEIN VESTERENGEN",
+        "type": "2 AKSLER SKAP",
+        "palleplasser": "18",
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 22,
+        "number": "PR34239",
+        "name": "HAUG TRANSPORT AS",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 26,
+        "number": "AE41034",
+        "name": "DAG HENNING HANSEN",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 33,
+        "number": "AY34706",
+        "name": "MERCEDES BENZ SPRINTER M/LØFTELEM",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 35,
+        "number": "DL57443",
+        "name": "KJELL KARLSEN",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 58,
+        "number": "AY32013",
+        "name": "MAN",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 62,
+        "number": "AY23293",
+        "name": "CARLO",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 66,
+        "number": "AY26057",
+        "name": "SVERRE THU",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 67,
+        "number": "AX97951",
+        "name": "AX97951",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 68,
+        "number": "AS14254",
+        "name": "AS14254",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 69,
+        "number": "AY13871",
+        "name": "AY13871 SVEIN",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 70,
+        "number": "AX94040",
+        "name": "AX94040",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 71,
+        "number": "AS20424",
+        "name": "AS20424",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 72,
+        "number": "BS71581",
+        "name": "BS71581 HANS",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 73,
+        "number": "DN34726",
+        "name": "DN34726 Vidar",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 74,
+        "number": "AY34458",
+        "name": "PER IVAR HOLMGREN",
+        "type": "3 AKSLER SKAP",
+        "palleplasser": "21",
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 75,
+        "number": "BD98025",
+        "name": "BD98025 KURT",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 76,
+        "number": "AY29082",
+        "name": "KIM ÅSEN",
+        "type": "BIL + HENGER",
+        "palleplasser": "35",
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 77,
+        "number": "AS31137",
+        "name": "AS31137",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 79,
+        "number": "AY32884",
+        "name": "AY32884 AUDUN",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 80,
+        "number": "AY30638",
+        "name": "PER ARNE AASEN",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 81,
+        "number": "AY30925",
+        "name": "JAN RUNE SVENDSEN",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 82,
+        "number": "AX98977",
+        "name": "FLEMMING BERG CHRISTENSEN",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 83,
+        "number": "AE39841",
+        "name": "AE39841 TOM ERIK",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 84,
+        "number": "AE50568",
+        "name": "TOMMY OLAFSEN",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 85,
+        "number": "AS44050",
+        "name": "AS44050",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 86,
+        "number": "AY25670A",
+        "name": "AY25670",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 87,
+        "number": "VH50072",
+        "name": "VH50072",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 88,
+        "number": "AY27065",
+        "name": "TOM LARSEN",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 91,
+        "number": "AE53564",
+        "name": "TOM ERIK",
+        "type": "TREKKER",
+        "palleplasser": "33",
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 96,
+        "number": "AS55712",
+        "name": "AS55712",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 100,
+        "number": "AS45340",
+        "name": "AANSTAD TRANSPORT (Lillestrøm)",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 104,
+        "number": "MTF",
+        "name": "MTF",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 107,
+        "number": "DN97036",
+        "name": "WILJEA TRANSPORT VAREBIL",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 114,
+        "number": "ZP43299",
+        "name": "OVE OSTORP",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 118,
+        "number": "AY19008",
+        "name": "AY19008",
+        "type": "2 AKSLER SKAP",
+        "palleplasser": "19",
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 119,
+        "number": "AY19007",
+        "name": "AY19007 SVEN ERIK",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 123,
+        "number": "KH90892",
+        "name": "A.T.L.",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 151,
+        "number": "AJ66190",
+        "name": "A.T.L",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 153,
+        "number": "DL52564",
+        "name": "MB SPRINTER",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 156,
+        "number": "KH81319",
+        "name": "ASKIM TRANSPORT & LOGISTIKK AS",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 171,
+        "number": 101,
+        "name": "Fleet",
+        "type": "Skapvogn",
+        "palleplasser": 15,
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 174,
+        "number": "HB78773",
+        "name": "TAMNES TRANSPORT AS",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 180,
+        "number": "AY27819",
+        "name": "MARGRETHES TRANSPORT AS",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 184,
+        "number": "BT59034",
+        "name": "KOLSVIK - BT59034",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 185,
+        "number": "AY30497",
+        "name": "HKS",
+        "type": "VAREBIL",
+        "palleplasser": "2",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 190,
+        "number": "AY38487",
+        "name": "VIDAR HOLMGREN",
+        "type": "3 AKSLER SKAP",
+        "palleplasser": "21",
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 196,
+        "number": "AS56805",
+        "name": "TOMMY LARSEN TRANSPORT AS",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 201,
+        "number": "AY34790",
+        "name": "MORRIS INVEST AS",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 203,
+        "number": "AS59449",
+        "name": "AHMET EREN",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 205,
+        "number": "TERMINAL BIL BHR",
+        "name": "TERMINAL BIL BHR",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 206,
+        "number": "AS57814",
+        "name": "MARGRETHES TRANSPORT AS",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 222,
+        "number": "SD85846",
+        "name": "RJAS. SEMI MED KRAN.",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 223,
+        "number": "NF52266",
+        "name": "THOR ARNE HVIDSTEN",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 224,
+        "number": "AY40019",
+        "name": "KURT STENRUD",
+        "type": "BIL + HENGER",
+        "palleplasser": 19,
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 236,
+        "number": "AY39527",
+        "name": "SIMEN GJØSTØL",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 238,
+        "number": "AY40020",
+        "name": "KIM AANONSEN",
+        "type": "2 AKSLER SKAP",
+        "palleplasser": 18,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 240,
+        "number": "EB11086",
+        "name": "G&M TRANSPORT AS",
+        "type": "VAREBIL",
+        "palleplasser": "2",
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 243,
+        "number": "EB11087",
+        "name": "MORRIS INVEST AS",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 254,
+        "number": "AE57224",
+        "name": "JAN TORE VOLD",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 255,
+        "number": "AS58655",
+        "name": "MARGRETHES TRANSPORT AS",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 256,
+        "number": "VH97927",
+        "name": "ØVLAND MASKIN AS",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 258,
+        "number": "DP53641",
+        "name": "SVEN ERIK SØRENSEN",
+        "type": "2 AKSLER SKAP",
+        "palleplasser": "18",
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 260,
+        "number": "AS59602",
+        "name": "MARGRETHES TRANSPORT AS",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 266,
+        "number": "DR74686",
+        "name": "KJELL KARLSEN",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 273,
+        "number": "AY38003",
+        "name": "MERCEDES BENZ SPRINTER",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 278,
+        "number": "AY39514",
+        "name": "SVEIN SYVERSEN",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 279,
+        "number": "AE43124",
+        "name": "HANS JENSEN",
+        "type": "2 AKSLER SKAP",
+        "palleplasser": 18,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 283,
+        "number": "",
+        "name": "TERMINAL",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 286,
+        "number": "HB82796",
+        "name": "DAVID GASCHITZ",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 289,
+        "number": "AS63111",
+        "name": "Gunnar Lundblad",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 290,
+        "number": "",
+        "name": "Geir Bøgle",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 299,
+        "number": "KIM",
+        "name": "KIM B. SOLLI",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 300,
+        "number": "DR78081",
+        "name": "VIKEN CARGO AS",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 301,
+        "number": "AS64516",
+        "name": "ZDRAVKO",
+        "type": "2 AKSLER SKAP",
+        "palleplasser": "19",
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 307,
+        "number": "AY42579",
+        "name": "FLEMMING",
+        "type": "KRANBIL",
+        "palleplasser": "Unknown",
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 312,
+        "number": "AY25670",
+        "name": "AY25670",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 313,
+        "number": "AS61572",
+        "name": "STANLEY ØSTLI",
+        "type": "2 AKSLER SKAP",
+        "palleplasser": "18",
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 315,
+        "number": "AY43784",
+        "name": "STIAN KRISTIANSEN",
+        "type": "VAREBIL",
+        "palleplasser": 8,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 321,
+        "number": "LJ75132",
+        "name": "DTK LJ75132",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 338,
+        "number": "PR53342",
+        "name": "G&M TRANSPORT AS",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 339,
+        "number": "MTF AS58655",
+        "name": "MTF AS58655",
+        "type": "2 AKSLER SKAP",
+        "palleplasser": "18",
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 340,
+        "number": "AS59359",
+        "name": "LISLEBY FLYTTEBYRÅ AS",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 343,
+        "number": "AS65387",
+        "name": "SIGURDZ",
+        "type": "BIL + HENGER",
+        "palleplasser": 21,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 363,
+        "number": "EB65130",
+        "name": "G&M TRANSPORT AS",
+        "type": "Varebil",
+        "palleplasser": "3",
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 364,
+        "number": "AS65978",
+        "name": "ODDVAR LUNDMO",
+        "type": "SEMI",
+        "palleplasser": "33",
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 367,
+        "number": "VJ27491",
+        "name": "GLENN - TREKKER ALEX",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 370,
+        "number": "AY44067",
+        "name": "SVERRE THU",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 372,
+        "number": "RL40298",
+        "name": "HALVARD HØILAND",
+        "type": "2 AKSLER SKAP",
+        "palleplasser": 18,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 374,
+        "number": "AY44545",
+        "name": "PER ARNE AASEN",
+        "type": "3 AKSLER SKAP",
+        "palleplasser": 21,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 378,
+        "number": "AS65423",
+        "name": "MARGRETHES TRANSPORT AS",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 379,
+        "number": "VT20180",
+        "name": "HT LOGISTIKK",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 381,
+        "number": "AY44368",
+        "name": "KENNETH OBERG",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 384,
+        "number": "AE99999",
+        "name": "AS MOSS TRANSPORTFORUM TEST BIL",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 385,
+        "number": "LEIEBIL",
+        "name": "ØIVIND DIDRIKSEN TRANSPORT",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 386,
+        "number": "BR49926",
+        "name": "VAREBIL HT TRANS",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 388,
+        "number": "AY44977",
+        "name": "AUDUN HOLMGREN",
+        "type": "SEMI",
+        "palleplasser": "33",
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 390,
+        "number": "LJ75643",
+        "name": "EKSTRA TREKKER MARIUS MIRI",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 391,
+        "number": "DR91496",
+        "name": "M HANSEN TRANSPORT AS",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 402,
+        "number": "DP85855",
+        "name": "GODS OG VEI AS",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 413,
+        "number": "BS35833",
+        "name": "ALIN",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 414,
+        "number": "AS65490",
+        "name": "DTK FRIGO BIL",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 418,
+        "number": "AS63210",
+        "name": "Trond Arne",
+        "type": "BIL + HENGER",
+        "palleplasser": "36",
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 419,
+        "number": "LJ83272",
+        "name": "TREKKER GIRTZ",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 427,
+        "number": "FT56823",
+        "name": "BJØRN MARTIN",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 428,
+        "number": "LJ80952",
+        "name": "DTK LJ80952",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 432,
+        "number": "AY45036",
+        "name": "RONNY BJERKE",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 443,
+        "number": "EB11087*",
+        "name": "EL BIL EHS TRANS",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 444,
+        "number": "BD77128",
+        "name": "CADDY EHS TRANS.",
+        "type": "VAREBIL",
+        "palleplasser": "2",
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 453,
+        "number": "DR73464",
+        "name": "KIM SOLLI",
+        "type": "2 AKSLER SKAP",
+        "palleplasser": "18",
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 456,
+        "number": "DR26457-",
+        "name": "ARNFINN",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 458,
+        "number": "AS64245",
+        "name": "MARGRETHES TRANSPORT AS",
+        "type": "SEMITRAILER",
+        "palleplasser": 33,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 461,
+        "number": "DN43004",
+        "name": "HENNING HANSEN",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 464,
+        "number": "DS10023",
+        "name": "MARGRETHES TRANSPORT AS",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 465,
+        "number": "AE64051",
+        "name": "G&M TRANSPORT AS",
+        "type": "VAREBIL",
+        "palleplasser": "2",
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 467,
+        "number": "DS21451",
+        "name": "KJELL KARLSEN",
+        "type": "2 AKSLER SKAP",
+        "palleplasser": "18",
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 469,
+        "number": "VH80517",
+        "name": "HT. LOGISTIKK . (CONTAINER)",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 470,
+        "number": "AS67943",
+        "name": "Alex Andersen bil.",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 471,
+        "number": "LJ67119",
+        "name": "RINGSRØD (ALEX ANDERSEN)",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 473,
+        "number": "AS67944",
+        "name": "AHMET EREN",
+        "type": "DISTRIBUSJONSBIL",
+        "palleplasser": "21",
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 475,
+        "number": "UR90338",
+        "name": "A&G TRANSPORT AS",
+        "type": "8 PALLERS VAREBIL",
+        "palleplasser": "8",
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 479,
+        "number": "EC57279",
+        "name": "MORRIS INVEST AS",
+        "type": "VAREBIL",
+        "palleplasser": "2",
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 490,
+        "number": "BT35367",
+        "name": "MYRER MULTI",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 494,
+        "number": "ZZ32552",
+        "name": "DAG HENNING",
+        "type": "TREKKER",
+        "palleplasser": "33",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 495,
+        "number": "AE64832",
+        "name": "JAN TORE VOLD VAREBIL",
+        "type": "VAREBIL",
+        "palleplasser": "2",
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 496,
+        "number": "MTFVH80517",
+        "name": "CONTAINER EGENTRANSPORT",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 497,
+        "number": "AE65047",
+        "name": "MARGRETHES TRANSPORT AS",
+        "type": "DISTRIBUSJONSBIL",
+        "palleplasser": "18",
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 498,
+        "number": "ZZ34115",
+        "name": "NIPPON TREKKER MED TRUCK",
+        "type": "SEMITRAILER",
+        "palleplasser": "33",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 502,
+        "number": "AS67946",
+        "name": "VETLE",
+        "type": "3 AKSLER SKAP",
+        "palleplasser": "21",
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 508,
+        "number": "AS68681",
+        "name": "NIPPON BIL M/MOFFETT",
+        "type": "SEMITRAILER",
+        "palleplasser": 33,
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 512,
+        "number": "AY46322",
+        "name": "TOM LARSEN",
+        "type": "2 AKSLER SKAP",
+        "palleplasser": "18",
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 515,
+        "number": "AS68682",
+        "name": "MARGRETHES TRANSPORT AS",
+        "type": "DISTRIBUSJONSBIL",
+        "palleplasser": "18",
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 518,
+        "number": "EC11313",
+        "name": "G&M TRANSPORT AS",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 519,
+        "number": "AY46485",
+        "name": "HENRIK ØVERÅS",
+        "type": "3 AKSLER SKAP",
+        "palleplasser": "21",
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 521,
+        "number": "DS19478",
+        "name": "VAREBIL ANTALIS (A&G)",
+        "type": "VAREBIL",
+        "palleplasser": 8,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 523,
+        "number": "DR77937",
+        "name": "INDUSTRIFIBER 8 PALLER",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 581,
+        "number": "AS69415",
+        "name": "PER ØYVIND SVEUM",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 588,
+        "number": "AS68685",
+        "name": "NIPPON TREKKER",
+        "type": "SEMITRAILER",
+        "palleplasser": "33",
+        "isParticipant": "FALSE"
+    }
+]

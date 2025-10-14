@@ -1,0 +1,170 @@
+[
+    {
+        "id": 1,
+        "number": 404001,
+        "name": "KHL Transport & Service Larsen",
+        "type": "Varebil med løftelem",
+        "palleplasser": 8,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 2,
+        "number": 100000,
+        "name": "Troxda Bud & Bedrag",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 3,
+        "number": 275801,
+        "name": "Kåre S. Cammermeyer",
+        "type": "Sprinter",
+        "palleplasser": "Unknown",
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 4,
+        "number": 100101,
+        "name": "Kenneth Lindstad",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 5,
+        "number": 100201,
+        "name": "Bozza Kran & Transport",
+        "type": "Test",
+        "palleplasser": 5,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 6,
+        "number": "TEST",
+        "name": "OPter",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 7,
+        "number": 271205,
+        "name": "Mohamed Akli",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 8,
+        "number": 100301,
+        "name": "Daniel Betten",
+        "type": "Varebil med løftelem",
+        "palleplasser": 8,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 14,
+        "number": 100601,
+        "name": "J. G Transport & Entreprenør AS",
+        "type": "Varebil med løftelem",
+        "palleplasser": 8,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 15,
+        "number": 100701,
+        "name": "VGT Vegmanis",
+        "type": "Test",
+        "palleplasser": 1,
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 16,
+        "number": 100801,
+        "name": "Kalind Kran- og Transport AS",
+        "type": "Varebil",
+        "palleplasser": 5,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 17,
+        "number": 406101,
+        "name": "Mathias Morten Transport",
+        "type": "Varebil med løftelem",
+        "palleplasser": 8,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 18,
+        "number": "Utgått",
+        "name": "Margrethes Transport AS",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 19,
+        "number": 101001,
+        "name": "Morkens Bilservice",
+        "type": "Test",
+        "palleplasser": 1,
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 20,
+        "number": 101101,
+        "name": "J. G Transport & Entreprenør AS",
+        "type": "Lastebil",
+        "palleplasser": 18,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 21,
+        "number": 100901,
+        "name": "Transportselskapet",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 22,
+        "number": 404201,
+        "name": "Altan Transport AS",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 23,
+        "number": 296301,
+        "name": "Paul-Erik Gransbråten Transport",
+        "type": "EL ID Buzz Cargo",
+        "palleplasser": "Unknown",
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 24,
+        "number": 101201,
+        "name": "Bozza Kran & Transport",
+        "type": "EL Lastebil",
+        "palleplasser": "10",
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 25,
+        "number": 406301,
+        "name": "Proflex Entreprenør & Transport AS",
+        "type": "Lastebil",
+        "palleplasser": "Unknown",
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 26,
+        "number": 296302,
+        "name": "Paul-Erik Gransbråten Transport",
+        "type": "Varebil",
+        "palleplasser": "4",
+        "isParticipant": "TRUE"
+    }
+]

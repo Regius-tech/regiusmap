@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Triflex Kart</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/leaflet.fullscreen.css" />
+    <style>
+        body {
+            font-family: Poppins, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        #map {
+            height: calc(100vh - 100px);
+            width: 100%;
+        }
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: #0a0000;
+            color: white;
+        }
+        h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .header-logo {
+            height: 50px; /* Juster logoens høyde */
+        }
+        .button-container a {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #FFFFFF;
+            color: black;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .filter-container {
+            padding: 10px;
+            background-color: #f9f9f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .filter-container label {
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        .leaflet-marker-icon {
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        .custom-pin {
+            position: relative;
+            text-align: center;
+        }
+        .custom-pin .pin-logo {
+            background-color: white;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            overflow: hidden;
+            border: 2px solid #072D60;
+        }
+        .custom-pin .pin-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .custom-pin .pin-line {
+            width: 2px;
+            height: 20px;
+            background-color: #014f8a;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="header-container">
+        <img src="/skriftlex.png" alt="Triflex Logo" class="header-logo">
+        <img src="/triflex-logo.png" alt="Triflex Logo" class="header-logo">
+        <div class="button-container">
+            <a href="cars.html">Se bilpark</a>
+        </div>
+    </div>
+    <div class="filter-container">
+        <label for="company-filter">Filtrer etter selskap:</label>
+        <select id="company-filter">
+            <option value="all">Alle</option>
+            <option value="Transportsentralen Oslo">Transportsentralen Oslo</option>
+            <option value="Moss Transportforum">Moss Transportforum</option>
+            <option value="Blå Kurér">Blå Kurér</option>
+            <option value="TS Oslo Budtjenester">TS Oslo Budtjenester</option>
+        </select>
+        <label>
+            <input type="checkbox" id="activeToday" checked> Kun aktive i dag
+        </label>
+    </div>
+    <div id="map"></div>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/Leaflet.fullscreen.min.js"></script>
+    <script>
+        const map = L.map('map', {
+            fullscreenControl: true // Aktiver fullskjermkontroll
+        }).setView([59.9139, 10.7522], 10); // Oslo-koordinater
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+        }).addTo(map);
+
+        let markers = [];
+
+        function createCustomPinIcon(logoUrl) {
+            return L.divIcon({
+                className: 'custom-pin',
+                html: `
+                    <div>
+                        <div class="pin-logo">
+                            <img src="${logoUrl}" alt="Logo">
+                        </div>
+                        <div class="pin-line"></div>
+                    </div>
+                `,
+                iconSize: [30, 50],
+                iconAnchor: [15, 50],
+                popupAnchor: [0, -40],
+            });
+        }
+
+        function formatTimestamp(timestamp) {
+            if (!timestamp) return "Ukjent tid";
+            const date = new Date(timestamp);
+            return date.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        async function loadPositions() {
+            try {
+                const response = await fetch('/api/positions');
+                const data = await response.json();
+
+                // Filtrer data basert på "activeToday" og "isParticipant"
+                const activeToday = document.getElementById('activeToday').checked;
+                const selectedCompany = document.getElementById('company-filter').value;
+
+                const filteredData = data.filter(vehicle => {
+                    const matchesCompany = selectedCompany === 'all' || vehicle.company === selectedCompany;
+                    const isActiveToday = !activeToday || vehicle.isActiveToday;
+                    const isParticipant = vehicle.isParticipant;
+                    return matchesCompany && isActiveToday && isParticipant;
+                });
+
+                // Fjern gamle markører
+                markers.forEach(marker => marker.remove());
+                markers = [];
+
+                // Legg til nye markører
+                filteredData.forEach(vehicle => {
+                    if (vehicle.latitude && vehicle.longitude) {
+                        const icon = createCustomPinIcon(vehicle.logo);
+
+                        const marker = L.marker([vehicle.latitude, vehicle.longitude], { icon });
+                        marker.bindPopup(
+                            `<b>Navn:</b> ${vehicle.name}<br>
+                             <b>Type:</b> ${vehicle.type}<br>
+                             <b>Palleplasser:</b> ${vehicle.palleplasser}<br>
+                             <b>Klokkeslett:</b> ${formatTimestamp(vehicle.time)}<br>
+                             <b>Selskap:</b> ${vehicle.company}`
+                        );
+                        marker.addTo(map);
+                        markers.push(marker);
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading positions:', error);
+            }
+        }
+
+        document.getElementById('company-filter').addEventListener('change', loadPositions);
+        document.getElementById('activeToday').addEventListener('change', loadPositions);
+
+        loadPositions();
+        setInterval(loadPositions, 10000); // Oppdater hvert 10. sekund
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+

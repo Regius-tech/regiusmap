@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biloversikt</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            text-align: center;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .filter-container, .search-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .filter-container select, .search-container input {
+            padding: 8px;
+            font-size: 16px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #072D60;
+            color: white;
+            cursor: pointer;
+            position: relative;
+        }
+        th:hover {
+            background-color: #09458c;
+        }
+        th::after {
+            content: '';
+            margin-left: 5px;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .back-button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #072D60;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .logo {
+            height: 120px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-row">
+            <a href="index.html" class="back-button">Tilbake til kartet</a>
+            <img src="/triflex.png" alt="Triflex Logo" class="logo">
+        </div>
+        <h1>Biloversikt</h1>
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Søk på bil...">
+        </div>
+        <div class="filter-container">
+            <label for="company-filter">Filtrer etter selskap:</label>
+            <select id="company-filter">
+                <option value="all">Alle</option>
+            </select>
+            <label for="type-filter">Filtrer etter type:</label>
+            <select id="type-filter">
+                <option value="all">Alle</option>
+            </select>
+            <label for="date-filter">Velg dato:</label>
+            <input type="date" id="date-filter">
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th onclick="sortTable(0)">Navn</th>
+                    <th onclick="sortTable(1)">Type</th>
+                    <th onclick="sortTable(2)">Palleplasser</th>
+                    <th onclick="sortTable(3)">Selskap</th>
+                    <th onclick="sortTable(4)">Dato & Tid</th>
+                </tr>
+            </thead>
+            <tbody id="vehicleTableBody">
+            </tbody>
+        </table>
+    </div>
+    <script>
+        let vehicleData = [];
+
+        async function loadVehicles() {
+            const response = await fetch('/api/positions');
+            const rawData = await response.json();
+            
+            // Fjern duplikater basert på id
+            const uniqueVehicles = new Map();
+            rawData.forEach(vehicle => {
+                if (vehicle.isParticipant) {
+                    uniqueVehicles.set(vehicle.id, vehicle); // Bruker id som nøkkel
+                }
+            });
+            vehicleData = Array.from(uniqueVehicles.values());
+
+            const tableBody = document.getElementById('vehicleTableBody');
+            const companyFilter = document.getElementById('company-filter');
+            const typeFilter = document.getElementById('type-filter');
+            
+            companyFilter.innerHTML = '<option value="all">Alle</option>';
+            typeFilter.innerHTML = '<option value="all">Alle</option>';
+
+            const companies = [...new Set(vehicleData.map(vehicle => vehicle.company))];
+            const types = [...new Set(vehicleData.map(vehicle => vehicle.type))];
+
+            companies.forEach(company => {
+                const option = document.createElement('option');
+                option.value = company;
+                option.textContent = company;
+                companyFilter.appendChild(option);
+            });
+
+            types.forEach(type => {
+                const option = document.createElement('option');
+                option.value = type;
+                option.textContent = type;
+                typeFilter.appendChild(option);
+            });
+
+            updateTable();
+        }
+
+        function updateTable() {
+            const tableBody = document.getElementById('vehicleTableBody');
+            const companyFilter = document.getElementById('company-filter').value;
+            const typeFilter = document.getElementById('type-filter').value;
+            const dateFilter = document.getElementById('date-filter').value;
+            const searchInput = document.getElementById('searchInput').value.toLowerCase();
+
+            tableBody.innerHTML = '';
+
+            const filteredVehicles = vehicleData.filter(vehicle => {
+                const matchesCompany = companyFilter === 'all' || vehicle.company === companyFilter;
+                const matchesType = typeFilter === 'all' || vehicle.type === typeFilter;
+                const vehicleDate = new Date(vehicle.time).toISOString().split('T')[0]; // Kun dato-delen
+                const matchesDate = !dateFilter || vehicleDate === dateFilter;
+                const matchesSearch = (
+                    vehicle.name.toLowerCase().includes(searchInput) || 
+                    vehicle.type.toLowerCase().includes(searchInput) || 
+                    vehicle.company.toLowerCase().includes(searchInput) || 
+                    vehicle.palleplasser.toString().toLowerCase().includes(searchInput)
+                );
+                return matchesCompany && matchesType && matchesDate && matchesSearch;
+            });
+
+            filteredVehicles.forEach(vehicle => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${vehicle.name}</td>
+                    <td>${vehicle.type}</td>
+                    <td>${vehicle.palleplasser}</td>
+                    <td>${vehicle.company}</td>
+                    <td data-time="${vehicle.time}">${new Date(vehicle.time).toLocaleString('no-NO')}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        let sortDirection = 1;
+        let lastSortedColumn = -1;
+
+        function sortTable(columnIndex) {
+            const table = document.querySelector("table");
+            const rows = Array.from(table.rows).slice(1);
+            const isNumeric = columnIndex === 2;
+            const isDate = columnIndex === 4;
+            const headers = table.querySelectorAll("th");
+
+            if (lastSortedColumn === columnIndex) {
+                sortDirection *= -1;
+            } else {
+                sortDirection = 1;
+            }
+            lastSortedColumn = columnIndex;
+
+            headers.forEach((th, index) => {
+                if (index === columnIndex) {
+                    th.style.fontWeight = 'bold';
+                    th.innerHTML = th.innerText.replace(/ [↑↓]/g, '') + (sortDirection === 1 ? ' ↑' : ' ↓');
+                } else {
+                    th.style.fontWeight = 'normal';
+                    th.innerHTML = th.innerText.replace(/ [↑↓]/g, '');
+                }
+            });
+
+            const sortedRows = rows.sort((a, b) => {
+                const aCell = a.cells[columnIndex];
+                const bCell = b.cells[columnIndex];
+                const aText = aCell.innerText;
+                const bText = bCell.innerText;
+
+                if (isNumeric) {
+                    if (aText === "Unknown" && bText === "Unknown") return 0;
+                    if (aText === "Unknown") return 1 * sortDirection;
+                    if (bText === "Unknown") return -1 * sortDirection;
+                    return (Number(aText) - Number(bText)) * sortDirection;
+                } else if (isDate) {
+                    const aTime = new Date(aCell.getAttribute('data-time')).getTime();
+                    const bTime = new Date(bCell.getAttribute('data-time')).getTime();
+                    return (aTime - bTime) * sortDirection;
+                }
+                return aText.localeCompare(bText) * sortDirection;
+            });
+
+            sortedRows.forEach(row => table.appendChild(row));
+        }
+
+        document.getElementById('searchInput').addEventListener('input', updateTable);
+        document.getElementById('company-filter').addEventListener('change', updateTable);
+        document.getElementById('type-filter').addEventListener('change', updateTable);
+        document.getElementById('date-filter').addEventListener('change', updateTable);
+
+        loadVehicles();
+    </script>
+</body>
+</html>
+

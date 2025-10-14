@@ -1,0 +1,618 @@
+[
+    {
+        "id": 1,
+        "number": 233901,
+        "name": "CHRISTIAN LØKKEBERG",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 2,
+        "number": 258002,
+        "name": "KROKAN TRANSPORT AS",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 3,
+        "number": 187902,
+        "name": "PALLE SØRENSEN TRANSPORT AS",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 4,
+        "number": 999901,
+        "name": "Nore Tester AS",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 5,
+        "number": 170602,
+        "name": "Terje Nullmeyer",
+        "type": "Varebil over 10m3",
+        "palleplasser": 6,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 6,
+        "number": 999905,
+        "name": "Nore Tester AS",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 8,
+        "number": 255501,
+        "name": "Superior Transport as",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 11,
+        "number": 4056,
+        "name": "BIOTRANS AS",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 12,
+        "number": 299303,
+        "name": "Morten Transport AS",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 15,
+        "number": 404401,
+        "name": "Brødrene Rosenquist AS",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 16,
+        "number": "AE16015",
+        "name": "MORTEN NORE",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 40,
+        "number": "Rute 71",
+        "name": "Rute 71",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 42,
+        "number": "Rute 41",
+        "name": "Rute 41",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 43,
+        "number": "Rute 25",
+        "name": "Rute 25",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 44,
+        "number": "Rute 32",
+        "name": "Rute 32",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 45,
+        "number": "Rute 61",
+        "name": "Rute 61",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 46,
+        "number": "Rute 31",
+        "name": "Rute 31",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 47,
+        "number": "Rute 04",
+        "name": "Rute 04",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 48,
+        "number": "Rute 74",
+        "name": "Rute 74",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 49,
+        "number": "Rute 75",
+        "name": "Rute 75",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 50,
+        "number": "Rute 02",
+        "name": "Rute 02",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 51,
+        "number": "Rute 12",
+        "name": "Rute 12",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 52,
+        "number": "Rute 42",
+        "name": "Rute 42",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 53,
+        "number": "Rute 10",
+        "name": "Rute 10",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 54,
+        "number": "Rute 76",
+        "name": "Rute 76",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 55,
+        "number": "Rute 81",
+        "name": "Rute 81",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 56,
+        "number": "Rute 21",
+        "name": "Rute 21",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 57,
+        "number": "Rute 08",
+        "name": "Rute 08",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 58,
+        "number": "Rute 14",
+        "name": "Rute 14",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 59,
+        "number": "Rute 77",
+        "name": "Rute 77",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 60,
+        "number": "Rute 07",
+        "name": "Rute 07",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 61,
+        "number": "Rute 99",
+        "name": "Rute 99",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 62,
+        "number": "Rute 06",
+        "name": "Rute 06",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 63,
+        "number": "Rute 11",
+        "name": "Rute 11",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 64,
+        "number": "Rute 01",
+        "name": "Rute 01",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 65,
+        "number": "Rute 03",
+        "name": "Rute 03",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 66,
+        "number": "Rute 15",
+        "name": "Rute 15",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 67,
+        "number": "Rute 20",
+        "name": "Rute 20",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 68,
+        "number": "Rute 33",
+        "name": "Rute 33",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 69,
+        "number": "Rute 36",
+        "name": "Rute 36",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 70,
+        "number": "Rute 37",
+        "name": "Rute 37",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 72,
+        "number": 179902,
+        "name": "Jan Arild Enger Transport",
+        "type": "Skapvogn 2-4 tonn",
+        "palleplasser": 9,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 73,
+        "number": 999903,
+        "name": "Nore Tester AS",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 74,
+        "number": "Rute 98",
+        "name": "Rute 98",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 75,
+        "number": "GM",
+        "name": "GM",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 76,
+        "number": "G1",
+        "name": "G1",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 77,
+        "number": "G2",
+        "name": "G2",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 78,
+        "number": "G3",
+        "name": "G3",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 79,
+        "number": "G4",
+        "name": "G4",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 80,
+        "number": "Intro71",
+        "name": "Intro71",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 81,
+        "number": 217501,
+        "name": "Oslo Containerservice AS",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 86,
+        "number": "Intro71-2",
+        "name": "Intro71-2",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 88,
+        "number": "*Opter",
+        "name": "Opter",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 89,
+        "number": "Intro7",
+        "name": "Intro7",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 90,
+        "number": "Rute 98",
+        "name": "Rute 98",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 91,
+        "number": "Rute 40",
+        "name": "Rute 40",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 92,
+        "number": "Rute 05",
+        "name": "Rute 05",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 93,
+        "number": "Rute 5a",
+        "name": "Rute 5a",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 94,
+        "number": "Rute 51",
+        "name": "Rute 51",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 95,
+        "number": "Rute 50",
+        "name": "Rute 50",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 96,
+        "number": "Rute 52",
+        "name": "Rute 52",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 97,
+        "number": 999902,
+        "name": "Nore Tester AS",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 99,
+        "number": "Rute 44",
+        "name": "Rute 44",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 100,
+        "number": "Rute 45",
+        "name": "Rute 45",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 102,
+        "number": "Rute 09",
+        "name": "Rute 09",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 103,
+        "number": "Rute 91",
+        "name": "Rute 91",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 107,
+        "number": "Rute 50.2",
+        "name": "Rute 50.2",
+        "type": "Unknown",
+        "palleplasser": "Unknown",
+        "isParticipant": "FALSE"
+    },
+    {
+        "id": 109,
+        "number": 187901,
+        "name": "Palle Sørensen",
+        "type": "Skapvogn 3-akslet",
+        "palleplasser": 19,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 110,
+        "number": 258001,
+        "name": "Roger Krokan",
+        "type": "Skapvogn 3-akslet",
+        "palleplasser": 18,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 111,
+        "number": 403101,
+        "name": "Gøran Østmo",
+        "type": "Varebil over 10m3",
+        "palleplasser": 5,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 114,
+        "number": 400906,
+        "name": "Ronny Ruud",
+        "type": "2 Akslet kranbil 6,1-12 tm",
+        "palleplasser": 6,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 120,
+        "number": 253001,
+        "name": "Ole Petter Lomsnes",
+        "type": "4 Akslet kranbil 31,1-40 tm",
+        "palleplasser": 15,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 134,
+        "number": 230601,
+        "name": "Terje Bergfall",
+        "type": "Vare/Skap m/LL. inntil 1 tonn",
+        "palleplasser": 6,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 136,
+        "number": 270001,
+        "name": "Wiggo Engebretsen",
+        "type": "Vare/Skap m/LL. inntil 1 tonn",
+        "palleplasser": 8,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 118,
+        "number": 160604,
+        "name": "Rune Grøvslien",
+        "type": "Skapvogn 3-akslet",
+        "palleplasser": 19,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 137,
+        "number": 402201,
+        "name": "Ulf Pedersen",
+        "type": "Skapvogn 3-akslet",
+        "palleplasser": 19,
+        "isParticipant": "TRUE"
+    },
+    {
+        "id": 117,
+        "number": 296302,
+        "name": "Paul-Erik Gransbråten",
+        "type": "Varebil inntil 10m3",
+        "palleplasser": 4,
+        "isParticipant": "TRUE"
+    }
+]
