@@ -1,112 +1,228 @@
 <!DOCTYPE html>
 <html lang="no">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Triflex Kart</title>
-<style>
-  body { font-family:Poppins,sans-serif; margin:0; padding:0; background-color:#001f3f; overflow:hidden; }
-  #map { height:100vh; width:100%; }
-  .filter-container {
-    position:absolute; top:20px; left:50%; transform:translateX(-50%);
-    display:flex; align-items:center; justify-content:center; gap:20px;
-    background-color: rgba(2,28,60,0.95); color:white; padding:10px 25px; border-radius:12px;
-    box-shadow:0 4px 10px rgba(0,0,0,0.4); z-index:1000; backdrop-filter:blur(5px);
-  }
-  .filter-container label { font-weight:bold; font-size:14px; }
-  .filter-container select, .filter-container input[type="checkbox"] { margin-left:5px; padding:6px; border-radius:6px; border:none; font-size:14px; }
-  select { background-color:#fff; color:#000; }
-  #themeSwitch { cursor:pointer; font-weight:bold; border:none; padding:8px 16px; border-radius:8px; background-color:#0074D9; color:white; transition:background-color 0.3s ease; }
-  #themeSwitch:hover { background-color:#005fa3; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Triflex Kart</title>
+  <style>
+    body {
+      font-family: Poppins, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #001f3f;
+      overflow: hidden;
+    }
 
-  /* Custom pin */
-  .custom-pin {
-    display:flex; flex-direction:column; align-items:center; width:40px;
-  }
-  .pin-circle {
-    width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center;
-    border:2px solid #fff; box-shadow:0 2px 6px rgba(0,0,0,0.4); overflow:hidden;
-  }
-  .pin-circle img { width:70%; height:70%; object-fit:cover; border-radius:50%; }
-  .pin-tail {
-    width:0; height:0; border-left:8px solid transparent; border-right:8px solid transparent;
-    border-top:12px solid; margin-top:-2px;
-  }
-</style>
+    #map {
+      height: 100vh;
+      width: 100%;
+    }
+
+    .filter-container {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      background-color: rgba(2, 28, 60, 0.95);
+      color: white;
+      padding: 10px 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+      z-index: 1000;
+      backdrop-filter: blur(5px);
+      opacity: 0;
+      animation: fadeIn 1s ease forwards;
+      transition: opacity 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translate(-50%, -10px); }
+      to { opacity: 1; transform: translate(-50%, 0); }
+    }
+
+    .filter-container.inactive { opacity: 0.4; }
+
+    .filter-container label { font-weight: bold; font-size: 14px; }
+    .filter-container select,
+    .filter-container input[type="checkbox"] { margin-left: 5px; padding: 6px; border-radius: 6px; border: none; outline: none; font-size: 14px; }
+    select { background-color: #fff; color: #000; }
+    #themeSwitch { cursor: pointer; font-weight: bold; border: none; padding: 8px 16px; border-radius: 8px; background-color: #0074D9; color: white; transition: background-color 0.3s ease; }
+    #themeSwitch:hover { background-color: #005fa3; }
+
+    /* === TS Oslo pin === */
+    .pin-wrapper {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .pin-circle {
+      width: 36px;
+      height: 36px;
+      background-color: white; /* TS Oslo */
+      border: 3px solid #001f3f; /* mørkeblå kant */
+      border-radius: 50%;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    }
+
+    .pin-circle img {
+      width: 70%;
+      height: 70%;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+
+    .pin-tail {
+      width: 0;
+      height: 0;
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+      border-top: 12px solid #001f3f; /* mørkeblå stilk */
+      margin-top: -2px; /* overlap med sirkelen */
+    }
+  </style>
 </head>
 <body>
-<div class="filter-container">
-  <label for="company-filter">Selskap:</label>
-  <select id="company-filter">
-    <option value="all">Alle</option>
-    <option value="Transportsentralen Oslo">Transportsentralen Oslo</option>
-    <option value="Moss Transportforum">Moss Transportforum</option>
-    <option value="Blå Kurér">Blå Kurér</option>
-    <option value="TS Oslo Budtjenester">TS Oslo Budtjenester</option>
-  </select>
-  <label><input type="checkbox" id="activeToday" checked> Aktive i dag</label>
-  <button id="themeSwitch">🌙 Mørk modus</button>
-</div>
-<div id="map"></div>
+  <div class="filter-container" id="menu">
+    <label for="company-filter">Selskap:</label>
+    <select id="company-filter">
+      <option value="all">Alle</option>
+      <option value="Transportsentralen Oslo">Transportsentralen Oslo</option>
+      <option value="Moss Transportforum">Moss Transportforum</option>
+      <option value="Blå Kurér">Blå Kurér</option>
+      <option value="TS Oslo Budtjenester">TS Oslo Budtjenester</option>
+    </select>
+    <label><input type="checkbox" id="activeToday" checked> Aktive i dag</label>
+    <button id="themeSwitch">🌙 Mørk modus</button>
+  </div>
 
-<script>
-let map, markers=[], darkMode=true;
-const darkStyle=[{elementType:"geometry",stylers:[{color:"#1d2c4d"}]},{elementType:"labels.text.fill",stylers:[{color:"#8ec3b9"}]},{elementType:"labels.text.stroke",stylers:[{color:"#1a3646"}]},{featureType:"water",elementType:"geometry",stylers:[{color:"#0e1626"}]},{featureType:"water",elementType:"labels.text.fill",stylers:[{color:"#4e6d70"}]},{featureType:"road",elementType:"geometry",stylers:[{color:"#304a7d"}]},{featureType:"road.highway",elementType:"geometry",stylers:[{color:"#2c6675"}]},{featureType:"poi",elementType:"geometry",stylers:[{color:"#283d6a"}]},{featureType:"landscape.natural",elementType:"geometry",stylers:[{color:"#023e58"}]}];
+  <div id="map"></div>
 
-function getCompanyColor(company){
-  switch(company){
-    case 'Transportsentralen Oslo': return '#001f5f';
-    case 'Blå Kurér': return '#FFD700';
-    case 'Moss Transportforum': return 'linear-gradient(45deg,#001f5f 50%,#8B0000 50%)';
-    case 'TS Oslo Budtjenester': return '#008080';
-    default: return '#777';
-  }
-}
+  <script>
+    let map;
+    let markers = [];
+    let darkMode = true;
 
-function createCustomPin(vehicle){
-  const div=document.createElement('div'); div.className='custom-pin';
-  const circle=document.createElement('div'); circle.className='pin-circle';
-  if(vehicle.company!=='Moss Transportforum') circle.style.backgroundColor=getCompanyColor(vehicle.company);
-  else circle.style.background='linear-gradient(45deg,#001f5f 50%,#8B0000 50%)';
-  const img=document.createElement('img'); img.src=vehicle.logo; circle.appendChild(img);
-  const tail=document.createElement('div'); tail.className='pin-tail';
-  tail.style.borderTopColor=getCompanyColor(vehicle.company); div.appendChild(circle); div.appendChild(tail);
-  return div;
-}
+    const darkStyle = [
+      { elementType: "geometry", stylers: [{ color: "#1d2c4d" }] },
+      { elementType: "labels.text.fill", stylers: [{ color: "#8ec3b9" }] },
+      { elementType: "labels.text.stroke", stylers: [{ color: "#1a3646" }] },
+      { featureType: "water", elementType: "geometry", stylers: [{ color: "#0e1626" }] },
+      { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#4e6d70" }] },
+      { featureType: "road", elementType: "geometry", stylers: [{ color: "#304a7d" }] },
+      { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#2c6675" }] },
+      { featureType: "poi", elementType: "geometry", stylers: [{ color: "#283d6a" }] },
+      { featureType: "landscape.natural", elementType: "geometry", stylers: [{ color: "#023e58" }] }
+    ];
 
-function formatTimestamp(timestamp){if(!timestamp)return "Ukjent tid"; const date=new Date(timestamp); return date.toLocaleTimeString('no-NO',{hour:'2-digit',minute:'2-digit'});}
+    function initMap() {
+      map = new google.maps.Map(document.getElementById("map"), {
+        center: { lat: 59.9139, lng: 10.7522 },
+        zoom: 10,
+        styles: darkMode ? darkStyle : [],
+        mapTypeControl: false,
+        fullscreenControl: true
+      });
 
-async function loadPositions(){
-  try{
-    const res=await fetch('/api/positions'); const data=await res.json();
-    const activeToday=document.getElementById('activeToday').checked;
-    const selectedCompany=document.getElementById('company-filter').value;
-    const filtered=data.filter(v=> (selectedCompany==='all'||v.company===selectedCompany) && (!activeToday||v.isActiveToday) && v.isParticipant);
-    markers.forEach(m=>m.setMap(null)); markers=[];
-    filtered.forEach(vehicle=>{
-      if(vehicle.latitude && vehicle.longitude){
-        const pin=createCustomPin(vehicle);
-        const marker=new google.maps.marker.AdvancedMarkerElement({map,position:{lat:vehicle.latitude,lng:vehicle.longitude},content:pin});
-        const info=new google.maps.InfoWindow({content:`<b>Navn:</b> ${vehicle.name}<br><b>Type:</b> ${vehicle.type}<br><b>Palleplasser:</b> ${vehicle.palleplasser}<br><b>Klokkeslett:</b> ${formatTimestamp(vehicle.time)}<br><b>Selskap:</b> ${vehicle.company}`});
-        pin.addEventListener('click',()=>info.open(map,marker));
-        markers.push(marker);
+      document.getElementById("themeSwitch").addEventListener("click", () => {
+        darkMode = !darkMode;
+        map.setOptions({ styles: darkMode ? darkStyle : [] });
+        document.getElementById("themeSwitch").textContent =
+          darkMode ? "🌙 Mørk modus" : "☀️ Lys modus";
+      });
+
+      loadPositions();
+      document.getElementById("company-filter").addEventListener("change", loadPositions);
+      document.getElementById("activeToday").addEventListener("change", loadPositions);
+      setInterval(loadPositions, 10000);
+    }
+
+    function createTSOsloPin(logoUrl) {
+      const wrapper = document.createElement("div");
+      wrapper.className = "pin-wrapper";
+
+      const circle = document.createElement("div");
+      circle.className = "pin-circle";
+      const img = document.createElement("img");
+      img.src = logoUrl;
+      circle.appendChild(img);
+
+      const tail = document.createElement("div");
+      tail.className = "pin-tail";
+
+      wrapper.appendChild(circle);
+      wrapper.appendChild(tail);
+
+      return wrapper;
+    }
+
+    function formatTimestamp(timestamp) {
+      if (!timestamp) return "Ukjent tid";
+      const date = new Date(timestamp);
+      return date.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    async function loadPositions() {
+      try {
+        const response = await fetch('/api/positions');
+        const data = await response.json();
+
+        const activeToday = document.getElementById('activeToday').checked;
+        const selectedCompany = document.getElementById('company-filter').value;
+
+        const filteredData = data.filter(vehicle => {
+          const matchesCompany = selectedCompany === 'all' || vehicle.company === selectedCompany;
+          const isActiveToday = !activeToday || vehicle.isActiveToday;
+          return matchesCompany && isActiveToday && vehicle.isParticipant;
+        });
+
+        markers.forEach(marker => marker.setMap(null));
+        markers = [];
+
+        filteredData.forEach(vehicle => {
+          if (vehicle.latitude && vehicle.longitude) {
+            const markerEl = createTSOsloPin(vehicle.logo);
+
+            const marker = new google.maps.marker.AdvancedMarkerElement({
+              map,
+              position: { lat: vehicle.latitude, lng: vehicle.longitude },
+              content: markerEl
+            });
+
+            const infoWindow = new google.maps.InfoWindow({
+              content: `
+                <b>Navn:</b> ${vehicle.name}<br>
+                <b>Type:</b> ${vehicle.type}<br>
+                <b>Palleplasser:</b> ${vehicle.palleplasser}<br>
+                <b>Klokkeslett:</b> ${formatTimestamp(vehicle.time)}<br>
+                <b>Selskap:</b> ${vehicle.company}
+              `
+            });
+
+            markerEl.addEventListener("click", () => {
+              infoWindow.open(map, marker);
+            });
+
+            markers.push(marker);
+          }
+        });
+      } catch (error) {
+        console.error('Error loading positions:', error);
       }
-    });
-  }catch(err){console.error('Error loading positions:',err);}
-}
+    }
+  </script>
 
-function initMap(){
-  map=new google.maps.Map(document.getElementById('map'),{center:{lat:59.9139,lng:10.7522},zoom:10,styles:darkMode?darkStyle:[],mapTypeControl:false,fullscreenControl:true});
-  document.getElementById('themeSwitch').addEventListener('click',()=>{
-    darkMode=!darkMode; map.setOptions({styles:darkMode?darkStyle:[]}); document.getElementById('themeSwitch').textContent=darkMode?"🌙 Mørk modus":"☀️ Lys modus";
-  });
-  loadPositions();
-  document.getElementById('company-filter').addEventListener('change',loadPositions);
-  document.getElementById('activeToday').addEventListener('change',loadPositions);
-  setInterval(loadPositions,10000);
-}
-</script>
-
-<script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBtSvAG_uN9QBI0Fi_GOJVIyAjd1JlMvNg&callback=initMap&v=beta"></script>
+  <script async
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBtSvAG_uN9QBI0Fi_GOJVIyAjd1JlMvNg&callback=initMap&v=beta">
+  </script>
 </body>
 </html>
