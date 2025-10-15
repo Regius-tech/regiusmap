@@ -1,281 +1,228 @@
 <!DOCTYPE html>
 <html lang="no">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Triflex Kart</title>
-    <!-- Beholder opprinnelige CSS-lenker (uforandret) -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/leaflet.fullscreen.css" />
-    <style>
-        body {
-            font-family: Poppins, sans-serif;
-            margin: 0;
-            padding: 0;
-        }
-        #map {
-            height: calc(100vh - 100px);
-            width: 100%;
-        }
-        .header-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 20px;
-            background-color: #0a0000;
-            color: white;
-        }
-        h1 {
-            margin: 0;
-            font-size: 24px;
-        }
-        .header-logo {
-            height: 50px; /* Juster logoens høyde */
-        }
-        .button-container a {
-            display: inline-block;
-            padding: 10px 20px;
-            background-color: #FFFFFF;
-            color: black;
-            text-decoration: none;
-            border-radius: 5px;
-            font-weight: bold;
-        }
-        .filter-container {
-            padding: 10px;
-            background-color: #f9f9f9;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-        .filter-container label {
-            margin-right: 10px;
-            font-weight: bold;
-        }
-        /* Beholder de samme klassene til pinnene slik at utseendet blir identisk */
-        .leaflet-marker-icon {
-            background-size: contain;
-            background-position: center;
-            background-repeat: no-repeat;
-        }
-        .custom-pin {
-            position: relative;
-            text-align: center;
-            transform: translate(-50%, -100%); /* sentrer og plasser korrekt */
-            cursor: pointer;
-            user-select: none;
-        }
-        .custom-pin .pin-logo {
-            background-color: white;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            overflow: hidden;
-            border: 2px solid #072D60;
-        }
-        .custom-pin .pin-logo img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .custom-pin .pin-line {
-            width: 2px;
-            height: 20px;
-            background-color: #014f8a;
-            margin: 0 auto;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Triflex Kart</title>
 
-        /* Enkel stil for Google Maps infowindow-innhold */
-        .gm-info-window {
-            font-family: Poppins, sans-serif;
-            font-size: 13px;
-        }
-    </style>
+  <!-- (CSS fra Leaflet beholdt, men ikke brukt – kan trygt fjernes hvis ønsket) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/leaflet.fullscreen.css" />
+
+  <style>
+    body {
+      font-family: Poppins, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    #map {
+      height: calc(100vh - 100px);
+      width: 100%;
+    }
+    .header-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      background-color: #0a0000;
+      color: white;
+    }
+    .header-logo {
+      height: 50px;
+    }
+    .button-container a {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #FFFFFF;
+      color: black;
+      text-decoration: none;
+      border-radius: 5px;
+      font-weight: bold;
+    }
+    .filter-container {
+      padding: 10px;
+      background-color: #f9f9f9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    .filter-container label {
+      margin-right: 10px;
+      font-weight: bold;
+    }
+    .custom-pin {
+      position: relative;
+      text-align: center;
+    }
+    .custom-pin .pin-logo {
+      background-color: white;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      overflow: hidden;
+      border: 2px solid #072D60;
+    }
+    .custom-pin .pin-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .custom-pin .pin-line {
+      width: 2px;
+      height: 20px;
+      background-color: #014f8a;
+      margin: 0 auto;
+    }
+    #themeSwitch {
+      cursor: pointer;
+      font-weight: bold;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 5px;
+      background-color: #014f8a;
+      color: white;
+    }
+  </style>
 </head>
+
 <body>
-    <div class="header-container">
-        <img src="/skriftlex.png" alt="Triflex Logo" class="header-logo">
-        <img src="/triflex-logo.png" alt="Triflex Logo" class="header-logo">
-        <div class="button-container">
-            <a href="cars.html">Se bilpark</a>
+  <div class="header-container">
+    <img src="/skriftlex.png" alt="Triflex Logo" class="header-logo">
+    <img src="/triflex-logo.png" alt="Triflex Logo" class="header-logo">
+    <div class="button-container">
+      <a href="cars.html">Se bilpark</a>
+    </div>
+  </div>
+
+  <div class="filter-container">
+    <label for="company-filter">Filtrer etter selskap:</label>
+    <select id="company-filter">
+      <option value="all">Alle</option>
+      <option value="Transportsentralen Oslo">Transportsentralen Oslo</option>
+      <option value="Moss Transportforum">Moss Transportforum</option>
+      <option value="Blå Kurér">Blå Kurér</option>
+      <option value="TS Oslo Budtjenester">TS Oslo Budtjenester</option>
+    </select>
+    <label>
+      <input type="checkbox" id="activeToday" checked> Kun aktive i dag
+    </label>
+    <button id="themeSwitch">🌙 Mørk modus</button>
+  </div>
+
+  <div id="map"></div>
+
+  <script>
+    let map;
+    let markers = [];
+    let darkMode = true;
+
+    const darkStyle = [
+      { elementType: "geometry", stylers: [{ color: "#1d2c4d" }] },
+      { elementType: "labels.text.fill", stylers: [{ color: "#8ec3b9" }] },
+      { elementType: "labels.text.stroke", stylers: [{ color: "#1a3646" }] },
+      { featureType: "water", elementType: "geometry", stylers: [{ color: "#0e1626" }] },
+      { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#4e6d70" }] },
+      { featureType: "road", elementType: "geometry", stylers: [{ color: "#304a7d" }] },
+      { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#2c6675" }] },
+      { featureType: "poi", elementType: "geometry", stylers: [{ color: "#283d6a" }] },
+      { featureType: "landscape.natural", elementType: "geometry", stylers: [{ color: "#023e58" }] }
+    ];
+
+    function initMap() {
+      map = new google.maps.Map(document.getElementById("map"), {
+        center: { lat: 59.9139, lng: 10.7522 },
+        zoom: 10,
+        styles: darkMode ? darkStyle : [],
+        mapTypeControl: false,
+        fullscreenControl: true
+      });
+
+      document.getElementById("themeSwitch").addEventListener("click", () => {
+        darkMode = !darkMode;
+        map.setOptions({ styles: darkMode ? darkStyle : [] });
+        document.getElementById("themeSwitch").textContent = darkMode ? "🌙 Mørk modus" : "☀️ Lys modus";
+      });
+
+      loadPositions();
+      document.getElementById("company-filter").addEventListener("change", loadPositions);
+      document.getElementById("activeToday").addEventListener("change", loadPositions);
+      setInterval(loadPositions, 10000);
+    }
+
+    function createCustomPinIcon(logoUrl) {
+      const div = document.createElement("div");
+      div.className = "custom-pin";
+      div.innerHTML = `
+        <div class="pin-logo">
+          <img src="${logoUrl}" alt="Logo">
         </div>
-    </div>
-    <div class="filter-container">
-        <label for="company-filter">Filtrer etter selskap:</label>
-        <select id="company-filter">
-            <option value="all">Alle</option>
-            <option value="Transportsentralen Oslo">Transportsentralen Oslo</option>
-            <option value="Moss Transportforum">Moss Transportforum</option>
-            <option value="Blå Kurér">Blå Kurér</option>
-            <option value="TS Oslo Budtjenester">TS Oslo Budtjenester</option>
-        </select>
-        <label>
-            <input type="checkbox" id="activeToday" checked> Kun aktive i dag
-        </label>
-    </div>
-    <div id="map"></div>
+        <div class="pin-line"></div>
+      `;
+      return div;
+    }
 
-    <!-- Leaflet/Mapbox JS-scriptene fjernes (ingen effekt), men CSS beholdes for uendret styling -->
-    <!-- Google Maps API - bruker API-nøkkelen du oppgav -->
-    <script>
-        // Vi definerer variabler og funksjoner meget likt originalen, men bytter ut Leaflet-implementasjonen
-        let map;
-        let markers = []; // vil inneholde CustomMarker-instansene
-        let infoWindow;
+    function formatTimestamp(timestamp) {
+      if (!timestamp) return "Ukjent tid";
+      const date = new Date(timestamp);
+      return date.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' });
+    }
 
-        // createCustomPinIcon gir nå et DOM-element (samme HTML som tidligere)
-        function createCustomPinIcon(logoUrl) {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'custom-pin';
-            wrapper.innerHTML = `
-                <div>
-                    <div class="pin-logo">
-                        <img src="${logoUrl}" alt="Logo">
-                    </div>
-                    <div class="pin-line"></div>
-                </div>
-            `;
-            return wrapper;
-        }
+    async function loadPositions() {
+      try {
+        const response = await fetch('/api/positions');
+        const data = await response.json();
 
-        function formatTimestamp(timestamp) {
-            if (!timestamp) return "Ukjent tid";
-            const date = new Date(timestamp);
-            return date.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' });
-        }
+        const activeToday = document.getElementById('activeToday').checked;
+        const selectedCompany = document.getElementById('company-filter').value;
 
-        // CustomMarker: Google Maps OverlayView som viser et HTML-element ved koordinatene
-        class CustomMarker extends google.maps.OverlayView {
-            constructor(position, element, map, infoContent) {
-                super();
-                this.position = position; // {lat, lng}
-                this.element = element; // DOM-node
-                this.map = map;
-                this.infoContent = infoContent;
-                this.div = null;
-                this.setMap(map);
-            }
+        const filteredData = data.filter(vehicle => {
+          const matchesCompany = selectedCompany === 'all' || vehicle.company === selectedCompany;
+          const isActiveToday = !activeToday || vehicle.isActiveToday;
+          const isParticipant = vehicle.isParticipant;
+          return matchesCompany && isActiveToday && isParticipant;
+        });
 
-            onAdd() {
-                this.div = document.createElement('div');
-                this.div.style.position = 'absolute';
-                // legg til element (klonen) i div
-                this.div.appendChild(this.element);
-                const panes = this.getPanes();
-                panes.overlayMouseTarget.appendChild(this.div);
+        markers.forEach(marker => marker.setMap(null));
+        markers = [];
 
-                // enkel click håndtering - åpne InfoWindow hvis satt
-                this.div.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    if (this.infoContent) {
-                        if (!window._regius_infoWindow) window._regius_infoWindow = new google.maps.InfoWindow();
-                        window._regius_infoWindow.setContent(`<div class="gm-info-window">${this.infoContent}</div>`);
-                        window._regius_infoWindow.setPosition(this.position);
-                        window._regius_infoWindow.open(this.map);
-                    }
-                });
-            }
+        filteredData.forEach(vehicle => {
+          if (vehicle.latitude && vehicle.longitude) {
+            const markerEl = createCustomPinIcon(vehicle.logo);
 
-            draw() {
-                if (!this.div) return;
-                const point = this.getProjection().fromLatLngToDivPixel(new google.maps.LatLng(this.position.lat, this.position.lng));
-                if (point) {
-                    // elementens bredde/høyde antas i CSS; vi posisjonerer slik at underkant av pin peker på koordinat
-                    const x = point.x;
-                    const y = point.y;
-                    this.div.style.left = `${x}px`;
-                    this.div.style.top = `${y}px`;
-                    // transform i CSS (.custom-pin) gjør at elementet forskyves korrekt
-                }
-            }
-
-            onRemove() {
-                if (this.div && this.div.parentNode) {
-                    this.div.parentNode.removeChild(this.div);
-                }
-                this.div = null;
-            }
-
-            // Hjelpefunksjon for å fjerne fra kartet (tilsvarende marker.remove())
-            remove() {
-                this.setMap(null);
-            }
-        }
-
-        async function loadPositions() {
-            try {
-                const response = await fetch('/api/positions');
-                const data = await response.json();
-
-                // Filtrer data basert på "activeToday" og "isParticipant"
-                const activeToday = document.getElementById('activeToday').checked;
-                const selectedCompany = document.getElementById('company-filter').value;
-
-                const filteredData = data.filter(vehicle => {
-                    const matchesCompany = selectedCompany === 'all' || vehicle.company === selectedCompany;
-                    const isActiveToday = !activeToday || vehicle.isActiveToday;
-                    const isParticipant = vehicle.isParticipant;
-                    return matchesCompany && isActiveToday && isParticipant;
-                });
-
-                // Fjern gamle markører
-                markers.forEach(marker => {
-                    try { marker.remove(); } catch (e) { /* ignore */ }
-                });
-                markers = [];
-
-                // Legg til nye markører
-                filteredData.forEach(vehicle => {
-                    if (vehicle.latitude && vehicle.longitude) {
-                        const iconElement = createCustomPinIcon(vehicle.logo);
-
-                        const infoHtml = `
-                            <b>Navn:</b> ${vehicle.name}<br>
-                            <b>Type:</b> ${vehicle.type}<br>
-                            <b>Palleplasser:</b> ${vehicle.palleplasser}<br>
-                            <b>Klokkeslett:</b> ${formatTimestamp(vehicle.time)}<br>
-                            <b>Selskap:</b> ${vehicle.company}
-                        `;
-
-                        const marker = new CustomMarker(
-                            { lat: Number(vehicle.latitude), lng: Number(vehicle.longitude) },
-                            iconElement,
-                            map,
-                            infoHtml
-                        );
-
-                        markers.push(marker);
-                    }
-                });
-            } catch (error) {
-                console.error('Error loading positions:', error);
-            }
-        }
-
-        function initMap() {
-            // Oppretter Google Maps-kart med samme start-utsnitt som før (Oslo)
-            map = new google.maps.Map(document.getElementById('map'), {
-                center: { lat: 59.9139, lng: 10.7522 },
-                zoom: 10,
-                mapTypeControl: false,
-                fullscreenControl: true
+            const marker = new google.maps.marker.AdvancedMarkerElement({
+              map,
+              position: { lat: vehicle.latitude, lng: vehicle.longitude },
+              content: markerEl
             });
 
-            // Hook opp filter-event listeners (samme som før)
-            document.getElementById('company-filter').addEventListener('change', loadPositions);
-            document.getElementById('activeToday').addEventListener('change', loadPositions);
+            const infoWindow = new google.maps.InfoWindow({
+              content: `
+                <b>Navn:</b> ${vehicle.name}<br>
+                <b>Type:</b> ${vehicle.type}<br>
+                <b>Palleplasser:</b> ${vehicle.palleplasser}<br>
+                <b>Klokkeslett:</b> ${formatTimestamp(vehicle.time)}<br>
+                <b>Selskap:</b> ${vehicle.company}
+              `
+            });
 
-            // Last først gang og sett polling hver 10 sek
-            loadPositions();
-            setInterval(loadPositions, 10000);
-        }
-    </script>
+            markerEl.addEventListener("click", () => {
+              infoWindow.open(map, marker);
+            });
 
-    <!-- Google Maps API script: DIN API-NØKKEL er satt nedenfor -->
-    <script async defer
-        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBtSvAG_uN9QBI0Fi_GOJVIyAjd1JlMvNg&callback=initMap">
-    </script>
+            markers.push(marker);
+          }
+        });
+      } catch (error) {
+        console.error('Error loading positions:', error);
+      }
+    }
+  </script>
+
+  <!-- Google Maps JS API -->
+  <script async
+    src="https://maps.googleapis.com/maps/api/js?key=DIN_API_NØKKEL&callback=initMap">
+  </script>
 </body>
 </html>
