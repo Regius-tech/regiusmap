@@ -149,7 +149,6 @@
       { elementType: "labels.text.fill", stylers: [{ color: "#8ec3b9" }] },
       { elementType: "labels.text.stroke", stylers: [{ color: "#1a3646" }] },
       { featureType: "water", elementType: "geometry", stylers: [{ color: "#0e1626" }] },
-      { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#4e6d70" }] },
       { featureType: "road", elementType: "geometry", stylers: [{ color: "#304a7d" }] },
       { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#2c6675" }] },
       { featureType: "poi", elementType: "geometry", stylers: [{ color: "#283d6a" }] },
@@ -209,7 +208,7 @@
 
     async function loadPositions() {
       try {
-        const response = await fetch('/api/positions');
+        const response = await fetch('https://regiusmap.vercel.app/api/positions');
         const data = await response.json();
 
         const activeToday = document.getElementById('activeToday').checked;
@@ -229,7 +228,7 @@
           if (vehicle.latitude && vehicle.longitude) {
             const markerEl = createCustomPinIcon(vehicle.logo);
 
-            // ✅ Bruk riktig AdvancedMarkerElement (beta)
+            // ✅ AdvancedMarkerElement (Google Maps beta)
             const marker = new google.maps.marker.AdvancedMarkerElement({
               map,
               position: { lat: vehicle.latitude, lng: vehicle.longitude },
