@@ -228,7 +228,6 @@
           if (vehicle.latitude && vehicle.longitude) {
             const markerEl = createCustomPinIcon(vehicle.logo);
 
-            // ✅ AdvancedMarkerElement (Google Maps beta)
             const marker = new google.maps.marker.AdvancedMarkerElement({
               map,
               position: { lat: vehicle.latitude, lng: vehicle.longitude },
@@ -245,7 +244,8 @@
               `
             });
 
-            markerEl.addEventListener("click", () => {
+            // ✅ Korrekt klikk-håndtering
+            marker.addListener("click", () => {
               infoWindow.open(map, marker);
             });
 
