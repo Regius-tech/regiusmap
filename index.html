@@ -47,7 +47,6 @@
       to { opacity: 1; transform: translate(-50%, 0); }
     }
 
-    /* 🌫️ Reduser synlighet ved inaktivitet */
     .filter-container.inactive {
       opacity: 0.4;
     }
@@ -149,6 +148,7 @@
       { elementType: "labels.text.fill", stylers: [{ color: "#8ec3b9" }] },
       { elementType: "labels.text.stroke", stylers: [{ color: "#1a3646" }] },
       { featureType: "water", elementType: "geometry", stylers: [{ color: "#0e1626" }] },
+      { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#4e6d70" }] },
       { featureType: "road", elementType: "geometry", stylers: [{ color: "#304a7d" }] },
       { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#2c6675" }] },
       { featureType: "poi", elementType: "geometry", stylers: [{ color: "#283d6a" }] },
@@ -171,7 +171,6 @@
           darkMode ? "🌙 Mørk modus" : "☀️ Lys modus";
       });
 
-      // Aktivitetssporing for menyens transparens
       const menu = document.getElementById("menu");
       const resetInactivity = () => {
         menu.classList.remove("inactive");
@@ -186,18 +185,6 @@
       document.getElementById("company-filter").addEventListener("change", loadPositions);
       document.getElementById("activeToday").addEventListener("change", loadPositions);
       setInterval(loadPositions, 10000);
-    }
-
-    function createCustomPinIcon(logoUrl) {
-      const div = document.createElement("div");
-      div.className = "custom-pin";
-      div.innerHTML = `
-        <div class="pin-logo">
-          <img src="${logoUrl}" alt="Logo">
-        </div>
-        <div class="pin-line"></div>
-      `;
-      return div;
     }
 
     function formatTimestamp(timestamp) {
@@ -226,12 +213,15 @@
 
         filteredData.forEach(vehicle => {
           if (vehicle.latitude && vehicle.longitude) {
-            const markerEl = createCustomPinIcon(vehicle.logo);
-
-            const marker = new google.maps.marker.AdvancedMarkerElement({
+            // Bruk standard Marker
+            const marker = new google.maps.Marker({
               map,
               position: { lat: vehicle.latitude, lng: vehicle.longitude },
-              content: markerEl
+              title: vehicle.name,
+              icon: {
+                url: vehicle.logo,
+                scaledSize: new google.maps.Size(30, 30)
+              }
             });
 
             const infoWindow = new google.maps.InfoWindow({
@@ -244,11 +234,7 @@
               `
             });
 
-            // ✅ Korrekt klikk-håndtering
-            marker.addListener("click", () => {
-              infoWindow.open(map, marker);
-            });
-
+            marker.addListener("click", () => infoWindow.open(map, marker));
             markers.push(marker);
           }
         });
@@ -258,9 +244,9 @@
     }
   </script>
 
-  <!-- Google Maps JS API Beta (AdvancedMarkerElement) -->
+  <!-- Google Maps JS API -->
   <script async
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBtSvAG_uN9QBI0Fi_GOJVIyAjd1JlMvNg&callback=initMap&v=beta">
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBtSvAG_uN9QBI0Fi_GOJVIyAjd1JlMvNg&callback=initMap">
   </script>
 </body>
 </html>
