@@ -10,89 +10,63 @@
       font-family: Poppins, sans-serif;
       margin: 0;
       padding: 0;
-      background-color: #001f3f;
-      overflow: hidden;
     }
-
     #map {
       height: 100vh;
       width: 100%;
     }
 
-    /* 🎨 Meny-stil */
+    /* Meny-stil */
     .filter-container {
       position: absolute;
-      top: 20px;
+      top: 15px;
       left: 50%;
       transform: translateX(-50%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 20px;
-      background-color: rgba(2, 28, 60, 0.95);
+      background-color: rgba(0, 31, 63, 0.95); /* mørk marineblå */
       color: white;
-      padding: 10px 25px;
+      padding: 12px 25px;
       border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
       z-index: 1000;
-      backdrop-filter: blur(5px);
-      opacity: 0;
-      animation: fadeIn 1s ease forwards;
-      transition: opacity 0.5s ease;
-    }
-
-    /* 🕓 Fade inn ved last */
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translate(-50%, -10px); }
-      to { opacity: 1; transform: translate(-50%, 0); }
-    }
-
-    /* 🌫️ Reduser synlighet etter inaktivitet */
-    .filter-container.inactive {
-      opacity: 0.4;
-    }
-
-    .filter-container label {
-      font-weight: bold;
-      font-size: 14px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     }
 
     .filter-container select,
-    .filter-container input[type="checkbox"] {
-      margin-left: 5px;
-      padding: 6px;
-      border-radius: 6px;
-      border: none;
-      outline: none;
+    .filter-container input[type="checkbox"],
+    #themeSwitch {
       font-size: 14px;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 12px;
     }
 
-    select {
-      background-color: #fff;
+    .filter-container select {
+      background: #ffffff;
       color: #000;
+    }
+
+    label {
+      font-weight: bold;
     }
 
     #themeSwitch {
       cursor: pointer;
-      font-weight: bold;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 8px;
-      background-color: #0074D9;
+      background-color: #007bff;
       color: white;
-      transition: background-color 0.3s ease;
+      font-weight: bold;
+      transition: background 0.3s;
     }
-
     #themeSwitch:hover {
-      background-color: #005fa3;
+      background-color: #0056b3;
     }
 
-    /* 📍 Tilpasset markør */
     .custom-pin {
       position: relative;
       text-align: center;
     }
-
     .custom-pin .pin-logo {
       background-color: white;
       border-radius: 50%;
@@ -101,13 +75,11 @@
       overflow: hidden;
       border: 2px solid #072D60;
     }
-
     .custom-pin .pin-logo img {
       width: 100%;
       height: 100%;
       object-fit: cover;
     }
-
     .custom-pin .pin-line {
       width: 2px;
       height: 20px;
@@ -118,7 +90,8 @@
 </head>
 
 <body>
-  <div class="filter-container" id="menu">
+
+  <div class="filter-container">
     <label for="company-filter">Selskap:</label>
     <select id="company-filter">
       <option value="all">Alle</option>
@@ -137,11 +110,12 @@
 
   <div id="map"></div>
 
-  <script>
+  <script type="module">
+    import { Loader } from "https://maps.googleapis.com/maps/api/js?key=AIzaSyBtSvAG_uN9QBI0Fi_GOJVIyAjd1JlMvNg&v=beta&libraries=marker";
+
     let map;
     let markers = [];
     let darkMode = true;
-    let inactivityTimer;
 
     const darkStyle = [
       { elementType: "geometry", stylers: [{ color: "#1d2c4d" }] },
@@ -149,10 +123,19 @@
       { elementType: "labels.text.stroke", stylers: [{ color: "#1a3646" }] },
       { featureType: "water", elementType: "geometry", stylers: [{ color: "#0e1626" }] },
       { featureType: "road", elementType: "geometry", stylers: [{ color: "#304a7d" }] },
-      { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#2c6675" }] },
       { featureType: "poi", elementType: "geometry", stylers: [{ color: "#283d6a" }] },
       { featureType: "landscape.natural", elementType: "geometry", stylers: [{ color: "#023e58" }] }
     ];
+
+    const loader = new Loader({
+      apiKey: "AIzaSyBtSvAG_uN9QBI0Fi_GOJVIyAjd1JlMvNg",
+      version: "beta",
+      libraries: ["marker"]
+    });
+
+    loader.load().then(() => {
+      initMap();
+    });
 
     function initMap() {
       map = new google.maps.Map(document.getElementById("map"), {
@@ -166,25 +149,13 @@
       document.getElementById("themeSwitch").addEventListener("click", () => {
         darkMode = !darkMode;
         map.setOptions({ styles: darkMode ? darkStyle : [] });
-        document.getElementById("themeSwitch").textContent =
-          darkMode ? "🌙 Mørk modus" : "☀️ Lys modus";
+        document.getElementById("themeSwitch").textContent = darkMode ? "🌙 Mørk modus" : "☀️ Lys modus";
       });
-
-      // Aktivitetssporing for menyens transparens
-      const menu = document.getElementById("menu");
-      const resetInactivity = () => {
-        menu.classList.remove("inactive");
-        clearTimeout(inactivityTimer);
-        inactivityTimer = setTimeout(() => menu.classList.add("inactive"), 4000);
-      };
-      document.addEventListener("mousemove", resetInactivity);
-      document.addEventListener("click", resetInactivity);
-      resetInactivity();
 
       loadPositions();
       document.getElementById("company-filter").addEventListener("change", loadPositions);
       document.getElementById("activeToday").addEventListener("change", loadPositions);
-      setInterval(loadPositions, 10000);
+      setInterval(loadPositions, 15000);
     }
 
     function createCustomPinIcon(logoUrl) {
@@ -207,20 +178,20 @@
 
     async function loadPositions() {
       try {
-        const response = await fetch('/api/positions');
+        const response = await fetch("https://regiusmap.vercel.app/api/positions");
         const data = await response.json();
 
-        const activeToday = document.getElementById('activeToday').checked;
-        const selectedCompany = document.getElementById('company-filter').value;
+        const activeToday = document.getElementById("activeToday").checked;
+        const selectedCompany = document.getElementById("company-filter").value;
 
         const filteredData = data.filter(vehicle => {
-          const matchesCompany = selectedCompany === 'all' || vehicle.company === selectedCompany;
+          const matchesCompany = selectedCompany === "all" || vehicle.company === selectedCompany;
           const isActiveToday = !activeToday || vehicle.isActiveToday;
           const isParticipant = vehicle.isParticipant;
           return matchesCompany && isActiveToday && isParticipant;
         });
 
-        markers.forEach(marker => marker.setMap(null));
+        markers.forEach(marker => marker.map = null);
         markers = [];
 
         filteredData.forEach(vehicle => {
@@ -229,17 +200,17 @@
 
             const marker = new google.maps.marker.AdvancedMarkerElement({
               map,
-              position: { lat: vehicle.latitude, lng: vehicle.longitude },
+              position: { lat: parseFloat(vehicle.latitude), lng: parseFloat(vehicle.longitude) },
               content: markerEl
             });
 
             const infoWindow = new google.maps.InfoWindow({
               content: `
-                <b>Navn:</b> ${vehicle.name}<br>
-                <b>Type:</b> ${vehicle.type}<br>
-                <b>Palleplasser:</b> ${vehicle.palleplasser}<br>
+                <b>Navn:</b> ${vehicle.name || "Ukjent"}<br>
+                <b>Type:</b> ${vehicle.type || "Ukjent"}<br>
+                <b>Palleplasser:</b> ${vehicle.palleplasser || "Ukjent"}<br>
                 <b>Klokkeslett:</b> ${formatTimestamp(vehicle.time)}<br>
-                <b>Selskap:</b> ${vehicle.company}
+                <b>Selskap:</b> ${vehicle.company || "Ukjent"}
               `
             });
 
@@ -251,12 +222,11 @@
           }
         });
       } catch (error) {
-        console.error('Error loading positions:', error);
+        console.error("Feil ved lasting av posisjoner:", error);
       }
     }
+
   </script>
 
-<!-- Google Maps JS API -->
-<script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBtSvAG_uN9QBI0Fi_GOJVIyAjd1JlMvNg&callback=initMap&v=beta"></script>
 </body>
 </html>
