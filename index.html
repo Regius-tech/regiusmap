@@ -4,33 +4,116 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Triflex Kart</title>
-  <style>
-    body { font-family: Poppins,sans-serif; margin:0; padding:0; background:#001f3f; overflow:hidden; }
-    #map { height:100vh; width:100%; }
 
-    .filter-container {
-      position:absolute; top:20px; left:50%; transform:translateX(-50%);
-      display:flex; align-items:center; gap:15px; background:rgba(2,28,60,0.95); color:white;
-      padding:10px 25px; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.4); z-index:1000;
-      backdrop-filter:blur(5px); opacity:0; animation:fadeIn 1s ease forwards; transition:opacity 0.5s ease;
+  <style>
+    body {
+      font-family: Poppins, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #001f3f;
+      overflow: hidden;
     }
 
-    @keyframes fadeIn { from{opacity:0; transform:translate(-50%,-10px);} to{opacity:1; transform:translate(-50%,0);} }
-    .filter-container.inactive { opacity:0.4; }
-    .filter-container label { font-weight:bold; font-size:14px; }
-    .filter-container select, .filter-container input[type="checkbox"] { margin-left:5px; padding:6px; border-radius:6px; border:none; outline:none; font-size:14px; }
-    select { background-color:#fff; color:#000; }
-    #themeSwitch, #carParkBtn { cursor:pointer; font-weight:bold; border:none; padding:8px 16px; border-radius:8px; background:#0074D9; color:white; transition:background 0.3s ease; }
-    #themeSwitch:hover, #carParkBtn:hover { background-color:#005fa3; }
-    #carParkBtn { margin-left:10px; }
+    #map {
+      height: 100vh;
+      width: 100%;
+    }
 
-    .pin-wrapper { display:flex; flex-direction:column; align-items:center; position:relative; }
-    .pin-circle { width:36px; height:36px; border-radius:50%; overflow:hidden; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(0,0,0,0.4); border:3px solid;}
-    .pin-circle img { width:70%; height:70%; object-fit:cover; border-radius:50%; }
-    .pin-tail { width:0; height:0; border-left:8px solid transparent; border-right:8px solid transparent; border-top:12px solid; margin-top:-2px; }
-    .pin-mtf { background:linear-gradient(90deg,#001f3f 50%,#8B0000 50%); border:3px solid #001f3f; }
+    /* === Meny midt på skjermen === */
+    .filter-container {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      background-color: rgba(2, 28, 60, 0.95);
+      color: white;
+      padding: 10px 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+      z-index: 1000;
+      backdrop-filter: blur(5px);
+      opacity: 0;
+      animation: fadeIn 1s ease forwards;
+      transition: opacity 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translate(-50%, -10px); }
+      to { opacity: 1; transform: translate(-50%, 0); }
+    }
+
+    .filter-container.inactive { opacity: 0.4; }
+
+    .filter-container label { font-weight: bold; font-size: 14px; }
+    .filter-container select,
+    .filter-container input[type="checkbox"] { margin-left: 5px; padding: 6px; border-radius: 6px; border: none; outline: none; font-size: 14px; }
+    select { background-color: #fff; color: #000; }
+
+    #themeSwitch {
+      cursor: pointer;
+      font-weight: bold;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      background-color: #0074D9;
+      color: white;
+      transition: background-color 0.3s ease;
+    }
+
+    #themeSwitch:hover { background-color: #005fa3; }
+
+    #carParkButton {
+      cursor: pointer;
+      font-weight: bold;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      background-color: #FFDC00;
+      color: #001f3f;
+      margin-left: 10px;
+      text-decoration: none;
+    }
+
+    /* === Pin-stil === */
+    .custom-pin {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 2px solid #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+    }
+
+    .custom-pin img {
+      width: 60%;
+      height: 60%;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .custom-pin::after {
+      content: "";
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%) rotate(45deg);
+      width: 12px;
+      height: 12px;
+      background-color: currentColor;
+      border-left: 2px solid #fff;
+      border-bottom: 2px solid #fff;
+      z-index: -1;
+    }
   </style>
 </head>
+
 <body>
   <div class="filter-container" id="menu">
     <label for="company-filter">Selskap:</label>
@@ -41,90 +124,147 @@
       <option value="Blå Kurér">Blå Kurér</option>
       <option value="TS Oslo Budtjenester">TS Oslo Budtjenester</option>
     </select>
-    <label><input type="checkbox" id="activeToday" checked> Aktive i dag</label>
+
+    <label>
+      <input type="checkbox" id="activeToday" checked> Aktive i dag
+    </label>
+
     <button id="themeSwitch">🌙 Mørk modus</button>
-    <button id="carParkBtn" onclick="window.location.href='cars.html'">Se bilpark</button>
+    <a id="carParkButton" href="cars.html">Se bilpark</a>
   </div>
 
   <div id="map"></div>
 
   <script>
-    let map; let markers=[]; let darkMode=true; let inactivityTimer;
+    let map;
+    let markers = [];
+    let darkMode = true;
+    let inactivityTimer;
+
     const darkStyle = [
-      { elementType:"geometry", stylers:[{color:"#1d2c4d"}]},
-      { elementType:"labels.text.fill", stylers:[{color:"#8ec3b9"}]},
-      { elementType:"labels.text.stroke", stylers:[{color:"#1a3646"}]},
-      { featureType:"water", elementType:"geometry", stylers:[{color:"#0e1626"}]},
-      { featureType:"water", elementType:"labels.text.fill", stylers:[{color:"#4e6d70"}]},
-      { featureType:"road", elementType:"geometry", stylers:[{color:"#304a7d"}]},
-      { featureType:"road.highway", elementType:"geometry", stylers:[{color:"#2c6675"}]},
-      { featureType:"poi", elementType:"geometry", stylers:[{color:"#283d6a"}]},
-      { featureType:"landscape.natural", elementType:"geometry", stylers:[{color:"#023e58"}]}
+      { elementType: "geometry", stylers: [{ color: "#1d2c4d" }] },
+      { elementType: "labels.text.fill", stylers: [{ color: "#8ec3b9" }] },
+      { elementType: "labels.text.stroke", stylers: [{ color: "#1a3646" }] },
+      { featureType: "water", elementType: "geometry", stylers: [{ color: "#0e1626" }] },
+      { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#4e6d70" }] },
+      { featureType: "road", elementType: "geometry", stylers: [{ color: "#304a7d" }] },
+      { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#2c6675" }] },
+      { featureType: "poi", elementType: "geometry", stylers: [{ color: "#283d6a" }] },
+      { featureType: "landscape.natural", elementType: "geometry", stylers: [{ color: "#023e58" }] }
     ];
+
+    const companyColors = {
+      "Transportsentralen Oslo": "#001f3f",
+      "Blå Kurér": "#FFD700",
+      "Moss Transportforum": "linear-gradient(45deg, #00008b 50%, #8b0000 50%)",
+      "TS Oslo Budtjenester": "#004080"
+    };
 
     function initMap() {
       map = new google.maps.Map(document.getElementById("map"), {
-        center:{lat:59.9139,lng:10.7522}, zoom:10, styles:darkMode?darkStyle:[], mapTypeControl:false, fullscreenControl:true
+        center: { lat: 59.9139, lng: 10.7522 },
+        zoom: 10,
+        styles: darkMode ? darkStyle : [],
+        mapTypeControl: false,
+        fullscreenControl: true
       });
 
-      document.getElementById("themeSwitch").addEventListener("click",()=>{
-        darkMode=!darkMode; map.setOptions({styles:darkMode?darkStyle:[]});
-        document.getElementById("themeSwitch").textContent = darkMode?"🌙 Mørk modus":"☀️ Lys modus";
+      document.getElementById("themeSwitch").addEventListener("click", () => {
+        darkMode = !darkMode;
+        map.setOptions({ styles: darkMode ? darkStyle : [] });
+        document.getElementById("themeSwitch").textContent =
+          darkMode ? "🌙 Mørk modus" : "☀️ Lys modus";
       });
 
-      const menu=document.getElementById("menu");
-      const resetInactivity=()=>{ menu.classList.remove("inactive"); clearTimeout(inactivityTimer); inactivityTimer=setTimeout(()=>menu.classList.add("inactive"),4000); };
-      document.addEventListener("mousemove",resetInactivity);
-      document.addEventListener("click",resetInactivity);
+      const menu = document.getElementById("menu");
+      const resetInactivity = () => {
+        menu.classList.remove("inactive");
+        clearTimeout(inactivityTimer);
+        inactivityTimer = setTimeout(() => menu.classList.add("inactive"), 4000);
+      };
+      document.addEventListener("mousemove", resetInactivity);
+      document.addEventListener("click", resetInactivity);
       resetInactivity();
 
       loadPositions();
-      document.getElementById("company-filter").addEventListener("change",loadPositions);
-      document.getElementById("activeToday").addEventListener("change",loadPositions);
-      setInterval(loadPositions,10000);
+      document.getElementById("company-filter").addEventListener("change", loadPositions);
+      document.getElementById("activeToday").addEventListener("change", loadPositions);
+      setInterval(loadPositions, 10000);
     }
 
-    function createPin(vehicle){
-      const wrapper=document.createElement("div"); wrapper.className="pin-wrapper";
-      const circle=document.createElement("div"); circle.className="pin-circle"; const tail=document.createElement("div"); tail.className="pin-tail";
-
-      switch(vehicle.company){
-        case "Transportsentralen Oslo": circle.style.backgroundColor="white"; circle.style.borderColor="#001f3f"; tail.style.borderTopColor="#001f3f"; break;
-        case "Blå Kurér": circle.style.backgroundColor="#FFD700"; circle.style.borderColor="#001f3f"; tail.style.borderTopColor="#001f3f"; break;
-        case "Moss Transportforum": circle.className="pin-circle pin-mtf"; tail.style.borderTopColor="#001f3f"; break;
-        case "TS Oslo Budtjenester": circle.style.backgroundColor="#001f3f"; circle.style.borderColor="#fff"; tail.style.borderTopColor="#fff"; break;
+    function createCustomPin(vehicle) {
+      const div = document.createElement("div");
+      div.className = "custom-pin";
+      const color = companyColors[vehicle.company] || "#888";
+      if (color.startsWith("linear-gradient")) {
+        div.style.background = color;
+      } else {
+        div.style.backgroundColor = color;
       }
-
-      const img=document.createElement("img"); img.src=vehicle.logo; circle.appendChild(img);
-      wrapper.appendChild(circle); wrapper.appendChild(tail);
-      return wrapper;
+      div.innerHTML = `<img src="${vehicle.logo}" alt="Logo">`;
+      return div;
     }
 
-    function formatTimestamp(timestamp){ if(!timestamp) return "Ukjent tid"; const date=new Date(timestamp); return date.toLocaleTimeString('no-NO',{hour:'2-digit',minute:'2-digit'}); }
+    function formatTimestamp(timestamp) {
+      if (!timestamp) return "Ukjent tid";
+      const date = new Date(timestamp);
+      return date.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' });
+    }
 
-    async function loadPositions(){
-      try{
-        const response=await fetch('/api/positions');
-        const data=await response.json();
-        const activeToday=document.getElementById('activeToday').checked;
-        const selectedCompany=document.getElementById('company-filter').value;
+    async function loadPositions() {
+      try {
+        const response = await fetch('/api/positions');
+        const data = await response.json();
 
-        const filteredData=data.filter(v=>{ const matchesCompany=selectedCompany==='all'||v.company===selectedCompany; const isActiveToday=!activeToday||v.isActiveToday; return matchesCompany&&isActiveToday&&v.isParticipant; });
+        const activeToday = document.getElementById('activeToday').checked;
+        const selectedCompany = document.getElementById('company-filter').value;
 
-        markers.forEach(m=>m.setMap(null)); markers=[];
-        filteredData.forEach(v=>{
-          if(v.latitude&&v.longitude){
-            const pinEl=createPin(v);
-            const marker=new google.maps.marker.AdvancedMarkerElement({map,position:{lat:v.latitude,lng:v.longitude},content:pinEl});
-            const infoWindow=new google.maps.InfoWindow({content:`<b>Navn:</b>${v.name}<br><b>Type:</b>${v.type}<br><b>Palleplasser:</b>${v.palleplasser}<br><b>Klokkeslett:</b>${formatTimestamp(v.time)}<br><b>Selskap:</b>${v.company}`});
-            pinEl.addEventListener("click",()=>infoWindow.open(map,marker));
+        const filteredData = data.filter(vehicle => {
+          const matchesCompany = selectedCompany === 'all' || vehicle.company === selectedCompany;
+          const isActiveToday = !activeToday || vehicle.isActiveToday;
+          const isParticipant = vehicle.isParticipant;
+          return matchesCompany && isActiveToday && isParticipant;
+        });
+
+        markers.forEach(marker => marker.setMap(null));
+        markers = [];
+
+        filteredData.forEach(vehicle => {
+          if (vehicle.latitude && vehicle.longitude) {
+            const markerEl = createCustomPin(vehicle);
+
+            const marker = new google.maps.marker.AdvancedMarkerElement({
+              map,
+              position: { lat: vehicle.latitude, lng: vehicle.longitude },
+              content: markerEl
+            });
+
+            const infoWindow = new google.maps.InfoWindow({
+              content: `
+                <b>Navn:</b> ${vehicle.name}<br>
+                <b>Type:</b> ${vehicle.type}<br>
+                <b>Palleplasser:</b> ${vehicle.palleplasser}<br>
+                <b>Klokkeslett:</b> ${formatTimestamp(vehicle.time)}<br>
+                <b>Selskap:</b> ${vehicle.company}
+              `
+            });
+
+            markerEl.addEventListener("click", () => {
+              infoWindow.open(map, marker);
+            });
+
             markers.push(marker);
           }
         });
-      }catch(e){ console.error('Error loading positions:',e); }
+      } catch (error) {
+        console.error('Error loading positions:', error);
+      }
     }
   </script>
 
-  <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBtSvAG_uN9QBI0Fi_GOJVIyAjd1JlMvNg&callback=initMap&v=beta"></script>
+  <!-- Google Maps JS API Beta for AdvancedMarkerElement -->
+  <script async
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBtSvAG_uN9QBI0Fi_GOJVIyAjd1JlMvNg&callback=initMap&v=beta">
+  </script>
 </body>
 </html>
