@@ -11,6 +11,7 @@
       margin: 0;
       padding: 0;
       background-color: #001f3f;
+      overflow: hidden;
     }
 
     #map {
@@ -18,7 +19,7 @@
       width: 100%;
     }
 
-    /* Meny-stil */
+    /* 🎨 Meny-stil */
     .filter-container {
       position: absolute;
       top: 20px;
@@ -34,7 +35,21 @@
       border-radius: 12px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.4);
       z-index: 1000;
-      backdrop-filter: blur(4px);
+      backdrop-filter: blur(5px);
+      opacity: 0;
+      animation: fadeIn 1s ease forwards;
+      transition: opacity 0.5s ease;
+    }
+
+    /* 🕓 Fade inn ved last */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translate(-50%, -10px); }
+      to { opacity: 1; transform: translate(-50%, 0); }
+    }
+
+    /* 🌫️ Reduser synlighet etter inaktivitet */
+    .filter-container.inactive {
+      opacity: 0.4;
     }
 
     .filter-container label {
@@ -72,6 +87,7 @@
       background-color: #005fa3;
     }
 
+    /* 📍 Tilpasset markør */
     .custom-pin {
       position: relative;
       text-align: center;
@@ -102,7 +118,7 @@
 </head>
 
 <body>
-  <div class="filter-container">
+  <div class="filter-container" id="menu">
     <label for="company-filter">Selskap:</label>
     <select id="company-filter">
       <option value="all">Alle</option>
@@ -125,6 +141,7 @@
     let map;
     let markers = [];
     let darkMode = true;
+    let inactivityTimer;
 
     const darkStyle = [
       { elementType: "geometry", stylers: [{ color: "#1d2c4d" }] },
@@ -152,6 +169,17 @@
         document.getElementById("themeSwitch").textContent =
           darkMode ? "🌙 Mørk modus" : "☀️ Lys modus";
       });
+
+      // Aktivitetssporing for menyens transparens
+      const menu = document.getElementById("menu");
+      const resetInactivity = () => {
+        menu.classList.remove("inactive");
+        clearTimeout(inactivityTimer);
+        inactivityTimer = setTimeout(() => menu.classList.add("inactive"), 4000);
+      };
+      document.addEventListener("mousemove", resetInactivity);
+      document.addEventListener("click", resetInactivity);
+      resetInactivity();
 
       loadPositions();
       document.getElementById("company-filter").addEventListener("change", loadPositions);
@@ -229,6 +257,8 @@
   </script>
 
   <!-- Google Maps JS API -->
-  <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBtSvAG_uN9QBI0Fi_GOJVIyAjd1JlMvNg&callback=initMap"></script>
+  <script async
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBtSvAG_uN9QBI0Fi_GOJVIyAjd1JlMvNg&callback=initMap">
+  </script>
 </body>
 </html>
