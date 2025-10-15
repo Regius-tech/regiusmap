@@ -5,57 +5,78 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Triflex Kart</title>
 
-  <!-- (CSS fra Leaflet beholdt, men ikke brukt – kan trygt fjernes hvis ønsket) -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-  <link rel="stylesheet" href="https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/leaflet.fullscreen.css" />
-
   <style>
     body {
       font-family: Poppins, sans-serif;
       margin: 0;
       padding: 0;
+      background-color: #001f3f;
     }
+
     #map {
-      height: calc(100vh - 100px);
+      height: 100vh;
       width: 100%;
     }
-    .header-container {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 20px;
-      background-color: #0a0000;
-      color: white;
-    }
-    .header-logo {
-      height: 50px;
-    }
-    .button-container a {
-      display: inline-block;
-      padding: 10px 20px;
-      background-color: #FFFFFF;
-      color: black;
-      text-decoration: none;
-      border-radius: 5px;
-      font-weight: bold;
-    }
+
+    /* Meny-stil */
     .filter-container {
-      padding: 10px;
-      background-color: #f9f9f9;
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
       display: flex;
-      justify-content: center;
       align-items: center;
-      flex-wrap: wrap;
+      justify-content: center;
       gap: 20px;
+      background-color: rgba(2, 28, 60, 0.95);
+      color: white;
+      padding: 10px 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+      z-index: 1000;
+      backdrop-filter: blur(4px);
     }
+
     .filter-container label {
-      margin-right: 10px;
       font-weight: bold;
+      font-size: 14px;
     }
+
+    .filter-container select,
+    .filter-container input[type="checkbox"] {
+      margin-left: 5px;
+      padding: 6px;
+      border-radius: 6px;
+      border: none;
+      outline: none;
+      font-size: 14px;
+    }
+
+    select {
+      background-color: #fff;
+      color: #000;
+    }
+
+    #themeSwitch {
+      cursor: pointer;
+      font-weight: bold;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      background-color: #0074D9;
+      color: white;
+      transition: background-color 0.3s ease;
+    }
+
+    #themeSwitch:hover {
+      background-color: #005fa3;
+    }
+
     .custom-pin {
       position: relative;
       text-align: center;
     }
+
     .custom-pin .pin-logo {
       background-color: white;
       border-radius: 50%;
@@ -64,40 +85,25 @@
       overflow: hidden;
       border: 2px solid #072D60;
     }
+
     .custom-pin .pin-logo img {
       width: 100%;
       height: 100%;
       object-fit: cover;
     }
+
     .custom-pin .pin-line {
       width: 2px;
       height: 20px;
       background-color: #014f8a;
       margin: 0 auto;
     }
-    #themeSwitch {
-      cursor: pointer;
-      font-weight: bold;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 5px;
-      background-color: #014f8a;
-      color: white;
-    }
   </style>
 </head>
 
 <body>
-  <div class="header-container">
-    <img src="/skriftlex.png" alt="Triflex Logo" class="header-logo">
-    <img src="/triflex-logo.png" alt="Triflex Logo" class="header-logo">
-    <div class="button-container">
-      <a href="cars.html">Se bilpark</a>
-    </div>
-  </div>
-
   <div class="filter-container">
-    <label for="company-filter">Filtrer etter selskap:</label>
+    <label for="company-filter">Selskap:</label>
     <select id="company-filter">
       <option value="all">Alle</option>
       <option value="Transportsentralen Oslo">Transportsentralen Oslo</option>
@@ -105,9 +111,11 @@
       <option value="Blå Kurér">Blå Kurér</option>
       <option value="TS Oslo Budtjenester">TS Oslo Budtjenester</option>
     </select>
+
     <label>
-      <input type="checkbox" id="activeToday" checked> Kun aktive i dag
+      <input type="checkbox" id="activeToday" checked> Aktive i dag
     </label>
+
     <button id="themeSwitch">🌙 Mørk modus</button>
   </div>
 
@@ -123,7 +131,6 @@
       { elementType: "labels.text.fill", stylers: [{ color: "#8ec3b9" }] },
       { elementType: "labels.text.stroke", stylers: [{ color: "#1a3646" }] },
       { featureType: "water", elementType: "geometry", stylers: [{ color: "#0e1626" }] },
-      { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#4e6d70" }] },
       { featureType: "road", elementType: "geometry", stylers: [{ color: "#304a7d" }] },
       { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#2c6675" }] },
       { featureType: "poi", elementType: "geometry", stylers: [{ color: "#283d6a" }] },
@@ -142,7 +149,8 @@
       document.getElementById("themeSwitch").addEventListener("click", () => {
         darkMode = !darkMode;
         map.setOptions({ styles: darkMode ? darkStyle : [] });
-        document.getElementById("themeSwitch").textContent = darkMode ? "🌙 Mørk modus" : "☀️ Lys modus";
+        document.getElementById("themeSwitch").textContent =
+          darkMode ? "🌙 Mørk modus" : "☀️ Lys modus";
       });
 
       loadPositions();
@@ -221,7 +229,6 @@
   </script>
 
   <!-- Google Maps JS API -->
-  <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBtSvAG_uN9QBI0Fi_GOJVIyAjd1JlMvNg&callback=initMap">
-  </script>
+  <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBtSvAG_uN9QBI0Fi_GOJVIyAjd1JlMvNg&callback=initMap"></script>
 </body>
 </html>
