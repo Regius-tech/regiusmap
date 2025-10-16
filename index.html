@@ -19,7 +19,6 @@
       width: 100%;
     }
 
-    /* === Meny midt på skjermen === */
     .filter-container {
       position: absolute;
       top: 20px;
@@ -77,40 +76,6 @@
       margin-left: 10px;
       text-decoration: none;
     }
-
-    /* === Pin-stil === */
-    .custom-pin {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      border: 2px solid #fff;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      position: relative;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.5);
-    }
-
-    .custom-pin img {
-      width: 60%;
-      height: 60%;
-      border-radius: 50%;
-      object-fit: cover;
-    }
-
-    .custom-pin::after {
-      content: "";
-      position: absolute;
-      bottom: -10px;
-      left: 50%;
-      transform: translateX(-50%) rotate(45deg);
-      width: 12px;
-      height: 12px;
-      background-color: currentColor;
-      border-left: 2px solid #fff;
-      border-bottom: 2px solid #fff;
-      z-index: -1;
-    }
   </style>
 </head>
 
@@ -156,7 +121,7 @@
     const companyColors = {
       "Transportsentralen Oslo": "#001f3f",
       "Blå Kurér": "#FFD700",
-      "Moss Transportforum": "linear-gradient(45deg, #00008b 50%, #8b0000 50%)",
+      "Moss Transportforum": ["#00008b", "#8b0000"], // gradient stil i canvas
       "TS Oslo Budtjenester": "#004080"
     };
 
@@ -192,23 +157,57 @@
       setInterval(loadPositions, 10000);
     }
 
-    function createCustomPin(vehicle) {
-      const div = document.createElement("div");
-      div.className = "custom-pin";
-      const color = companyColors[vehicle.company] || "#888";
-      if (color.startsWith("linear-gradient")) {
-        div.style.background = color;
-      } else {
-        div.style.backgroundColor = color;
-      }
-      div.innerHTML = `<img src="${vehicle.logo}" alt="Logo">`;
-      return div;
-    }
-
     function formatTimestamp(timestamp) {
       if (!timestamp) return "Ukjent tid";
       const date = new Date(timestamp);
       return date.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function createPinDataURL(vehicle) {
+      const canvas = document.createElement("canvas");
+      canvas.width = 60;
+      canvas.height = 70;
+      const ctx = canvas.getContext("2d");
+
+      // Farge for selskap
+      const color = companyColors[vehicle.company] || "#888";
+
+      // Tegn pil
+      ctx.fillStyle = Array.isArray(color) ? color[0] : color;
+      ctx.beginPath();
+      ctx.moveTo(30, 70);
+      ctx.lineTo(20, 50);
+      ctx.lineTo(40, 50);
+      ctx.closePath();
+      ctx.fill();
+
+      // Tegn sirkel
+      const gradient = Array.isArray(color) ? ctx.createLinearGradient(0,0,60,0) : null;
+      if(Array.isArray(color)) {
+        gradient.addColorStop(0,color[0]);
+        gradient.addColorStop(1,color[1]);
+        ctx.fillStyle = gradient;
+      } else {
+        ctx.fillStyle = color;
+      }
+      ctx.beginPath();
+      ctx.arc(30, 30, 20, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Tegn logo i sirkel
+      const img = new Image();
+      img.src = vehicle.logo;
+      img.onload = () => {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(30, 30, 18, 0, Math.PI*2);
+        ctx.closePath();
+        ctx.clip();
+        ctx.drawImage(img, 12, 12, 36, 36);
+        ctx.restore();
+      }
+
+      return canvas.toDataURL();
     }
 
     async function loadPositions() {
@@ -222,21 +221,22 @@
         const filteredData = data.filter(vehicle => {
           const matchesCompany = selectedCompany === 'all' || vehicle.company === selectedCompany;
           const isActiveToday = !activeToday || vehicle.isActiveToday;
-          const isParticipant = vehicle.isParticipant;
-          return matchesCompany && isActiveToday && isParticipant;
+          return matchesCompany && isActiveToday && vehicle.isParticipant;
         });
 
         markers.forEach(marker => marker.setMap(null));
         markers = [];
 
         filteredData.forEach(vehicle => {
-          if (vehicle.latitude && vehicle.longitude) {
-            const markerEl = createCustomPin(vehicle);
-
-            const marker = new google.maps.marker.AdvancedMarkerElement({
+          if(vehicle.latitude && vehicle.longitude) {
+            const marker = new google.maps.Marker({
               map,
               position: { lat: vehicle.latitude, lng: vehicle.longitude },
-              content: markerEl
+              icon: {
+                url: createPinDataURL(vehicle),
+                scaledSize: new google.maps.Size(40, 50)
+              },
+              title: vehicle.name
             });
 
             const infoWindow = new google.maps.InfoWindow({
@@ -245,26 +245,22 @@
                 <b>Type:</b> ${vehicle.type}<br>
                 <b>Palleplasser:</b> ${vehicle.palleplasser}<br>
                 <b>Klokkeslett:</b> ${formatTimestamp(vehicle.time)}<br>
-                <b>Selskap:</b> ${vehicle.company}
-              `
+                <b>Selskap:</b> ${vehicle.company}`
             });
 
-            markerEl.addEventListener("click", () => {
-              infoWindow.open(map, marker);
-            });
-
+            marker.addListener('click', () => infoWindow.open(map, marker));
             markers.push(marker);
           }
         });
+
       } catch (error) {
         console.error('Error loading positions:', error);
       }
     }
   </script>
 
-  <!-- Google Maps JS API Beta for AdvancedMarkerElement -->
   <script async
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBtSvAG_uN9QBI0Fi_GOJVIyAjd1JlMvNg&callback=initMap&v=beta">
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBtSvAG_uN9QBI0Fi_GOJVIyAjd1JlMvNg&callback=initMap">
   </script>
 </body>
 </html>
