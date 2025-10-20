@@ -58,22 +58,27 @@ const loginBtn = document.getElementById('loginBtn');
 const errorMsg = document.getElementById('errorMsg');
 const forgotPass = document.getElementById('forgotPass');
 
-// Hent selskaper fra Firebase
 async function loadCompanies() {
   let companies = [];
 
   // Først prøv 'companies' noden
   const snapshot = await get(ref(db, 'companies'));
+  console.log('Companies node snapshot:', snapshot.val());
   if(snapshot.exists()) {
     const data = snapshot.val();
     companies = Object.keys(data).map(key => data[key].name);
   } else {
     // Fallback: hent unike selskaper fra bilposisjoner
     const posSnapshot = await get(ref(db, 'positions'));
+    console.log('Positions snapshot:', posSnapshot.val());
     if(posSnapshot.exists()) {
       const vehicles = Object.values(posSnapshot.val());
       companies = [...new Set(vehicles.map(v => v.company).filter(Boolean))];
     }
+  }
+
+  if(companies.length === 0) {
+    companies.push("Standard selskap");
   }
 
   companies.forEach(name => {
@@ -135,4 +140,3 @@ forgotPass.addEventListener('click', async () => {
 </script>
 </body>
 </html>
-
