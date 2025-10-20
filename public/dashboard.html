@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Triflex Bilpark</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<style>
+body { margin:0; font-family:Poppins,sans-serif; background:#001f3f; color:white; }
+.container {
+  max-width:1200px;
+  margin:40px auto;
+  padding:0 20px;
+}
+h1 { text-align:center; margin-bottom:30px; font-size:2em; }
+.grid-container {
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap:20px;
+}
+.car-card {
+  background: rgba(2,28,60,0.95);
+  border-radius:12px;
+  padding:20px;
+  box-shadow:0 4px 15px rgba(0,0,0,0.5);
+  text-align:center;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+.car-card:hover { transform:translateY(-5px); box-shadow:0 8px 25px rgba(0,0,0,0.7); }
+.car-card img { max-width:100px; margin-bottom:15px; border-radius:50%; }
+.car-card h3 { margin:10px 0 5px; }
+.car-card p { margin:5px 0; font-size:14px; color:#cfcfcf; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Triflex Bilpark</h1>
+  <div class="grid-container" id="carGrid"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCKqwpql2Yl0kbpUIPrQUYyVd7m1OeH-D8",
+  authDomain: "triflex-a08c7.firebaseapp.com",
+  projectId: "triflex-a08c7",
+  storageBucket: "triflex-a08c7.firebasestorage.app",
+  messagingSenderId: "835381689765",
+  appId: "1:835381689765:web:e0be4b22e5f35ca1e0bc4c",
+  measurementId: "G-0WJP4SRVYK",
+  databaseURL: "https://triflex-a08c7-default-rtdb.europe-west1.firebasedatabase.app"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const auth = getAuth(app);
+
+// login-sjekk
+onAuthStateChanged(auth,user=>{
+  if(!user) window.location.href="login.html";
+});
+
+// hent biler fra Firebase
+async function loadCars() {
+  const snapshot = await get(ref(db,"positions"));
+  if(!snapshot.exists()) return;
+  const cars = Object.values(snapshot.val());
+  const grid = document.getElementById("carGrid");
+  grid.innerHTML="";
+  cars.forEach(car=>{
+    const card=document.createElement("div");
+    card.className="car-card";
+    card.innerHTML=`
+      <img src="${car.logo}" alt="${car.name}">
+      <h3>${car.name}</h3>
+      <p>Type: ${car.type}</p>
+      <p>Palleplasser: ${car.palleplasser}</p>
+      <p>Selskap: ${car.company}</p>
+    `;
+    grid.appendChild(card);
+  });
+}
+loadCars();
+</script>
+
+</body>
+</html>

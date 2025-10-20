@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Triflex Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<style>
+body { margin:0; font-family:Poppins,sans-serif; background:#001f3f; color:white; }
+.container {
+  max-width:1000px;
+  margin:40px auto;
+  padding:0 20px;
+}
+h1 { text-align:center; margin-bottom:30px; font-size:2em; }
+form { background: rgba(2,28,60,0.95); padding:20px; border-radius:12px; margin-bottom:30px; box-shadow:0 4px 15px rgba(0,0,0,0.5); }
+form input, form select { width:100%; padding:10px; margin:10px 0; border-radius:8px; border:none; }
+form button { padding:12px; border:none; border-radius:8px; background:#0074D9; color:white; font-weight:bold; cursor:pointer; transition:0.3s; }
+form button:hover { background:#005fa3; }
+.grid-container {
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap:20px;
+}
+.car-card {
+  background: rgba(2,28,60,0.95);
+  border-radius:12px;
+  padding:20px;
+  box-shadow:0 4px 15px rgba(0,0,0,0.5);
+  transition: transform 0.3s;
+}
+.car-card:hover { transform:translateY(-5px); }
+.car-card h3 { margin:0; margin-bottom:5px; }
+.car-card p { margin:5px 0; font-size:14px; color:#cfcfcf; }
+.delete-btn { background:#FF4136; color:white; padding:6px 12px; border:none; border-radius:6px; cursor:pointer; margin-top:5px; }
+.delete-btn:hover { background:#a33228; }
+</style>
+</head>
+<body>
+
+<div class="container">
+<h1>Triflex Admin</h1>
+
+<form id="carForm">
+  <input type="hidden" id="carId">
+  <input type="text" id="name" placeholder="Navn" required>
+  <input type="text" id="type" placeholder="Type" required>
+  <input type="number" id="palleplasser" placeholder="Palleplasser" required>
+  <input type="text" id="latitude" placeholder="Latitude" required>
+  <input type="text" id="longitude" placeholder="Longitude" required>
+  <input type="text" id="company" placeholder="Selskap" required>
+  <input type="text" id="logo" placeholder="Logo URL" required>
+  <label><input type="checkbox" id="isActiveToday" checked> Aktiv i dag</label>
+  <label><input type="checkbox" id="isParticipant" checked> Deltaker</label>
+  <button type="submit">Lagre bil</button>
+</form>
+
+<div class="grid-container" id="adminGrid"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getDatabase, ref, set, get, remove, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCKqwpql2Yl0kbpUIPrQUYyVd7m1OeH-D8",
+  authDomain: "triflex-a08c7.firebaseapp.com",
+  projectId: "triflex-a08c7",
+  storageBucket: "triflex-a08c7.firebasestorage.app",
+  messagingSenderId: "835381689765",
+  appId: "1:835381689765:web:e0be4b22e5f35ca1e0bc4c",
+  measurementId: "G-0WJP4SRVYK",
+  databaseURL: "https://triflex-a08c7-default-rtdb.europe-west1.firebasedatabase.app"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const auth = getAuth(app);
+
+// login-sjekk
+onAuthStateChanged(auth,user=>{
+  if(!user) window.location.href="login.html";
+});
+
+// hent alle biler og vis i admin grid
+async function loadAdminCars() {
+  const snapshot = await get(ref(db,"positions"));
+  if(!snapshot.exists()) return;
+  const cars = snapshot.val();
+  const grid = document.getElementById("adminGrid");
+  grid.innerHTML="";
+  Object.keys(cars).forEach(id=>{
+    const car=cars[id];
+    const card=document.createElement("div");
+    card.className="car-card";
+    card.innerHTML=`
+      <h3>${car.name}</h3>
+      <p>Type: ${car.type}</p>
+      <p>Palleplasser: ${car.palleplasser}</p>
+      <p>Selskap: ${car.company}</p>
+      <p>Lat: ${car.latitude}, Lng: ${car.longitude}</p>
+      <button class="delete-btn" onclick="deleteCar('${id}')">Slett</button>
+    `;
+    card.addEventListener('click', ()=> fillForm(id, car));
+    grid.appendChild(card);
+  });
+}
+loadAdminCars();
+
+// fyll form for redigering
+function fillForm(id, car) {
+  document.getElementById('carId').value=id;
+  document.getElementById('name').value=car.name;
+  document.getElementById('type').value=car.type;
+  document.getElementById('palleplasser').value=car.palleplasser;
+  document.getElementById('latitude').value=car.latitude;
+  document.getElementById('longitude').value=car.longitude;
+  document.getElementById('company').value=car.company;
+  document.getElementById('logo').value=car.logo;
+  document.getElementById('isActiveToday').checked=car.isActiveToday;
+  document.getElementById('isParticipant').checked=car.isParticipant;
+}
+
+// legg til / oppdater bil
+document.getElementById('carForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const id = document.getElementById('carId').value || Date.now().toString();
+  const carData={
+    name: document.getElementById('name').value,
+    type: document.getElementById('type').value,
+    palleplasser: parseInt(document.getElementById('palleplasser').value),
+    latitude: parseFloat(document.getElementById('latitude').value),
+    longitude: parseFloat(document.getElementById('longitude').value),
+    company: document.getElementById('company').value,
+    logo: document.getElementById('logo').value,
+    isActiveToday: document.getElementById('isActiveToday').checked,
+    isParticipant: document.getElementById('isParticipant').checked
+  };
+  await set(ref(db, "positions/"+id), carData);
+  e.target.reset();
+  loadAdminCars();
+});
+
+// slett bil
+window.deleteCar = async function(id){
+  if(confirm("Er du sikker på at du vil slette denne bilen?")) {
+    await remove(ref(db,"positions/"+id));
+    loadAdminCars();
+  }
+}
+</script>
+
+</body>
+</html>

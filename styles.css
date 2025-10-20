@@ -1,3 +1,4 @@
+/* === Base === */
 body {
     font-family: Arial, sans-serif;
     margin: 20px;
@@ -5,10 +6,76 @@ body {
     background-color: #f4f4f4;
 }
 
-h1 {
+h1, h2 {
     color: #333;
 }
 
+/* === Container === */
+.container {
+    max-width: 500px;
+    margin: 40px auto;
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+/* === Form input === */
+input {
+    width: 90%;
+    padding: 10px;
+    margin: 8px 0;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+}
+
+button {
+    background: #0066ff;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+button:hover {
+    background: #0052cc;
+}
+
+/* === Dashboard buttons === */
+.button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+/* === Admin form === */
+.form-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+/* === Car list for admin === */
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+li {
+    background: #f0f0f0;
+    margin: 5px 0;
+    padding: 10px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* === Grid for car cards === */
 .grid-container {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -26,4 +93,19 @@ h1 {
 .car-card img {
     max-width: 100px;
     margin-bottom: 10px;
+}
+
+/* === Error message === */
+#errorMsg {
+    color: red;
+    margin-top: 10px;
+}
+
+/* === Logout button === */
+#logout {
+    background: #ff4d4d;
+}
+
+#logout:hover {
+    background: #cc0000;
 }
