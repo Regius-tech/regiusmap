@@ -7,68 +7,82 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-  body { margin:0; font-family:Poppins,sans-serif; background:#001f3f; color:white; }
-  .container { max-width:1200px; margin:40px auto; padding:0 20px; }
-  h1 { text-align:center; margin-bottom:20px; font-size:2em; }
-  .stats { display:flex; justify-content:space-around; margin-bottom:30px; }
-  .stat-card { background:rgba(2,28,60,0.95); padding:20px; border-radius:12px; text-align:center; flex:1; margin:0 10px; box-shadow:0 4px 15px rgba(0,0,0,0.5); }
-  .stat-card h2 { margin:0; font-size:2em; }
-  form { background: rgba(2,28,60,0.95); padding:20px; border-radius:12px; margin-bottom:30px; box-shadow:0 4px 15px rgba(0,0,0,0.5); }
-  form input, form select { width:100%; padding:10px; margin:10px 0; border-radius:8px; border:none; background:#023060; color:white; }
-  form input::placeholder { color:#cfcfcf; }
-  form button { padding:12px; border:none; border-radius:8px; background:#0074D9; color:white; font-weight:bold; cursor:pointer; transition:0.3s; }
-  form button:hover { background:#005fa3; }
-  .grid-container { display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:20px; }
-  .car-card { background: rgba(2,28,60,0.95); border-radius:12px; padding:20px; box-shadow:0 4px 15px rgba(0,0,0,0.5); transition: transform 0.3s; cursor:pointer; }
-  .car-card:hover { transform:translateY(-5px); }
-  .car-card h3 { margin:0; margin-bottom:5px; }
-  .car-card p { margin:5px 0; font-size:14px; color:#cfcfcf; }
-  .delete-btn { background:#FF4136; color:white; padding:6px 12px; border:none; border-radius:6px; cursor:pointer; margin-top:5px; }
-  .delete-btn:hover { background:#a33228; }
-  .chart-container { background: rgba(2,28,60,0.95); padding:20px; border-radius:12px; margin-bottom:30px; box-shadow:0 4px 15px rgba(0,0,0,0.5); }
+body { margin:0; font-family:Poppins,sans-serif; background:#001f3f; color:white; }
+.container { max-width:1400px; margin:20px auto; padding:20px; }
+h1,h2 { text-align:center; margin-bottom:20px; }
+.stats-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:20px; margin-bottom:30px; }
+.stat-card { background: rgba(2,28,60,0.95); padding:20px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.5); text-align:center; transition: transform 0.3s; }
+.stat-card:hover { transform:translateY(-5px); }
+.stat-card h3 { font-size:2em; margin:10px 0; }
+.stat-card p { font-size:1em; color:#cfcfcf; }
+.grid-container { display:grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap:20px; }
+.car-card { background: rgba(2,28,60,0.95); border-radius:12px; padding:20px; box-shadow:0 4px 15px rgba(0,0,0,0.5); transition: transform 0.3s; cursor:pointer; }
+.car-card:hover { transform:translateY(-5px); }
+.car-card h3 { margin:0; margin-bottom:5px; }
+.car-card p { margin:5px 0; font-size:14px; color:#cfcfcf; }
+.delete-btn { background:#FF4136; color:white; padding:6px 12px; border:none; border-radius:6px; cursor:pointer; margin-top:5px; }
+.delete-btn:hover { background:#a33228; }
+.edit-btn { background:#0074D9; color:white; padding:6px 12px; border:none; border-radius:6px; cursor:pointer; margin-top:5px; }
+.edit-btn:hover { background:#005fa3; }
+.filter-container { display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:20px; }
+.filter-container select, .filter-container input { padding:10px; border-radius:8px; border:none; background:#023060; color:white; }
+.overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:999; }
+.form-popup { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:rgba(2,28,60,0.95); padding:30px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.7); z-index:1000; max-width:400px; width:90%; }
+.form-popup input, .form-popup select { width:100%; margin:10px 0; padding:10px; border-radius:8px; border:none; }
+.form-popup button { padding:12px; border:none; border-radius:8px; cursor:pointer; }
+.form-popup .save-btn { background:#0074D9; color:white; }
+.form-popup .cancel-btn { background:#FF4136; color:white; margin-left:10px; }
+.chart-container { background: rgba(2,28,60,0.95); padding:20px; border-radius:12px; margin-bottom:30px; box-shadow:0 4px 15px rgba(0,0,0,0.5); }
+table { width:100%; border-collapse: collapse; margin-bottom:40px; }
+th, td { border:1px solid #072D60; padding:10px; text-align:left; }
+th { background:#072D60; cursor:pointer; }
+tr:nth-child(even) { background-color: rgba(255,255,255,0.05); }
+tr:hover { background-color: rgba(255,255,255,0.1); }
 </style>
 </head>
 <body>
+
 <div class="container">
 <h1>Triflex Admin</h1>
 
-<!-- Statistikk -->
-<div class="stats">
-  <div class="stat-card"><h2 id="totalCars">0</h2><p>Totalt biler</p></div>
-  <div class="stat-card"><h2 id="activeCars">0</h2><p>Aktive i dag</p></div>
-  <div class="stat-card"><h2 id="totalPallets">0</h2><p>Palleplasser totalt</p></div>
+<div class="stats-grid" id="statsGrid">
+  <div class="stat-card"><h3 id="totalCars">0</h3><p>Totalt biler</p></div>
+  <div class="stat-card"><h3 id="activeCars">0</h3><p>Aktive biler i dag</p></div>
+  <div class="stat-card"><h3 id="loggedUsers">0</h3><p>Påloggede brukere</p></div>
 </div>
 
-<!-- Diagram -->
-<div class="chart-container">
-  <canvas id="typeChart"></canvas>
+<div class="filter-container">
+  <input type="text" id="searchInput" placeholder="Søk bil...">
+  <select id="companyFilter"><option value="all">Alle selskap</option></select>
+  <select id="typeFilter"><option value="all">Alle typer</option></select>
+  <input type="date" id="dateFilter">
 </div>
 
-<!-- Bilform -->
-<form id="carForm">
-  <input type="hidden" id="carId">
-  <input type="text" id="name" placeholder="Navn" required>
-  <input type="text" id="type" placeholder="Type" required>
-  <input type="number" id="palleplasser" placeholder="Palleplasser" required>
-  <input type="text" id="latitude" placeholder="Latitude" required>
-  <input type="text" id="longitude" placeholder="Longitude" required>
-  <input type="text" id="logo" placeholder="Logo URL" required>
-  <label><input type="checkbox" id="isActiveToday" checked> Aktiv i dag</label>
-  <label><input type="checkbox" id="isParticipant" checked> Deltaker</label>
-  <button type="submit">Lagre bil</button>
-</form>
-
-<!-- Grid -->
 <div class="grid-container" id="adminGrid"></div>
+
+<!-- Redigeringsmodal -->
+<div class="overlay" id="overlay"></div>
+<div class="form-popup" id="editForm">
+  <h2>Rediger bil</h2>
+  <input type="hidden" id="editCarId">
+  <input type="text" id="editName" placeholder="Navn">
+  <input type="text" id="editType" placeholder="Type">
+  <input type="number" id="editPalleplasser" placeholder="Palleplasser">
+  <input type="text" id="editCompany" placeholder="Selskap">
+  <input type="text" id="editLogo" placeholder="Logo URL">
+  <label><input type="checkbox" id="editIsActiveToday"> Aktiv i dag</label>
+  <label><input type="checkbox" id="editIsParticipant"> Deltaker</label>
+  <button class="save-btn" id="saveEditBtn">Lagre</button>
+  <button class="cancel-btn" id="cancelEditBtn">Avbryt</button>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { getDatabase, ref, set, get, remove, onValue } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCKqwpql2Yl0kbpUIPrQUYyAjd1JlMvNg",
+  apiKey: "AIzaSyCKqwpql2Yl0kbpUIPrQUYyVd7m1OeH-D8",
   authDomain: "triflex-a08c7.firebaseapp.com",
   projectId: "triflex-a08c7",
   storageBucket: "triflex-a08c7.firebasestorage.app",
@@ -81,109 +95,110 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const auth = getAuth(app);
 
-let currentCompany = null;
+let vehicleData = [];
 
-// Sjekk login og selskap
-onAuthStateChanged(auth, async (user) => {
-  if(!user) return window.location.href="login.html";
-  const userSnapshot = await get(ref(db, 'users/' + user.uid));
-  if(!userSnapshot.exists()) { alert("Ingen selskapsdata"); return; }
-  currentCompany = userSnapshot.val().company;
-  loadAdminCars();
+// Login + selskapssjekk
+onAuthStateChanged(auth,user=>{
+  if(!user) window.location.href="login.html";
+  // her kan du filtrere bilene per selskap
 });
 
-// Hent og vis biler
-async function loadAdminCars() {
+async function loadVehicles(){
   const snapshot = await get(ref(db,"positions"));
   if(!snapshot.exists()) return;
-  const cars = snapshot.val();
-  const grid = document.getElementById("adminGrid");
-  grid.innerHTML="";
-  let total=0, active=0, pallets=0;
-  const typeCounts = {};
-  Object.keys(cars).forEach(id=>{
-    const car=cars[id];
-    if(car.company!==currentCompany) return; // kun eget selskap
-    total++;
-    if(car.isActiveToday) active++;
-    pallets += car.palleplasser||0;
-    typeCounts[car.type] = (typeCounts[car.type]||0)+1;
+  const data = snapshot.val();
+  vehicleData = Object.entries(data).map(([id,car])=>({id,...car}));
+  updateFilters();
+  updateStats();
+  updateTable();
+  renderCards();
+}
 
-    const card=document.createElement("div");
+function updateFilters(){
+  const companies=[...new Set(vehicleData.map(v=>v.company))];
+  const types=[...new Set(vehicleData.map(v=>v.type))];
+  const companySelect=document.getElementById('companyFilter');
+  const typeSelect=document.getElementById('typeFilter');
+  companySelect.innerHTML='<option value="all">Alle selskap</option>';
+  typeSelect.innerHTML='<option value="all">Alle typer</option>';
+  companies.forEach(c=>companySelect.appendChild(Object.assign(document.createElement('option'),{value:c,textContent:c})));
+  types.forEach(t=>typeSelect.appendChild(Object.assign(document.createElement('option'),{value:t,textContent:t})));
+}
+
+function updateStats(){
+  document.getElementById('totalCars').textContent=vehicleData.length;
+  document.getElementById('activeCars').textContent=vehicleData.filter(v=>v.isActiveToday).length;
+  document.getElementById('loggedUsers').textContent=0;
+}
+
+function renderCards(){
+  const grid=document.getElementById('adminGrid');
+  const companyFilter=document.getElementById('companyFilter').value;
+  const typeFilter=document.getElementById('typeFilter').value;
+  const searchInput=document.getElementById('searchInput').value.toLowerCase();
+  grid.innerHTML="";
+  vehicleData.filter(v=>{
+    return (companyFilter==='all'||v.company===companyFilter) &&
+           (typeFilter==='all'||v.type===typeFilter) &&
+           (v.name.toLowerCase().includes(searchInput)||v.type.toLowerCase().includes(searchInput));
+  }).forEach(v=>{
+    const card=document.createElement('div');
     card.className="car-card";
-    card.innerHTML=`
-      <h3>${car.name}</h3>
-      <p>Type: ${car.type}</p>
-      <p>Palleplasser: ${car.palleplasser}</p>
-      <p>Lat: ${car.latitude}, Lng: ${car.longitude}</p>
-      <button class="delete-btn" onclick="deleteCar('${id}')">Slett</button>
-    `;
-    card.addEventListener('click', ()=> fillForm(id, car));
+    card.innerHTML=`<h3>${v.name}</h3><p>Type: ${v.type}</p><p>Palleplasser: ${v.palleplasser}</p><p>Selskap: ${v.company}</p>`;
+    card.addEventListener('click',()=>openEditForm(v.id));
     grid.appendChild(card);
   });
-
-  // Oppdater statistikk
-  document.getElementById('totalCars').textContent=total;
-  document.getElementById('activeCars').textContent=active;
-  document.getElementById('totalPallets').textContent=pallets;
-
-  // Oppdater diagram
-  const ctx = document.getElementById('typeChart').getContext('2d');
-  if(window.typeChartInstance) window.typeChartInstance.destroy();
-  window.typeChartInstance = new Chart(ctx,{
-    type:'bar',
-    data:{
-      labels:Object.keys(typeCounts),
-      datasets:[{label:'Antall', data:Object.values(typeCounts), backgroundColor:'#0074D9'}]
-    },
-    options:{
-      responsive:true,
-      plugins:{legend:{display:false}},
-      scales:{y:{beginAtZero:true}}
-    }
-  });
 }
 
-// Fyll form for redigering
-function fillForm(id, car) {
-  document.getElementById('carId').value=id;
-  document.getElementById('name').value=car.name;
-  document.getElementById('type').value=car.type;
-  document.getElementById('palleplasser').value=car.palleplasser;
-  document.getElementById('latitude').value=car.latitude;
-  document.getElementById('longitude').value=car.longitude;
-  document.getElementById('logo').value=car.logo;
-  document.getElementById('isActiveToday').checked=car.isActiveToday;
-  document.getElementById('isParticipant').checked=car.isParticipant;
+// Edit modal
+const overlay=document.getElementById('overlay');
+const editForm=document.getElementById('editForm');
+
+function openEditForm(id){
+  const car=vehicleData.find(c=>c.id===id);
+  if(!car) return;
+  document.getElementById('editCarId').value=id;
+  document.getElementById('editName').value=car.name;
+  document.getElementById('editType').value=car.type;
+  document.getElementById('editPalleplasser').value=car.palleplasser;
+  document.getElementById('editCompany').value=car.company;
+  document.getElementById('editLogo').value=car.logo;
+  document.getElementById('editIsActiveToday').checked=car.isActiveToday;
+  document.getElementById('editIsParticipant').checked=car.isParticipant;
+  overlay.style.display='block';
+  editForm.style.display='block';
 }
 
-// Legg til / oppdater bil
-document.getElementById('carForm').addEventListener('submit', async e=>{
-  e.preventDefault();
-  const id = document.getElementById('carId').value || Date.now().toString();
-  const carData = {
-    name: document.getElementById('name').value,
-    type: document.getElementById('type').value,
-    palleplasser: parseInt(document.getElementById('palleplasser').value),
-    latitude: parseFloat(document.getElementById('latitude').value),
-    longitude: parseFloat(document.getElementById('longitude').value),
-    logo: document.getElementById('logo').value,
-    isActiveToday: document.getElementById('isActiveToday').checked,
-    isParticipant: document.getElementById('isParticipant').checked,
-    company: currentCompany
-  };
-  await set(ref(db, "positions/"+id), carData);
-  e.target.reset();
-  loadAdminCars();
+document.getElementById('cancelEditBtn').addEventListener('click',()=>{
+  overlay.style.display='none';
+  editForm.style.display='none';
 });
 
-// Slett bil
-window.deleteCar = async function(id){
-  if(confirm("Er du sikker på at du vil slette denne bilen?")) {
-    await remove(ref(db,"positions/"+id));
-    loadAdminCars();
-  }
-}
+document.getElementById('saveEditBtn').addEventListener('click', async ()=>{
+  const id=document.getElementById('editCarId').value;
+  const updatedCar={
+    name: document.getElementById('editName').value,
+    type: document.getElementById('editType').value,
+    palleplasser: parseInt(document.getElementById('editPalleplasser').value),
+    company: document.getElementById('editCompany').value,
+    logo: document.getElementById('editLogo').value,
+    isActiveToday: document.getElementById('editIsActiveToday').checked,
+    isParticipant: document.getElementById('editIsParticipant').checked
+  };
+  await set(ref(db,'positions/'+id),updatedCar);
+  overlay.style.display='none';
+  editForm.style.display='none';
+  loadVehicles();
+});
+
+document.getElementById('searchInput').addEventListener('input',renderCards);
+document.getElementById('companyFilter').addEventListener('change',renderCards);
+document.getElementById('typeFilter').addEventListener('change',renderCards);
+
+// Live update
+onValue(ref(db,'positions'),()=>loadVehicles());
+
+loadVehicles();
 </script>
 </body>
 </html>

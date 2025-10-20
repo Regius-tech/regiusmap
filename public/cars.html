@@ -1,273 +1,288 @@
 <!DOCTYPE html>
 <html lang="no">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Biloversikt - Triflex</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        /* === Grunnleggende kropp og container === */
-        body {
-            font-family: 'Poppins', sans-serif;
-            margin: 0;
-            padding: 0;
-            background: linear-gradient(135deg, #001f3f 0%, #00122f 100%);
-            color: #ffffff;
-        }
-        .container {
-            max-width: 1300px;
-            margin: 40px auto;
-            background-color: rgba(2,28,60,0.95);
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 0 30px rgba(0,0,0,0.5);
-            backdrop-filter: blur(6px);
-            animation: fadeIn 1s ease forwards;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Biloversikt - Triflex</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+body {
+    margin:0;
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #001f3f 0%, #00122f 100%);
+    color: #fff;
+}
+.container {
+    max-width: 1400px;
+    margin: 20px auto;
+    padding: 20px;
+}
+h1 {
+    text-align:center;
+    margin-bottom:20px;
+    font-size:2.5rem;
+}
+.stats-grid {
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
+    gap:20px;
+    margin-bottom:30px;
+}
+.stat-card {
+    background: rgba(2,28,60,0.95);
+    padding:20px;
+    border-radius:12px;
+    box-shadow:0 4px 15px rgba(0,0,0,0.5);
+    text-align:center;
+    transition: transform 0.3s;
+}
+.stat-card:hover { transform: translateY(-5px); }
+.stat-card h3 { font-size:2em; margin:10px 0; }
+.stat-card p { font-size:1em; color:#cfcfcf; }
 
-        /* === Header og logo === */
-        .header-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-        }
-        .logo {
-            height: 100px;
-            transition: transform 0.3s ease;
-        }
-        .logo:hover { transform: scale(1.05); }
-        .back-button {
-            padding: 12px 24px;
-            background-color: #072D60;
-            color: #ffffff;
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: bold;
-            transition: all 0.3s ease;
-        }
-        .back-button:hover {
-            background-color: #09458c;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-        }
+.filter-container, .search-container {
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-bottom:20px;
+}
+.filter-container select, .filter-container input, .search-container input {
+    padding:10px;
+    border-radius:8px;
+    border:none;
+    background:#023060;
+    color:white;
+}
 
-        /* === Overskrift og søk/filter === */
-        h1 {
-            text-align: center;
-            margin-bottom: 25px;
-            font-size: 2.5rem;
-            letter-spacing: 1px;
-        }
-        .search-container, .filter-container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            margin-bottom: 25px;
-            gap: 15px;
-        }
-        .search-container input, .filter-container select, .filter-container input[type="date"] {
-            padding: 10px 15px;
-            font-size: 16px;
-            border-radius: 8px;
-            border: none;
-            outline: none;
-            transition: all 0.3s ease;
-        }
-        .search-container input:focus, .filter-container select:focus, .filter-container input[type="date"]:focus {
-            box-shadow: 0 0 8px rgba(0, 123, 255, 0.7);
-        }
+.grid-container {
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px,1fr));
+    gap:20px;
+    margin-bottom:40px;
+}
 
-        /* === Tabelldesign === */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background-color: rgba(0,0,50,0.7);
-            border-radius: 12px;
-            overflow: hidden;
-        }
-        th, td {
-            padding: 14px 12px;
-            text-align: left;
-        }
-        th {
-            background-color: #072D60;
-            cursor: pointer;
-            position: relative;
-            transition: all 0.3s ease;
-        }
-        th:hover { background-color: #09458c; }
-        tr:nth-child(even) { background-color: rgba(2,28,60,0.8); }
-        tr:nth-child(odd) { background-color: rgba(2,28,60,0.7); }
-        tr:hover { background-color: rgba(0,75,160,0.7); }
-        th::after { content: ''; margin-left: 5px; }
+.car-card {
+    background: rgba(2,28,60,0.95);
+    border-radius:12px;
+    padding:20px;
+    box-shadow:0 4px 15px rgba(0,0,0,0.5);
+    transition: transform 0.3s;
+}
+.car-card:hover { transform: translateY(-5px); }
+.car-card h3 { margin:0; margin-bottom:5px; }
+.car-card p { margin:5px 0; font-size:14px; color:#cfcfcf; }
 
-        /* === Tabell scroll og responsivt === */
-        tbody { display: block; max-height: 500px; overflow-y: auto; }
-        thead, tbody tr { display: table; width: 100%; table-layout: fixed; }
-
-        /* === Små animasjoner og indikatorer === */
-        .highlight {
-            animation: highlightRow 1s ease forwards;
-        }
-        @keyframes highlightRow {
-            0% { background-color: rgba(255,255,0,0.5); }
-            100% { background-color: transparent; }
-        }
-
-        /* === Tooltips for info === */
-        td[data-info]:hover::after {
-            content: attr(data-info);
-            position: absolute;
-            background: rgba(0,0,0,0.85);
-            color: #fff;
-            padding: 5px 10px;
-            border-radius: 6px;
-            font-size: 14px;
-            white-space: nowrap;
-            transform: translateY(-35px);
-            z-index: 999;
-        }
-    </style>
+table {
+    width:100%;
+    border-collapse: collapse;
+    margin-bottom:50px;
+}
+th, td {
+    border:1px solid #072D60;
+    padding:10px;
+    text-align:left;
+}
+th { background:#072D60; cursor:pointer; }
+th:hover { background:#09458c; }
+tr:nth-child(even) { background-color: rgba(255,255,255,0.05); }
+tr:hover { background-color: rgba(255,255,255,0.1); }
+</style>
 </head>
 <body>
-    <div class="container">
-        <div class="header-row">
-            <a href="index.html" class="back-button"><i class="fas fa-arrow-left"></i> Tilbake til kartet</a>
-            <img src="/triflex.png" alt="Triflex Logo" class="logo">
-        </div>
-        <h1>Biloversikt</h1>
-        <div class="search-container">
-            <input type="text" id="searchInput" placeholder="Søk på bil...">
-        </div>
-        <div class="filter-container">
-            <label for="company-filter">Selskap:</label>
-            <select id="company-filter">
-                <option value="all">Alle</option>
-            </select>
-            <label for="type-filter">Type:</label>
-            <select id="type-filter">
-                <option value="all">Alle</option>
-            </select>
-            <label for="date-filter">Dato:</label>
-            <input type="date" id="date-filter">
-        </div>
-        <table>
-            <thead>
-                <tr>
-                    <th onclick="sortTable(0)">Navn</th>
-                    <th onclick="sortTable(1)">Type</th>
-                    <th onclick="sortTable(2)">Palleplasser</th>
-                    <th onclick="sortTable(3)">Selskap</th>
-                    <th onclick="sortTable(4)">Dato & Tid</th>
-                </tr>
-            </thead>
-            <tbody id="vehicleTableBody">
-            </tbody>
-        </table>
-    </div>
 
-    <script>
-        let vehicleData = [];
+<div class="container">
+<h1>Biloversikt - Triflex</h1>
 
-        async function loadVehicles() {
-            try {
-                const response = await fetch('/api/positions');
-                const rawData = await response.json();
+<!-- Statistikkkort -->
+<div class="stats-grid" id="globalStats">
+    <div class="stat-card"><h3 id="totalCars">0</h3><p>Totalt biler</p></div>
+    <div class="stat-card"><h3 id="activeCars">0</h3><p>Aktive biler i dag</p></div>
+</div>
 
-                const uniqueVehicles = new Map();
-                rawData.forEach(vehicle => {
-                    if (vehicle.isParticipant) {
-                        uniqueVehicles.set(vehicle.id, vehicle);
-                    }
-                });
-                vehicleData = Array.from(uniqueVehicles.values());
+<!-- Diagrammer -->
+<div class="chart-container" style="margin-bottom:30px;">
+    <canvas id="carsChart"></canvas>
+</div>
+<div class="chart-container" style="margin-bottom:30px;">
+    <canvas id="activeChart"></canvas>
+</div>
 
-                populateFilters();
-                updateTable();
-            } catch(e) {
-                console.error("Feil ved lasting av biler:", e);
-            }
-        }
+<!-- Søk og filter -->
+<div class="search-container">
+    <input type="text" id="searchInput" placeholder="Søk bil...">
+</div>
+<div class="filter-container">
+    <select id="companyFilter"><option value="all">Alle selskap</option></select>
+    <select id="typeFilter"><option value="all">Alle typer</option></select>
+    <input type="date" id="dateFilter">
+</div>
 
-        function populateFilters() {
-            const companyFilter = document.getElementById('company-filter');
-            const typeFilter = document.getElementById('type-filter');
+<!-- Grid-visning av biler -->
+<div class="grid-container" id="carsGrid"></div>
 
-            companyFilter.innerHTML = '<option value="all">Alle</option>';
-            typeFilter.innerHTML = '<option value="all">Alle</option>';
+<!-- Tabellvisning -->
+<table>
+<thead>
+<tr>
+    <th onclick="sortTable(0)">Navn</th>
+    <th onclick="sortTable(1)">Type</th>
+    <th onclick="sortTable(2)">Palleplasser</th>
+    <th onclick="sortTable(3)">Selskap</th>
+    <th onclick="sortTable(4)">Dato & Tid</th>
+</tr>
+</thead>
+<tbody id="vehicleTableBody"></tbody>
+</table>
 
-            const companies = [...new Set(vehicleData.map(v => v.company))];
-            const types = [...new Set(vehicleData.map(v => v.type))];
+</div>
 
-            companies.forEach(c => companyFilter.appendChild(Object.assign(document.createElement('option'), { value: c, textContent: c })));
-            types.forEach(t => typeFilter.appendChild(Object.assign(document.createElement('option'), { value: t, textContent: t })));
-        }
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
-        function updateTable() {
-            const tableBody = document.getElementById('vehicleTableBody');
-            const searchValue = document.getElementById('searchInput').value.toLowerCase();
-            const companyVal = document.getElementById('company-filter').value;
-            const typeVal = document.getElementById('type-filter').value;
-            const dateVal = document.getElementById('date-filter').value;
+const firebaseConfig = {
+  apiKey: "AIzaSyCKqwpql2Yl0kbpUIPrQUYyVd7m1OeH-D8",
+  authDomain: "triflex-a08c7.firebaseapp.com",
+  projectId: "triflex-a08c7",
+  storageBucket: "triflex-a08c7.firebasestorage.app",
+  messagingSenderId: "835381689765",
+  appId: "1:835381689765:web:e0be4b22e5f35ca1e0bc4c",
+  databaseURL: "https://triflex-a08c7-default-rtdb.europe-west1.firebasedatabase.app"
+};
 
-            tableBody.innerHTML = '';
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
-            vehicleData.filter(vehicle => {
-                const matchesSearch = vehicle.name.toLowerCase().includes(searchValue) || vehicle.type.toLowerCase().includes(searchValue) || vehicle.company.toLowerCase().includes(searchValue);
-                const matchesCompany = companyVal === 'all' || vehicle.company === companyVal;
-                const matchesType = typeVal === 'all' || vehicle.type === typeVal;
-                const vehicleDate = new Date(vehicle.time).toISOString().split('T')[0];
-                const matchesDate = !dateVal || vehicleDate === dateVal;
-                return matchesSearch && matchesCompany && matchesType && matchesDate;
-            }).forEach(vehicle => {
-                const row = document.createElement('tr');
-                row.classList.add('highlight');
-                row.innerHTML = `
-                    <td>${vehicle.name}</td>
-                    <td>${vehicle.type}</td>
-                    <td>${vehicle.palleplasser}</td>
-                    <td>${vehicle.company}</td>
-                    <td data-time="${vehicle.time}">${new Date(vehicle.time).toLocaleString('no-NO')}</td>
-                `;
-                tableBody.appendChild(row);
-            });
-        }
+let vehicleData = [];
 
-        let sortDirection = 1;
-        let lastSortedColumn = -1;
+function updateStats() {
+    document.getElementById('totalCars').textContent = vehicleData.length;
+    document.getElementById('activeCars').textContent = vehicleData.filter(v => new Date(v.time).toDateString()===new Date().toDateString()).length;
+}
 
-        function sortTable(idx) {
-            const table = document.querySelector('table');
-            const rows = Array.from(table.rows).slice(1);
-            const isNum = idx===2;
-            const isDate = idx===4;
+let carsChart, activeChart;
+function updateCharts() {
+    const ctx1 = document.getElementById('carsChart').getContext('2d');
+    const ctx2 = document.getElementById('activeChart').getContext('2d');
 
-            if(lastSortedColumn===idx) sortDirection*=-1;
-            else sortDirection=1;
-            lastSortedColumn=idx;
+    const companies = [...new Set(vehicleData.map(v => v.company))];
+    const carsPerCompany = companies.map(c => vehicleData.filter(v => v.company===c).length);
+    const activePerCompany = companies.map(c => vehicleData.filter(v => v.company===c && new Date(v.time).toDateString()===new Date().toDateString()).length);
 
-            rows.sort((a,b)=>{
-                let valA = isDate ? new Date(a.cells[idx].dataset.time) : (isNum ? Number(a.cells[idx].innerText==="Unknown"?0:a.cells[idx].innerText) : a.cells[idx].innerText);
-                let valB = isDate ? new Date(b.cells[idx].dataset.time) : (isNum ? Number(b.cells[idx].innerText==="Unknown"?0:b.cells[idx].innerText) : b.cells[idx].innerText);
-                if(valA<valB) return -1*sortDirection;
-                if(valA>valB) return 1*sortDirection;
-                return 0;
-            });
+    if(carsChart) carsChart.destroy();
+    if(activeChart) activeChart.destroy();
 
-            rows.forEach(r=>table.appendChild(r));
-        }
+    carsChart = new Chart(ctx1,{
+        type:'bar',
+        data:{labels:companies,datasets:[{label:'Antall biler',data:carsPerCompany,backgroundColor:'#0074D9'}]},
+        options:{responsive:true,plugins:{legend:{display:false}}}
+    });
 
-        document.getElementById('searchInput').addEventListener('input', updateTable);
-        document.getElementById('company-filter').addEventListener('change', updateTable);
-        document.getElementById('type-filter').addEventListener('change', updateTable);
-        document.getElementById('date-filter').addEventListener('change', updateTable);
+    activeChart = new Chart(ctx2,{
+        type:'bar',
+        data:{labels:companies,datasets:[{label:'Aktive biler i dag',data:activePerCompany,backgroundColor:'#FFDC00'}]},
+        options:{responsive:true,plugins:{legend:{display:false}}}
+    });
+}
 
-        loadVehicles();
-        setInterval(loadVehicles, 15000);
-    </script>
+function populateFilters() {
+    const companySelect = document.getElementById('companyFilter');
+    const typeSelect = document.getElementById('typeFilter');
+    companySelect.innerHTML = '<option value="all">Alle selskap</option>';
+    typeSelect.innerHTML = '<option value="all">Alle typer</option>';
+
+    const companies = [...new Set(vehicleData.map(v => v.company))];
+    const types = [...new Set(vehicleData.map(v => v.type))];
+
+    companies.forEach(c => companySelect.appendChild(Object.assign(document.createElement('option'), {value:c,textContent:c})));
+    types.forEach(t => typeSelect.appendChild(Object.assign(document.createElement('option'), {value:t,textContent:t})));
+}
+
+function updateGrid() {
+    const grid = document.getElementById('carsGrid');
+    grid.innerHTML = '';
+    const searchValue = document.getElementById('searchInput').value.toLowerCase();
+    const companyVal = document.getElementById('companyFilter').value;
+    const typeVal = document.getElementById('typeFilter').value;
+    const dateVal = document.getElementById('dateFilter').value;
+
+    vehicleData.filter(v=>{
+        const matchesSearch = v.name.toLowerCase().includes(searchValue) || v.type.toLowerCase().includes(searchValue) || v.company.toLowerCase().includes(searchValue);
+        const matchesCompany = companyVal==='all' || v.company===companyVal;
+        const matchesType = typeVal==='all' || v.type===typeVal;
+        const matchesDate = !dateVal || new Date(v.time).toISOString().split('T')[0]===dateVal;
+        return matchesSearch && matchesCompany && matchesType && matchesDate;
+    }).forEach(v=>{
+        const card = document.createElement('div');
+        card.className = 'car-card';
+        card.innerHTML = `<h3>${v.name}</h3><p>Type: ${v.type}</p><p>Palleplasser: ${v.palleplasser}</p><p>Selskap: ${v.company}</p><p>${new Date(v.time).toLocaleString('no-NO')}</p>`;
+        grid.appendChild(card);
+    });
+}
+
+function updateTable() {
+    const tbody = document.getElementById('vehicleTableBody');
+    tbody.innerHTML = '';
+    const searchValue = document.getElementById('searchInput').value.toLowerCase();
+    const companyVal = document.getElementById('companyFilter').value;
+    const typeVal = document.getElementById('typeFilter').value;
+    const dateVal = document.getElementById('dateFilter').value;
+
+    vehicleData.filter(v=>{
+        const matchesSearch = v.name.toLowerCase().includes(searchValue) || v.type.toLowerCase().includes(searchValue) || v.company.toLowerCase().includes(searchValue);
+        const matchesCompany = companyVal==='all' || v.company===companyVal;
+        const matchesType = typeVal==='all' || v.type===typeVal;
+        const matchesDate = !dateVal || new Date(v.time).toISOString().split('T')[0]===dateVal;
+        return matchesSearch && matchesCompany && matchesType && matchesDate;
+    }).forEach(v=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${v.name}</td><td>${v.type}</td><td>${v.palleplasser}</td><td>${v.company}</td><td>${new Date(v.time).toLocaleString('no-NO')}</td>`;
+        tbody.appendChild(tr);
+    });
+}
+
+function loadVehicles() {
+    onValue(ref(db,'positions'), snapshot=>{
+        if(!snapshot.exists()) return;
+        const data = snapshot.val();
+        vehicleData = Object.entries(data).map(([id, car])=>({id,...car}));
+        populateFilters();
+        updateStats();
+        updateCharts();
+        updateGrid();
+        updateTable();
+    });
+}
+
+document.getElementById('searchInput').addEventListener('input', ()=>{updateGrid();updateTable();});
+document.getElementById('companyFilter').addEventListener('change', ()=>{updateGrid();updateTable();});
+document.getElementById('typeFilter').addEventListener('change', ()=>{updateGrid();updateTable();});
+document.getElementById('dateFilter').addEventListener('change', ()=>{updateGrid();updateTable();});
+
+let sortDirection = 1;
+let lastSortedColumn = -1;
+function sortTable(idx) {
+    const table = document.querySelector('table');
+    const rows = Array.from(table.rows).slice(1);
+    const isNum = idx===2;
+    const isDate = idx===4;
+    if(lastSortedColumn===idx) sortDirection*=-1;
+    else sortDirection=1;
+    lastSortedColumn=idx;
+
+    rows.sort((a,b)=>{
+        let valA = isDate?new Date(a.cells[idx].innerText): (isNum?Number(a.cells[idx].innerText):a.cells[idx].innerText);
+        let valB = isDate?new Date(b.cells[idx].innerText): (isNum?Number(b.cells[idx].innerText):b.cells[idx].innerText);
+        if(valA<valB) return -1*sortDirection;
+        if(valA>valB) return 1*sortDirection;
+        return 0;
+    });
+
+    rows.forEach(r=>table.appendChild(r));
+}
+
+loadVehicles();
+</script>
 </body>
 </html>

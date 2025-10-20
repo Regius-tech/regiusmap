@@ -28,7 +28,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 20px;
+      gap: 15px;
       background-color: rgba(2, 28, 60, 0.95);
       color: white;
       padding: 10px 25px;
@@ -53,6 +53,7 @@
     .filter-container input[type="checkbox"] { margin-left: 5px; padding: 6px; border-radius: 6px; border: none; outline: none; font-size: 14px; }
     select { background-color: #fff; color: #000; }
 
+    /* === Knapper === */
     #themeSwitch {
       cursor: pointer;
       font-weight: bold;
@@ -66,16 +67,19 @@
 
     #themeSwitch:hover { background-color: #005fa3; }
 
-    #carParkButton {
+    .btn-secondary {
       cursor: pointer;
       font-weight: bold;
       border: none;
-      padding: 8px 16px;
+      padding: 6px 14px;
       border-radius: 8px;
-      background-color: #FFDC00;
-      color: #001f3f;
-      margin-left: 10px;
+      background-color: rgba(255,255,255,0.15);
+      color: white;
       text-decoration: none;
+      transition: all 0.3s ease;
+    }
+    .btn-secondary:hover {
+      background-color: rgba(255,255,255,0.25);
     }
   </style>
 </head>
@@ -96,7 +100,8 @@
     </label>
 
     <button id="themeSwitch">🌙 Mørk modus</button>
-    <a id="carParkButton" href="cars.html">Se bilpark</a>
+    <a class="btn-secondary" href="cars.html">Bilpark</a>
+    <a class="btn-secondary" href="admin.html">Dashboard</a>
   </div>
 
   <div id="map"></div>
@@ -119,7 +124,7 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-    window.db = db; // gjør tilgjengelig globalt
+    window.db = db;
   </script>
 
   <script>
@@ -158,7 +163,7 @@
         darkMode = !darkMode;
         map.setOptions({ styles: darkMode ? darkStyle : [] });
         document.getElementById("themeSwitch").textContent =
-          darkMode ? "🌙 Mørk modus" : "☀️ Lys modus";
+          darkMode ? "🌙 Mørk modus" : ☀️ Lys modus";
       });
 
       const menu = document.getElementById("menu");
@@ -232,15 +237,8 @@
 
     async function loadPositions() {
       try {
-        const dbRef = firebase ? firebase.database().ref("positions") : window.db ? ref(window.db, "positions") : null;
-        if (!dbRef) return;
-
-        // Hent data fra Firebase
         const snapshot = await get(ref(window.db, "positions"));
-        if (!snapshot.exists()) {
-          console.warn("Ingen posisjoner funnet i databasen.");
-          return;
-        }
+        if (!snapshot.exists()) return;
         const data = Object.values(snapshot.val());
 
         const activeToday = document.getElementById('activeToday').checked;
@@ -262,10 +260,7 @@
             const marker = new google.maps.Marker({
               map,
               position: { lat: vehicle.latitude, lng: vehicle.longitude },
-              icon: {
-                url: iconUrl,
-                scaledSize: new google.maps.Size(45, 55)
-              },
+              icon: { url: iconUrl, scaledSize: new google.maps.Size(45, 55) },
               title: vehicle.name
             });
 
