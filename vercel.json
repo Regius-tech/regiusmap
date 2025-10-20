@@ -1,36 +1,22 @@
 {
   "version": 2,
   "routes": [
-    {
-      "src": "/api/positions",
-      "dest": "api/positions.js"
-    },
-    {
-      "src": "/logo(.*)",
-      "dest": "/public/logo$1"
-    },
-    { "src": "/cars.html", 
-      "dest": "/public/cars.html"
-    },
-    {
-      "src": "/(.*\\.(png|jpg|jpeg|gif|svg))",
-      "dest": "/public/$1"
-    },
-    {
-      "src": "/(.*\\.html)",
-      "dest": "/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
+    { "src": "/api/positions", "dest": "api/positions.js" },
+    { "src": "/logo(.*)", "dest": "/public/logo$1" },
+    { "src": "/cars", "dest": "/public/cars.html" },
+    { "src": "/kart", "dest": "/public/kart.html" },
+    { "src": "/admin", "dest": "/public/admin.html" },
+    { "src": "/dashboard", "dest": "/public/dashboard.html" },
+    { "src": "/(.*\\.(png|jpg|jpeg|gif|svg))", "dest": "/public/$1" },
+    { "src": "/(.*\\.html)", "dest": "/public/$1" },
+    { "src": "/", "dest": "/public/index.html" }
   ],
   "builds": [
     { "src": "api/positions.js", "use": "@vercel/node" },
-    { "src": "index.html", "use": "@vercel/static" },
     { "src": "public/**", "use": "@vercel/static" }
   ]
 }
+
 
 
 
