@@ -3,88 +3,140 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Biloversikt</title>
+    <title>Biloversikt - Triflex</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        /* === Grunnleggende kropp og container === */
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Poppins', sans-serif;
             margin: 0;
-            padding: 20px;
-            background-color: #f4f4f4;
-        }
-        h1 {
-            text-align: center;
+            padding: 0;
+            background: linear-gradient(135deg, #001f3f 0%, #00122f 100%);
+            color: #ffffff;
         }
         .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 1300px;
+            margin: 40px auto;
+            background-color: rgba(2,28,60,0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            backdrop-filter: blur(6px);
+            animation: fadeIn 1s ease forwards;
         }
-        .filter-container, .search-container {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        .filter-container select, .search-container input {
-            padding: 8px;
-            font-size: 16px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 10px;
-            text-align: left;
-        }
-        th {
-            background-color: #072D60;
-            color: white;
-            cursor: pointer;
-            position: relative;
-        }
-        th:hover {
-            background-color: #09458c;
-        }
-        th::after {
-            content: '';
-            margin-left: 5px;
-        }
-        tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-        tr:hover {
-            background-color: #f1f1f1;
-        }
-        .back-button {
-            display: inline-block;
-            padding: 10px 20px;
-            background-color: #072D60;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            font-weight: bold;
-            margin-bottom: 20px;
-        }
+
+        /* === Header og logo === */
         .header-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
         .logo {
-            height: 120px;
+            height: 100px;
+            transition: transform 0.3s ease;
+        }
+        .logo:hover { transform: scale(1.05); }
+        .back-button {
+            padding: 12px 24px;
+            background-color: #072D60;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .back-button:hover {
+            background-color: #09458c;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+
+        /* === Overskrift og søk/filter === */
+        h1 {
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 2.5rem;
+            letter-spacing: 1px;
+        }
+        .search-container, .filter-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            gap: 15px;
+        }
+        .search-container input, .filter-container select, .filter-container input[type="date"] {
+            padding: 10px 15px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: none;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        .search-container input:focus, .filter-container select:focus, .filter-container input[type="date"]:focus {
+            box-shadow: 0 0 8px rgba(0, 123, 255, 0.7);
+        }
+
+        /* === Tabelldesign === */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: rgba(0,0,50,0.7);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 14px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #072D60;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        th:hover { background-color: #09458c; }
+        tr:nth-child(even) { background-color: rgba(2,28,60,0.8); }
+        tr:nth-child(odd) { background-color: rgba(2,28,60,0.7); }
+        tr:hover { background-color: rgba(0,75,160,0.7); }
+        th::after { content: ''; margin-left: 5px; }
+
+        /* === Tabell scroll og responsivt === */
+        tbody { display: block; max-height: 500px; overflow-y: auto; }
+        thead, tbody tr { display: table; width: 100%; table-layout: fixed; }
+
+        /* === Små animasjoner og indikatorer === */
+        .highlight {
+            animation: highlightRow 1s ease forwards;
+        }
+        @keyframes highlightRow {
+            0% { background-color: rgba(255,255,0,0.5); }
+            100% { background-color: transparent; }
+        }
+
+        /* === Tooltips for info === */
+        td[data-info]:hover::after {
+            content: attr(data-info);
+            position: absolute;
+            background: rgba(0,0,0,0.85);
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 14px;
+            white-space: nowrap;
+            transform: translateY(-35px);
+            z-index: 999;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header-row">
-            <a href="index.html" class="back-button">Tilbake til kartet</a>
+            <a href="index.html" class="back-button"><i class="fas fa-arrow-left"></i> Tilbake til kartet</a>
             <img src="/triflex.png" alt="Triflex Logo" class="logo">
         </div>
         <h1>Biloversikt</h1>
@@ -92,15 +144,15 @@
             <input type="text" id="searchInput" placeholder="Søk på bil...">
         </div>
         <div class="filter-container">
-            <label for="company-filter">Filtrer etter selskap:</label>
+            <label for="company-filter">Selskap:</label>
             <select id="company-filter">
                 <option value="all">Alle</option>
             </select>
-            <label for="type-filter">Filtrer etter type:</label>
+            <label for="type-filter">Type:</label>
             <select id="type-filter">
                 <option value="all">Alle</option>
             </select>
-            <label for="date-filter">Velg dato:</label>
+            <label for="date-filter">Dato:</label>
             <input type="date" id="date-filter">
         </div>
         <table>
@@ -117,74 +169,63 @@
             </tbody>
         </table>
     </div>
+
     <script>
         let vehicleData = [];
 
         async function loadVehicles() {
-            const response = await fetch('/api/positions');
-            const rawData = await response.json();
-            
-            // Fjern duplikater basert på id
-            const uniqueVehicles = new Map();
-            rawData.forEach(vehicle => {
-                if (vehicle.isParticipant) {
-                    uniqueVehicles.set(vehicle.id, vehicle); // Bruker id som nøkkel
-                }
-            });
-            vehicleData = Array.from(uniqueVehicles.values());
+            try {
+                const response = await fetch('/api/positions');
+                const rawData = await response.json();
 
-            const tableBody = document.getElementById('vehicleTableBody');
+                const uniqueVehicles = new Map();
+                rawData.forEach(vehicle => {
+                    if (vehicle.isParticipant) {
+                        uniqueVehicles.set(vehicle.id, vehicle);
+                    }
+                });
+                vehicleData = Array.from(uniqueVehicles.values());
+
+                populateFilters();
+                updateTable();
+            } catch(e) {
+                console.error("Feil ved lasting av biler:", e);
+            }
+        }
+
+        function populateFilters() {
             const companyFilter = document.getElementById('company-filter');
             const typeFilter = document.getElementById('type-filter');
-            
+
             companyFilter.innerHTML = '<option value="all">Alle</option>';
             typeFilter.innerHTML = '<option value="all">Alle</option>';
 
-            const companies = [...new Set(vehicleData.map(vehicle => vehicle.company))];
-            const types = [...new Set(vehicleData.map(vehicle => vehicle.type))];
+            const companies = [...new Set(vehicleData.map(v => v.company))];
+            const types = [...new Set(vehicleData.map(v => v.type))];
 
-            companies.forEach(company => {
-                const option = document.createElement('option');
-                option.value = company;
-                option.textContent = company;
-                companyFilter.appendChild(option);
-            });
-
-            types.forEach(type => {
-                const option = document.createElement('option');
-                option.value = type;
-                option.textContent = type;
-                typeFilter.appendChild(option);
-            });
-
-            updateTable();
+            companies.forEach(c => companyFilter.appendChild(Object.assign(document.createElement('option'), { value: c, textContent: c })));
+            types.forEach(t => typeFilter.appendChild(Object.assign(document.createElement('option'), { value: t, textContent: t })));
         }
 
         function updateTable() {
             const tableBody = document.getElementById('vehicleTableBody');
-            const companyFilter = document.getElementById('company-filter').value;
-            const typeFilter = document.getElementById('type-filter').value;
-            const dateFilter = document.getElementById('date-filter').value;
-            const searchInput = document.getElementById('searchInput').value.toLowerCase();
+            const searchValue = document.getElementById('searchInput').value.toLowerCase();
+            const companyVal = document.getElementById('company-filter').value;
+            const typeVal = document.getElementById('type-filter').value;
+            const dateVal = document.getElementById('date-filter').value;
 
             tableBody.innerHTML = '';
 
-            const filteredVehicles = vehicleData.filter(vehicle => {
-                const matchesCompany = companyFilter === 'all' || vehicle.company === companyFilter;
-                const matchesType = typeFilter === 'all' || vehicle.type === typeFilter;
-                const vehicleDate = new Date(vehicle.time).toISOString().split('T')[0]; // Kun dato-delen
-                const matchesDate = !dateFilter || vehicleDate === dateFilter;
-                const matchesSearch = (
-                    vehicle.name.toLowerCase().includes(searchInput) || 
-                    vehicle.type.toLowerCase().includes(searchInput) || 
-                    vehicle.company.toLowerCase().includes(searchInput) || 
-                    vehicle.palleplasser.toString().toLowerCase().includes(searchInput)
-                );
-                return matchesCompany && matchesType && matchesDate && matchesSearch;
-            });
-
-            filteredVehicles.forEach(vehicle => {
+            vehicleData.filter(vehicle => {
+                const matchesSearch = vehicle.name.toLowerCase().includes(searchValue) || vehicle.type.toLowerCase().includes(searchValue) || vehicle.company.toLowerCase().includes(searchValue);
+                const matchesCompany = companyVal === 'all' || vehicle.company === companyVal;
+                const matchesType = typeVal === 'all' || vehicle.type === typeVal;
+                const vehicleDate = new Date(vehicle.time).toISOString().split('T')[0];
+                const matchesDate = !dateVal || vehicleDate === dateVal;
+                return matchesSearch && matchesCompany && matchesType && matchesDate;
+            }).forEach(vehicle => {
                 const row = document.createElement('tr');
+                row.classList.add('highlight');
                 row.innerHTML = `
                     <td>${vehicle.name}</td>
                     <td>${vehicle.type}</td>
@@ -199,50 +240,25 @@
         let sortDirection = 1;
         let lastSortedColumn = -1;
 
-        function sortTable(columnIndex) {
-            const table = document.querySelector("table");
+        function sortTable(idx) {
+            const table = document.querySelector('table');
             const rows = Array.from(table.rows).slice(1);
-            const isNumeric = columnIndex === 2;
-            const isDate = columnIndex === 4;
-            const headers = table.querySelectorAll("th");
+            const isNum = idx===2;
+            const isDate = idx===4;
 
-            if (lastSortedColumn === columnIndex) {
-                sortDirection *= -1;
-            } else {
-                sortDirection = 1;
-            }
-            lastSortedColumn = columnIndex;
+            if(lastSortedColumn===idx) sortDirection*=-1;
+            else sortDirection=1;
+            lastSortedColumn=idx;
 
-            headers.forEach((th, index) => {
-                if (index === columnIndex) {
-                    th.style.fontWeight = 'bold';
-                    th.innerHTML = th.innerText.replace(/ [↑↓]/g, '') + (sortDirection === 1 ? ' ↑' : ' ↓');
-                } else {
-                    th.style.fontWeight = 'normal';
-                    th.innerHTML = th.innerText.replace(/ [↑↓]/g, '');
-                }
+            rows.sort((a,b)=>{
+                let valA = isDate ? new Date(a.cells[idx].dataset.time) : (isNum ? Number(a.cells[idx].innerText==="Unknown"?0:a.cells[idx].innerText) : a.cells[idx].innerText);
+                let valB = isDate ? new Date(b.cells[idx].dataset.time) : (isNum ? Number(b.cells[idx].innerText==="Unknown"?0:b.cells[idx].innerText) : b.cells[idx].innerText);
+                if(valA<valB) return -1*sortDirection;
+                if(valA>valB) return 1*sortDirection;
+                return 0;
             });
 
-            const sortedRows = rows.sort((a, b) => {
-                const aCell = a.cells[columnIndex];
-                const bCell = b.cells[columnIndex];
-                const aText = aCell.innerText;
-                const bText = bCell.innerText;
-
-                if (isNumeric) {
-                    if (aText === "Unknown" && bText === "Unknown") return 0;
-                    if (aText === "Unknown") return 1 * sortDirection;
-                    if (bText === "Unknown") return -1 * sortDirection;
-                    return (Number(aText) - Number(bText)) * sortDirection;
-                } else if (isDate) {
-                    const aTime = new Date(aCell.getAttribute('data-time')).getTime();
-                    const bTime = new Date(bCell.getAttribute('data-time')).getTime();
-                    return (aTime - bTime) * sortDirection;
-                }
-                return aText.localeCompare(bText) * sortDirection;
-            });
-
-            sortedRows.forEach(row => table.appendChild(row));
+            rows.forEach(r=>table.appendChild(r));
         }
 
         document.getElementById('searchInput').addEventListener('input', updateTable);
@@ -251,7 +267,7 @@
         document.getElementById('date-filter').addEventListener('change', updateTable);
 
         loadVehicles();
+        setInterval(loadVehicles, 15000);
     </script>
 </body>
 </html>
-

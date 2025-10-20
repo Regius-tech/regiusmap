@@ -3,45 +3,78 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Triflex Bilpark</title>
+<title>Triflex Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 <style>
-body { margin:0; font-family:Poppins,sans-serif; background:#001f3f; color:white; }
-.container {
-  max-width:1200px;
-  margin:40px auto;
-  padding:0 20px;
-}
-h1 { text-align:center; margin-bottom:30px; font-size:2em; }
-.grid-container {
-  display:grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap:20px;
-}
-.car-card {
-  background: rgba(2,28,60,0.95);
-  border-radius:12px;
-  padding:20px;
-  box-shadow:0 4px 15px rgba(0,0,0,0.5);
-  text-align:center;
-  transition: transform 0.3s, box-shadow 0.3s;
-}
-.car-card:hover { transform:translateY(-5px); box-shadow:0 8px 25px rgba(0,0,0,0.7); }
-.car-card img { max-width:100px; margin-bottom:15px; border-radius:50%; }
-.car-card h3 { margin:10px 0 5px; }
-.car-card p { margin:5px 0; font-size:14px; color:#cfcfcf; }
+  body {
+    margin:0;
+    font-family:'Poppins',sans-serif;
+    background:#001f3f;
+    color:white;
+  }
+  header {
+    background:#00264d;
+    padding:15px 30px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    box-shadow:0 4px 10px rgba(0,0,0,0.4);
+  }
+  header img { height:40px; }
+  .stats-container {
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+    gap:20px;
+    padding:20px;
+  }
+  .stat-card {
+    background:#00264d;
+    padding:20px;
+    border-radius:12px;
+    box-shadow:0 5px 15px rgba(0,0,0,0.4);
+    transition:0.3s;
+  }
+  .stat-card:hover { transform:translateY(-5px); }
+  .stat-card h3 { margin:0; font-size:18px; color:#cce6ff; }
+  .stat-card p { font-size:28px; margin:5px 0; font-weight:bold; }
 </style>
 </head>
 <body>
+<header>
+  <img src="triflex-logo.png" alt="Triflex">
+  <span id="userEmail"></span>
+</header>
 
-<div class="container">
-  <h1>Triflex Bilpark</h1>
-  <div class="grid-container" id="carGrid"></div>
-</div>
+<section class="stats-container">
+  <div class="stat-card">
+    <h3>Totalt antall biler</h3>
+    <p id="totalCars">0</p>
+  </div>
+  <div class="stat-card">
+    <h3>Aktive i dag</h3>
+    <p id="activeToday">0</p>
+  </div>
+  <div class="stat-card">
+    <h3>TS Oslo</h3>
+    <p id="tsOslo">0</p>
+  </div>
+  <div class="stat-card">
+    <h3>TS Oslo Bud</h3>
+    <p id="tsOsloBud">0</p>
+  </div>
+  <div class="stat-card">
+    <h3>Moss Transportforum</h3>
+    <p id="mtf">0</p>
+  </div>
+  <div class="stat-card">
+    <h3>Blå Kurér</h3>
+    <p id="blakurer">0</p>
+  </div>
+</section>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
 const firebaseConfig = {
@@ -51,7 +84,6 @@ const firebaseConfig = {
   storageBucket: "triflex-a08c7.firebasestorage.app",
   messagingSenderId: "835381689765",
   appId: "1:835381689765:web:e0be4b22e5f35ca1e0bc4c",
-  measurementId: "G-0WJP4SRVYK",
   databaseURL: "https://triflex-a08c7-default-rtdb.europe-west1.firebasedatabase.app"
 };
 
@@ -59,33 +91,36 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const auth = getAuth(app);
 
-// login-sjekk
 onAuthStateChanged(auth,user=>{
-  if(!user) window.location.href="login.html";
+  if(!user) window.location.href='index.html';
+  else document.getElementById('userEmail').textContent=user.email;
 });
 
-// hent biler fra Firebase
-async function loadCars() {
-  const snapshot = await get(ref(db,"positions"));
-  if(!snapshot.exists()) return;
-  const cars = Object.values(snapshot.val());
-  const grid = document.getElementById("carGrid");
-  grid.innerHTML="";
-  cars.forEach(car=>{
-    const card=document.createElement("div");
-    card.className="car-card";
-    card.innerHTML=`
-      <img src="${car.logo}" alt="${car.name}">
-      <h3>${car.name}</h3>
-      <p>Type: ${car.type}</p>
-      <p>Palleplasser: ${car.palleplasser}</p>
-      <p>Selskap: ${car.company}</p>
-    `;
-    grid.appendChild(card);
-  });
-}
-loadCars();
-</script>
+const updateStats = (data)=>{
+  const allCars = [];
+  const counts = {tsoslo:0, tsoslobud:0, mtf:0, blakurer:0, active:0};
+  for(const company in data){
+    const carsObj = data[company];
+    for(const id in carsObj){
+      const car = carsObj[id];
+      allCars.push(car);
+      if(car.isActiveToday) counts.active++;
+      counts[company]++;
+    }
+  }
+  document.getElementById('totalCars').textContent = allCars.length;
+  document.getElementById('activeToday').textContent = counts.active;
+  document.getElementById('tsOslo').textContent = counts.tsoslo;
+  document.getElementById('tsOsloBud').textContent = counts.tsoslobud;
+  document.getElementById('mtf').textContent = counts.mtf;
+  document.getElementById('blakurer').textContent = counts.blakurer;
+};
 
+const carsRef = ref(db,'cars');
+onValue(carsRef,(snapshot)=>{
+  const data = snapshot.val();
+  updateStats(data||{});
+});
+</script>
 </body>
 </html>

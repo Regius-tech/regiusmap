@@ -2,7 +2,7 @@ import { initializeApp } from "firebase/app";
 import { getDatabase, ref, set } from "firebase/database";
 import fs from "fs";
 
-// Firebase config (bruk samme som tidligere)
+// === Firebase konfigurasjon ===
 const firebaseConfig = {
   apiKey: "AIzaSyCKqwpql2Yl0kbpUIPrQUYyVd7m1OeH-D8",
   authDomain: "triflex-a08c7.firebaseapp.com",
@@ -16,17 +16,45 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// Funksjon for å importere en JSON-fil
-async function importFile(filePath, nodeName) {
-  const data = JSON.parse(fs.readFileSync(filePath, "utf8"));
-  await set(ref(db, nodeName), data);
-  console.log(`${filePath} importert til ${nodeName}`);
+// === Konfigurasjon for bilfiler ===
+const carFiles = [
+  { file: "./data/tsoslo.json", company: "tsoslo" },
+  { file: "./data/tsoslobud.json", company: "tsoslobud" },
+  { file: "./data/mtf.json", company: "mtf" },
+  { file: "./data/blakurer.json", company: "blakurer" },
+];
+
+// === Hjelpefunksjon for å konvertere isParticipant til boolean ===
+function parseIsParticipant(value) {
+  return value === true || value === "TRUE";
 }
 
-// Eksempel: importer alle biler
+// === Funksjon for å importere en JSON-fil ===
+async function importFile(filePath, companyNode) {
+  const data = JSON.parse(fs.readFileSync(filePath, "utf8"));
+
+  for (const car of data) {
+    const carId = car.id || car.number; // Bruk id hvis tilgjengelig, ellers bilnummer
+    const carData = {
+      ...car,
+      isParticipant: parseIsParticipant(car.isParticipant),
+    };
+
+    await set(ref(db, `cars/${companyNode}/${carId}`), carData);
+  }
+
+  console.log(`${filePath} importert til cars/${companyNode}`);
+}
+
+// === Main: import alle filer ===
 (async () => {
-  await importFile("./data/tsoslo.json", "cars/tsoslo");
-  await importFile("./data/tsoslobud.json", "cars/tsoslobud");
-  await importFile("./data/mtf.json", "cars/mtf");
-  await importFile("./data/blakurer.json", "cars/blakurer");
+  for (const file of carFiles) {
+    try {
+      await importFile(file.file, file.company);
+    } catch (err) {
+      console.error(`Feil under import av ${file.file}:`, err.message);
+    }
+  }
+
+  console.log("Alle bilfiler importert ferdig!");
 })();

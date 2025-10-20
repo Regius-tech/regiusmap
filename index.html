@@ -1,114 +1,120 @@
 <!DOCTYPE html>
 <html lang="no">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Triflex Login</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-<style>
-body {
-    margin:0;
-    font-family:Poppins,sans-serif;
-    background:#001f3f;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    height:100vh;
-    color:white;
-}
-.login-container {
-    background: rgba(2,28,60,0.95);
-    padding:40px;
-    border-radius:15px;
-    box-shadow:0 8px 20px rgba(0,0,0,0.5);
-    width: 100%;
-    max-width:400px;
-    text-align:center;
-}
-.login-container h1 { margin-bottom:20px; }
-.login-container input {
-    width:100%;
-    padding:12px 15px;
-    margin:10px 0;
-    border-radius:8px;
-    border:none;
-    outline:none;
-    font-size:14px;
-}
-.login-container button {
-    width:100%;
-    padding:12px;
-    margin-top:15px;
-    border:none;
-    border-radius:8px;
-    background:#0074D9;
-    color:white;
-    font-weight:bold;
-    cursor:pointer;
-    transition:0.3s;
-}
-.login-container button:hover { background:#005fa3; }
-#googleSignIn {
-    background:#DB4437;
-    margin-top:10px;
-}
-#googleSignIn:hover { background:#a33228; }
-.error { color:#FF4136; margin-top:10px; font-size:14px; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Triflex Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin:0;
+      font-family:'Poppins',sans-serif;
+      background: linear-gradient(135deg,#001f3f,#003366);
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      height:100vh;
+      color:white;
+    }
+    .login-container {
+      background:#00264d;
+      padding:40px;
+      border-radius:12px;
+      box-shadow:0 10px 25px rgba(0,0,0,0.5);
+      width:320px;
+      text-align:center;
+      animation:fadeIn 1s ease forwards;
+    }
+    @keyframes fadeIn { from{opacity:0; transform:translateY(-20px);} to{opacity:1; transform:translateY(0);} }
+
+    .login-container img {
+      width:120px;
+      margin-bottom:20px;
+    }
+
+    input[type=email], input[type=password] {
+      width:100%;
+      padding:12px;
+      margin:10px 0;
+      border-radius:6px;
+      border:none;
+      font-size:16px;
+    }
+
+    button {
+      width:100%;
+      padding:12px;
+      margin-top:10px;
+      border:none;
+      border-radius:6px;
+      background:#0074D9;
+      color:white;
+      font-weight:bold;
+      cursor:pointer;
+      transition:0.3s;
+    }
+
+    button:hover { background:#005fa3; }
+
+    .forgot {
+      margin-top:10px;
+      font-size:14px;
+      color:#cce6ff;
+      cursor:pointer;
+      text-decoration:underline;
+      display:block;
+    }
+  </style>
 </head>
 <body>
-
-<div class="login-container">
-    <h1>Triflex Login</h1>
-    <input type="email" id="email" placeholder="Email">
+  <div class="login-container">
+    <img src="triflex-logo.png" alt="Triflex Logo">
+    <h2>Logg inn</h2>
+    <input type="email" id="email" placeholder="E-post">
     <input type="password" id="password" placeholder="Passord">
     <button id="loginBtn">Logg inn</button>
-    <button id="googleSignIn">Logg inn med Google</button>
-    <div class="error" id="errorMsg"></div>
-</div>
+    <span class="forgot" id="forgotPassword">Glemt passord?</span>
+  </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCKqwpql2Yl0kbpUIPrQUYyVd7m1OeH-D8",
-  authDomain: "triflex-a08c7.firebaseapp.com",
-  projectId: "triflex-a08c7",
-  storageBucket: "triflex-a08c7.firebasestorage.app",
-  messagingSenderId: "835381689765",
-  appId: "1:835381689765:web:e0be4b22e5f35ca1e0bc4c",
-  measurementId: "G-0WJP4SRVYK"
-};
+    const firebaseConfig = {
+      apiKey: "AIzaSyCKqwpql2Yl0kbpUIPrQUYyVd7m1OeH-D8",
+      authDomain: "triflex-a08c7.firebaseapp.com",
+      projectId: "triflex-a08c7",
+      storageBucket: "triflex-a08c7.firebasestorage.app",
+      messagingSenderId: "835381689765",
+      appId: "1:835381689765:web:e0be4b22e5f35ca1e0bc4c",
+      databaseURL: "https://triflex-a08c7-default-rtdb.europe-west1.firebasedatabase.app"
+    };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const provider = new GoogleAuthProvider();
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
 
-document.getElementById('loginBtn').addEventListener('click', async () => {
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-    const errorMsg = document.getElementById('errorMsg');
-    errorMsg.textContent = "";
-    try {
-        await signInWithEmailAndPassword(auth, email, password);
-        window.location.href = "dashboard.html";
-    } catch(e) {
-        errorMsg.textContent = e.message;
-    }
-});
+    const loginBtn = document.getElementById('loginBtn');
+    const forgotPassword = document.getElementById('forgotPassword');
 
-document.getElementById('googleSignIn').addEventListener('click', async () => {
-    const errorMsg = document.getElementById('errorMsg');
-    errorMsg.textContent = "";
-    try {
-        await signInWithPopup(auth, provider);
-        window.location.href = "dashboard.html";
-    } catch(e) {
-        errorMsg.textContent = e.message;
-    }
-});
-</script>
+    loginBtn.addEventListener('click', async () => {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      try {
+        await signInWithEmailAndPassword(auth,email,password);
+        window.location.href = 'dashboard.html';
+      } catch(err){
+        alert(err.message);
+      }
+    });
 
+    forgotPassword.addEventListener('click', async () => {
+      const email = document.getElementById('email').value;
+      if(!email){ alert('Skriv inn e-post for tilbakestilling'); return; }
+      try{
+        await sendPasswordResetEmail(auth,email);
+        alert('Link for tilbakestilling sendt!');
+      } catch(err){ alert(err.message); }
+    });
+  </script>
 </body>
 </html>
