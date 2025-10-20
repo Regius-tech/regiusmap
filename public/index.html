@@ -58,15 +58,28 @@ const loginBtn = document.getElementById('loginBtn');
 const errorMsg = document.getElementById('errorMsg');
 const forgotPass = document.getElementById('forgotPass');
 
-// Hent selskaper og legg inn i select
+// Hent selskaper fra Firebase
 async function loadCompanies() {
+  let companies = [];
+
+  // Først prøv 'companies' noden
   const snapshot = await get(ref(db, 'companies'));
-  if(!snapshot.exists()) return;
-  const companies = snapshot.val();
-  Object.keys(companies).forEach(key => {
+  if(snapshot.exists()) {
+    const data = snapshot.val();
+    companies = Object.keys(data).map(key => data[key].name);
+  } else {
+    // Fallback: hent unike selskaper fra bilposisjoner
+    const posSnapshot = await get(ref(db, 'positions'));
+    if(posSnapshot.exists()) {
+      const vehicles = Object.values(posSnapshot.val());
+      companies = [...new Set(vehicles.map(v => v.company).filter(Boolean))];
+    }
+  }
+
+  companies.forEach(name => {
     const option = document.createElement('option');
-    option.value = key;
-    option.textContent = companies[key].name;
+    option.value = name;
+    option.textContent = name;
     companySelect.appendChild(option);
   });
 }
@@ -81,12 +94,11 @@ loginBtn.addEventListener('click', async () => {
   if(!email || !password || !company) { errorMsg.textContent="Fyll inn alle feltene"; return; }
 
   try {
-    // Sjekk antall brukere per selskap
     const usersSnapshot = await get(ref(db, 'users'));
     const users = usersSnapshot.exists() ? usersSnapshot.val() : {};
     const usersInCompany = Object.values(users).filter(u => u.company===company).length;
 
-    const maxUsers = company==="budtjenester" ? 2 : 10;
+    const maxUsers = company.toLowerCase().includes("budtjenester") ? 2 : 10;
     if(usersInCompany >= maxUsers && !Object.values(users).some(u => u.email===email)) {
       errorMsg.textContent = `Maks antall påloggede brukere for ${company} er nådd`;
       return;
@@ -94,10 +106,11 @@ loginBtn.addEventListener('click', async () => {
 
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const uid = userCredential.user.uid;
-    // Lagre selskap på bruker hvis ikke eksisterer
+
     if(!users[uid]) {
       await update(ref(db, 'users/'+uid), {email, company});
     }
+
     window.location.href="admin.html";
   } catch(e) {
     console.error(e);
@@ -122,3 +135,4 @@ forgotPass.addEventListener('click', async () => {
 </script>
 </body>
 </html>
+
