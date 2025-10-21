@@ -1,39 +1,18 @@
 {
   "version": 2,
   "routes": [
-    // API
     { "src": "/api/positions", "dest": "api/positions.js" },
-
-    // Static HTML pages
-    { "src": "/dashboard", "dest": "/dashboard.html" },
-    { "src": "/admin", "dest": "/admin.html" },
-    { "src": "/cars", "dest": "/cars.html" },
-    { "src": "/kart", "dest": "/kart.html" },
-
-    // Static assets (logo, images)
-    { "src": "/logo(.*)", "dest": "/logo$1" },
-    { "src": "/(.*\\.(png|jpg|jpeg|gif|svg|ico))", "dest": "/$1" },
-
-    // Static HTML files
-    { "src": "/(.*\\.html)", "dest": "/$1" },
-
-    // Root
-    { "src": "/", "dest": "/index.html" },
-
-    // Catch-all fallback to index.html (SPA support)
-    { "src": "/.*", "dest": "/index.html" }
+    { "src": "/logo(.*)", "dest": "/public/logo$1" },
+    { "src": "/cars", "dest": "/public/cars.html" },
+    { "src": "/kart", "dest": "/public/kart.html" },
+    { "src": "/admin", "dest": "/public/admin.html" },
+    { "src": "/dashboard", "dest": "/public/dashboard.html" },
+    { "src": "/(.*\\.(png|jpg|jpeg|gif|svg))", "dest": "/public/$1" },
+    { "src": "/(.*\\.html)", "dest": "/public/$1" },
+    { "src": "/", "dest": "/public/index.html" }
   ],
   "builds": [
     { "src": "api/positions.js", "use": "@vercel/node" },
     { "src": "public/**", "use": "@vercel/static" }
-  ],
-  "env": {
-    "FIREBASE_API_KEY": "@firebase_api_key",
-    "FIREBASE_AUTH_DOMAIN": "@firebase_auth_domain",
-    "FIREBASE_DATABASE_URL": "@firebase_database_url",
-    "FIREBASE_PROJECT_ID": "@firebase_project_id",
-    "FIREBASE_STORAGE_BUCKET": "@firebase_storage_bucket",
-    "FIREBASE_MESSAGING_SENDER_ID": "@firebase_messaging_sender_id",
-    "FIREBASE_APP_ID": "@firebase_app_id"
-  }
+  ]
 }
