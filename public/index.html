@@ -137,7 +137,7 @@ loginBtn.addEventListener('click', async () => {
       await update(ref(db, 'users/'+uid), {email, company});
     }
 
-    window.location.href="admin.html";
+    window.location.href="dashboard.html";
   } catch(e) {
     console.error(e);
     errorMsg.textContent = "Feil e-post eller passord";
