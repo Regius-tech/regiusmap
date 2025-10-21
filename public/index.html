@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Triflex Login</title>
+  <title>Triflex Login Test</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
     body {
       margin: 0;
-      font-family: Poppins, sans-serif;
+      font-family: 'Poppins', sans-serif;
       background: #001f3f;
       color: white;
       display: flex;
@@ -16,102 +16,89 @@
       align-items: center;
       height: 100vh;
     }
+
     .login-container {
       background: rgba(2,28,60,0.95);
       padding: 40px;
       border-radius: 12px;
       width: 100%;
-      max-width: 400px;
+      max-width: 450px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.5);
       text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
     }
-    .login-container img {
-      height: 100px;
-      margin-bottom: 20px;
-    }
-    h1 { margin-bottom: 20px; }
-    input, select {
+
+    input, select, button {
       width: 100%;
       padding: 12px;
-      margin: 10px 0;
+      margin: 5px 0;
       border-radius: 8px;
       border: none;
-      background: #023060;
-      color: white;
       box-sizing: border-box;
     }
+
+    input, select { background: #023060; color: white; font-size: 1rem; }
     input::placeholder { color: #cfcfcf; }
+
     button {
-      width: 100%;
-      padding: 12px;
-      margin-top: 10px;
-      border: none;
-      border-radius: 8px;
       background: #0074D9;
       color: white;
-      font-weight: bold;
+      font-weight: 600;
       cursor: pointer;
       transition: 0.3s;
+      font-size: 1rem;
     }
     button:hover { background: #005fa3; }
-    .forgot {
-      margin-top: 10px;
-      font-size: 0.9em;
-      color: #cfcfcf;
-      cursor: pointer;
-      text-decoration: underline;
+
+    .forgot { font-size: 0.9em; color: #cfcfcf; cursor: pointer; text-decoration: underline; }
+
+    .error { min-height: 20px; font-weight: bold; margin-top: 5px; }
+
+    .company-detect { font-size: 0.9em; color: #7FDBFF; min-height: 18px; }
+
+    .password-container {
+      position: relative;
     }
-    .error {
-      margin-top: 10px;
-      font-weight: bold;
-      min-height: 20px;
-      transition: 0.3s;
+    .password-container input {
+      width: 100%;
+      padding-right: 30px;
     }
-    .company-detect {
-      font-size: 0.9em;
-      color: #7FDBFF;
-      margin-top: -5px;
-      min-height: 18px;
-    }
-    .password-container { position: relative; }
-    .password-container input { padding-right: 35px; box-sizing: border-box; }
-    .toggle-password {
+    .password-toggle-icon {
       position: absolute;
-      right: 8px;
+      right: 10px;
       top: 50%;
       transform: translateY(-50%);
       cursor: pointer;
-      font-size: 1.1em;
       color: #7FDBFF;
+      font-size: 1.2em;
       user-select: none;
+      transition: 0.2s;
     }
-    .toggle-password:hover { color: #ffffff; }
-    @media (max-width: 400px) {
-      .login-container { padding: 20px; }
-      button, input, select { padding: 10px; font-size: 0.9em; }
-    }
+    .password-toggle-icon:hover { color: #ffffff; }
+
   </style>
 </head>
 <body>
   <div class="login-container">
-    <img src="/triflex.png" alt="Triflex Logo">
-    <h1>Triflex Login</h1>
+    <h1>Triflex Login Test</h1>
 
-    <select id="companySelect" required>
+    <select id="companySelect">
       <option value="">Velg selskap</option>
     </select>
 
-    <input type="email" id="email" placeholder="E-post" required aria-label="E-post">
+    <input type="email" id="email" placeholder="E-post">
     <div class="company-detect" id="companyDetected"></div>
 
     <div class="password-container">
-      <input type="password" id="password" placeholder="Passord" required aria-label="Passord">
-      <span id="togglePassword" class="toggle-password" title="Vis/skjul passord">👁️</span>
+      <input type="password" id="password" placeholder="Passord">
+      <span class="password-toggle-icon" id="togglePassword">👁️</span>
     </div>
 
     <button id="loginBtn">Logg inn</button>
     <div class="forgot" id="forgotPass">Glemt passord?</div>
-    <div class="error" id="errorMsg" aria-live="polite"></div>
+    <div class="error" id="errorMsg"></div>
   </div>
 
   <script type="module">
@@ -142,17 +129,17 @@
     const forgotPass = document.getElementById('forgotPass');
     const companyDetected = document.getElementById('companyDetected');
 
-    // 🔹 Auto redirect hvis logget inn
+    // Auto redirect hvis allerede logget inn
     onAuthStateChanged(auth, user => { if (user) window.location.href = "/dashboard"; });
 
-    // 👁 Toggle passord visning
+    // Toggle passord
     togglePassword.addEventListener('click', () => {
       const type = passwordInput.type === 'password' ? 'text' : 'password';
       passwordInput.type = type;
       togglePassword.textContent = type === 'password' ? '👁️' : '🙈';
     });
 
-    // 🔹 Last selskaper fra database
+    // Last selskaper
     async function loadCompanies() {
       try {
         const snapshot = await get(ref(db, 'companies'));
@@ -165,11 +152,11 @@
             companySelect.appendChild(option);
           });
         }
-      } catch (e) { console.error("Feil ved lasting av selskaper:", e); }
+      } catch (e) { console.error(e); }
     }
     loadCompanies();
 
-    // 🔹 Automatisk selskapdeteksjon
+    // Oppdag selskap fra e-post
     async function detectCompanyFromEmail(email) {
       if (!email.includes("@")) return "";
       const domain = email.split("@")[1].toLowerCase();
@@ -178,16 +165,15 @@
         if (snapshot.exists()) {
           const companies = snapshot.val();
           for (let key in companies) {
-            if (domain.includes(companies[key].name.toLowerCase().replace(/\s/g, ""))) {
+            if (companies[key].domain && domain.includes(companies[key].domain.toLowerCase()))
               return companies[key].name;
-            }
           }
         }
       } catch (e) { console.error(e); }
       return "";
     }
 
-    emailInput.addEventListener("input", async () => {
+    emailInput.addEventListener('input', async () => {
       const detected = await detectCompanyFromEmail(emailInput.value);
       companyDetected.textContent = detected ? `Oppdaget selskap: ${detected}` : "";
       companySelect.innerHTML = detected
@@ -195,11 +181,11 @@
         : `<option value="">Velg selskap</option>`;
     });
 
-    // 🔹 Login
+    // Login
     loginBtn.addEventListener('click', async () => {
       const email = emailInput.value.trim();
       const password = passwordInput.value.trim();
-      const company = companySelect.value || (await detectCompanyFromEmail(email));
+      const company = companySelect.value || await detectCompanyFromEmail(email);
 
       if (!email || !password || !company) {
         errorMsg.style.color = "#FF4136";
@@ -210,7 +196,8 @@
       try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const uid = userCredential.user.uid;
-        await update(ref(db, 'users/' + uid), { email, company });
+        await update(ref(db, `users/${uid}`), { email, company });
+        console.log("Innlogging vellykket:", email, "Company:", company);
         window.location.href = "/dashboard";
       } catch (e) {
         console.error("Innloggingsfeil:", e);
@@ -219,7 +206,7 @@
       }
     });
 
-    // 🔹 Glemt passord
+    // Glemt passord
     forgotPass.addEventListener('click', async () => {
       const email = emailInput.value.trim();
       if (!email) {
@@ -232,7 +219,7 @@
         errorMsg.style.color = "#00FF00";
         errorMsg.textContent = "Passordtilbakestilling sendt!";
       } catch (e) {
-        console.error(e);
+        console.error("Feil ved tilbakestilling:", e);
         errorMsg.style.color = "#FF4136";
         errorMsg.textContent = "Feil ved tilbakestilling";
       }
