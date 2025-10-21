@@ -1,121 +1,120 @@
-const path = require('path');
-const fs = require('fs').promises;
+const fetch = (...args) => import("node-fetch").then(({ default: fetch }) => fetch(...args));
+const admin = require("firebase-admin");
 
-// Konfigurasjon for eksterne API-er og bildata
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
+    }),
+    databaseURL: process.env.FIREBASE_DATABASE_URL,
+  });
+}
+
+const db = admin.database();
+
 const apiConfigurations = [
-    {
-        url: process.env.API_URL_1,
-        apiKey: process.env.API_KEY_1,
-        logo: '/logo1.png',
-        company: 'Transportsentralen Oslo',
-        vehicleFile: 'tsoslo.json', // Filen for bilinformasjon
-    },
-    {
-        url: process.env.API_URL_2,
-        apiKey: process.env.API_KEY_2,
-        logo: '/logo2.png',
-        company: 'TS Oslo Budtjenester',
-        vehicleFile: 'tsoslobud.json', // Filen for bilinformasjon
-    },
-    {
-        url: process.env.API_URL_3,
-        apiKey: process.env.API_KEY_3,
-        logo: '/logo3.png',
-        company: 'Moss Transportforum',
-        vehicleFile: 'mtf.json', // Filen for bilinformasjon
-    },
-    {
-        url: process.env.API_URL_4,
-        apiKey: process.env.API_KEY_4,
-        logo: '/logo4.png',
-        company: 'Blå Kurér',
-        vehicleFile: 'blakurer.json', // Filen for bilinformasjon
-    },
+  {
+    url: process.env.API_URL_1,
+    apiKey: process.env.API_KEY_1,
+    logo: "/logo1.png",
+    company: "Transportsentralen Oslo",
+  },
+  {
+    url: process.env.API_URL_2,
+    apiKey: process.env.API_KEY_2,
+    logo: "/logo2.png",
+    company: "TS Oslo Budtjenester",
+  },
+  {
+    url: process.env.API_URL_3,
+    apiKey: process.env.API_KEY_3,
+    logo: "/logo3.png",
+    company: "Moss Transportforum",
+  },
+  {
+    url: process.env.API_URL_4,
+    apiKey: process.env.API_KEY_4,
+    logo: "/logo4.png",
+    company: "Blå Kurér",
+  },
 ];
 
-// Funksjon for å sjekke om kjøretøyet er aktivt i dag
 function isActiveToday(vehicle) {
-    const vehicleTime = new Date(vehicle.time);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    vehicleTime.setHours(0, 0, 0, 0);
-    return vehicleTime.getTime() === today.getTime();
+  if (!vehicle.time) return false;
+  const vehicleTime = new Date(vehicle.time);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  vehicleTime.setHours(0, 0, 0, 0);
+  return vehicleTime.getTime() === today.getTime();
 }
 
-// Funksjon for å parse `isParticipant`
 function parseIsParticipant(value) {
-    return value === true || value === 'TRUE';
+  return value === true || value === "TRUE" || value === "true";
 }
 
-// Sikrer at verdien er en streng
 function ensureString(value) {
-    return value ? value.toString() : '';
+  return value ? value.toString() : "";
 }
 
 module.exports = async (req, res) => {
-    try {
-        const allPositions = [];
+  try {
+    // 🔹 Hent alle biler fra Firebase Realtime Database
+    const carsSnapshot = await db.ref("cars").once("value");
+    const carsData = carsSnapshot.val() || {};
 
-        for (const config of apiConfigurations) {
-            try {
-                // Les bilinformasjon fra den aktuelle JSON-filen
-                const filePath = path.join(process.cwd(), 'data', config.vehicleFile);
-                const fileContents = await fs.readFile(filePath, 'utf8');
-                const vehiclesArray = JSON.parse(fileContents);
+    // Lag oppslag basert på kjøretøynummer
+    const vehiclesData = Object.values(carsData).reduce((acc, car) => {
+      if (car.number) acc[car.number.toString()] = car;
+      return acc;
+    }, {});
 
-                // Gjør bilinformasjonen om til et oppslag (object) basert på kjøretøynummer
-                const vehiclesData = vehiclesArray.reduce((acc, vehicle) => {
-                    acc[vehicle.number] = vehicle;
-                    return acc;
-                }, {});
+    const allPositions = [];
 
-                console.log(`Fetching data from: ${config.url}`);
-                const response = await fetch(config.url, {
-                    method: 'GET',
-                    headers: { 'x-api-key': config.apiKey },
-                });
+    // 🔹 Hent data fra alle API-kilder
+    for (const config of apiConfigurations) {
+      if (!config.url || !config.apiKey) continue;
 
-                if (!response.ok) {
-                    console.error(`Error fetching data from ${config.url}:`, response.statusText);
-                    continue;
-                }
+      try {
+        console.log(`🔄 Henter data fra ${config.company}`);
 
-                const data = await response.json();
-                console.log(`Data fetched from ${config.url}:`, data);
+        const response = await fetch(config.url, {
+          method: "GET",
+          headers: { "x-api-key": config.apiKey },
+        });
 
-                // Legg til logoer, firma og kjøretøyinfo
-                const vehiclesWithLogos = data.map(vehicle => {
-                    const vehicleNumber = ensureString(vehicle.number);
-                    const vehicleData = vehiclesData[vehicleNumber] || {};
-
-                    return {
-                        ...vehicle,
-                        logo: config.logo,
-                        company: config.company,
-                        isActiveToday: isActiveToday(vehicle),
-                        type: vehicleData.type || 'Unknown',
-                        palleplasser: vehicleData.palleplasser || 'Unknown',
-                        isParticipant: parseIsParticipant(vehicleData.isParticipant || false),
-                    };
-                });
-
-                allPositions.push(...vehiclesWithLogos);
-            } catch (error) {
-                console.error(`Error processing data for ${config.company}:`, error.message);
-            }
+        if (!response.ok) {
+          console.error(`Feil fra ${config.company}: ${response.statusText}`);
+          continue;
         }
 
-        console.log('All positions processed successfully:', allPositions);
-        res.json(allPositions);
-    } catch (error) {
-        console.error('Error fetching vehicle positions:', error.message);
-        res.status(500).json({ error: 'Failed to fetch vehicle positions' });
+        const data = await response.json();
+
+        const vehiclesWithDetails = data.map((vehicle) => {
+          const number = ensureString(vehicle.number);
+          const firebaseData = vehiclesData[number] || {};
+
+          return {
+            ...vehicle,
+            logo: config.logo,
+            company: config.company,
+            type: firebaseData.type || "Ukjent",
+            palleplasser: firebaseData.palleplasser || "Ukjent",
+            isParticipant: parseIsParticipant(firebaseData.isParticipant),
+            isActiveToday: isActiveToday(vehicle),
+          };
+        });
+
+        allPositions.push(...vehiclesWithDetails);
+      } catch (error) {
+        console.error(`Feil ved behandling av ${config.company}: ${error.message}`);
+      }
     }
+
+    res.status(200).json(allPositions);
+  } catch (error) {
+    console.error("Feil i positions.js:", error.message);
+    res.status(500).json({ error: "Kunne ikke hente kjøretøydata" });
+  }
 };
-
-
-
-
-
-
-
