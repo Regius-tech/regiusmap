@@ -6,10 +6,9 @@
   <title>Triflex Login</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    /* Generelle stiler */
     body {
       margin: 0;
-      font-family: 'Poppins', sans-serif;
+      font-family: Poppins, sans-serif;
       background: #001f3f;
       color: white;
       display: flex;
@@ -17,64 +16,44 @@
       align-items: center;
       height: 100vh;
     }
-
     .login-container {
       background: rgba(2,28,60,0.95);
       padding: 40px;
       border-radius: 12px;
       width: 100%;
-      max-width: 450px;
+      max-width: 400px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.5);
       text-align: center;
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
     }
-
     .login-container img {
       height: 100px;
       margin-bottom: 20px;
-      object-fit: contain;
     }
-
-    h1 {
-      margin-bottom: 20px;
-      font-size: 2rem;
-    }
-
-    input, select, button {
+    h1 { margin-bottom: 20px; }
+    input, select {
       width: 100%;
       padding: 12px;
-      margin: 5px 0;
+      margin: 10px 0;
       border-radius: 8px;
       border: none;
-      box-sizing: border-box;
-    }
-
-    input, select {
       background: #023060;
       color: white;
-      font-size: 1rem;
+      box-sizing: border-box;
     }
-
-    input::placeholder {
-      color: #cfcfcf;
-    }
-
+    input::placeholder { color: #cfcfcf; }
     button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 8px;
       background: #0074D9;
       color: white;
-      font-weight: 600;
+      font-weight: bold;
       cursor: pointer;
       transition: 0.3s;
-      font-size: 1rem;
     }
-
-    button:hover {
-      background: #005fa3;
-    }
-
+    button:hover { background: #005fa3; }
     .forgot {
       margin-top: 10px;
       font-size: 0.9em;
@@ -82,51 +61,34 @@
       cursor: pointer;
       text-decoration: underline;
     }
-
     .error {
       margin-top: 10px;
-      min-height: 20px;
       font-weight: bold;
+      min-height: 20px;
       transition: 0.3s;
     }
-
     .company-detect {
       font-size: 0.9em;
       color: #7FDBFF;
       margin-top: -5px;
       min-height: 18px;
     }
-
-    .password-container {
-      position: relative;
-      display: flex;
-      align-items: center;
-    }
-
-    .password-container input {
-      flex: 1;
-      padding-right: 40px;
-    }
-
+    .password-container { position: relative; }
+    .password-container input { padding-right: 35px; box-sizing: border-box; }
     .toggle-password {
       position: absolute;
-      right: 12px;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
       cursor: pointer;
-      background: none;
-      border: none;
+      font-size: 1.1em;
       color: #7FDBFF;
-      font-size: 1.2em;
-      padding: 0;
-      transition: 0.3s;
+      user-select: none;
     }
-
-    .toggle-password:hover {
-      color: #ffffff;
-    }
-
-    @media (max-width: 450px) {
+    .toggle-password:hover { color: #ffffff; }
+    @media (max-width: 400px) {
       .login-container { padding: 20px; }
-      input, select, button { padding: 10px; font-size: 0.9em; }
+      button, input, select { padding: 10px; font-size: 0.9em; }
     }
   </style>
 </head>
@@ -144,7 +106,7 @@
 
     <div class="password-container">
       <input type="password" id="password" placeholder="Passord" required aria-label="Passord">
-      <button type="button" id="togglePassword" class="toggle-password" title="Vis/skjul passord">👁️</button>
+      <span id="togglePassword" class="toggle-password" title="Vis/skjul passord">👁️</span>
     </div>
 
     <button id="loginBtn">Logg inn</button>
@@ -153,12 +115,10 @@
   </div>
 
   <script type="module">
-    // 🔹 Importer Firebase-moduler
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
     import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
     import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
-    // 🔹 Konfigurasjon – kan flyttes til firebaseConfig.js
     const firebaseConfig = {
       apiKey: "AIzaSyCKqwpql2Yl0kbpUIPrQUYyVd7m1OeH-D8",
       authDomain: "triflex-a08c7.firebaseapp.com",
@@ -169,12 +129,10 @@
       appId: "1:835381689765:web:e0be4b22e5f35ca1e0bc4c"
     };
 
-    // 🔹 Initialiser Firebase
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const auth = getAuth(app);
 
-    // 🔹 DOM-elementer
     const companySelect = document.getElementById('companySelect');
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
@@ -184,22 +142,17 @@
     const forgotPass = document.getElementById('forgotPass');
     const companyDetected = document.getElementById('companyDetected');
 
-    // 🔹 Auto redirect hvis bruker allerede er logget inn
-    onAuthStateChanged(auth, user => {
-      if (user) {
-        console.log("Bruker allerede logget inn:", user.email);
-        window.location.href = "/dashboard";
-      }
-    });
+    // 🔹 Auto redirect hvis logget inn
+    onAuthStateChanged(auth, user => { if (user) window.location.href = "/dashboard"; });
 
-    // 🔹 Vis/skjul passord
+    // 👁 Toggle passord visning
     togglePassword.addEventListener('click', () => {
       const type = passwordInput.type === 'password' ? 'text' : 'password';
       passwordInput.type = type;
       togglePassword.textContent = type === 'password' ? '👁️' : '🙈';
     });
 
-    // 🔹 Last selskaper fra databasen
+    // 🔹 Last selskaper fra database
     async function loadCompanies() {
       try {
         const snapshot = await get(ref(db, 'companies'));
@@ -211,16 +164,12 @@
             option.textContent = data[key].name;
             companySelect.appendChild(option);
           });
-        } else {
-          console.warn("Ingen selskaper funnet i databasen.");
         }
-      } catch (e) {
-        console.error("Feil ved lasting av selskaper:", e);
-      }
+      } catch (e) { console.error("Feil ved lasting av selskaper:", e); }
     }
     loadCompanies();
 
-    // 🔹 Oppdag selskap fra e-postdomenet
+    // 🔹 Automatisk selskapdeteksjon
     async function detectCompanyFromEmail(email) {
       if (!email.includes("@")) return "";
       const domain = email.split("@")[1].toLowerCase();
@@ -229,18 +178,15 @@
         if (snapshot.exists()) {
           const companies = snapshot.val();
           for (let key in companies) {
-            if (domain.includes(companies[key].domain?.toLowerCase() || "")) {
+            if (domain.includes(companies[key].name.toLowerCase().replace(/\s/g, ""))) {
               return companies[key].name;
             }
           }
         }
-      } catch (e) {
-        console.error("Feil ved selskapdeteksjon:", e);
-      }
+      } catch (e) { console.error(e); }
       return "";
     }
 
-    // 🔹 Oppdater selskapfelt ved e-postinput
     emailInput.addEventListener("input", async () => {
       const detected = await detectCompanyFromEmail(emailInput.value);
       companyDetected.textContent = detected ? `Oppdaget selskap: ${detected}` : "";
@@ -249,11 +195,11 @@
         : `<option value="">Velg selskap</option>`;
     });
 
-    // 🔹 Login-funksjon
+    // 🔹 Login
     loginBtn.addEventListener('click', async () => {
       const email = emailInput.value.trim();
       const password = passwordInput.value.trim();
-      const company = companySelect.value || await detectCompanyFromEmail(email);
+      const company = companySelect.value || (await detectCompanyFromEmail(email));
 
       if (!email || !password || !company) {
         errorMsg.style.color = "#FF4136";
@@ -264,8 +210,7 @@
       try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const uid = userCredential.user.uid;
-        await update(ref(db, `users/${uid}`), { email, company });
-        console.log("Innlogging vellykket for:", email);
+        await update(ref(db, 'users/' + uid), { email, company });
         window.location.href = "/dashboard";
       } catch (e) {
         console.error("Innloggingsfeil:", e);
@@ -287,7 +232,7 @@
         errorMsg.style.color = "#00FF00";
         errorMsg.textContent = "Passordtilbakestilling sendt!";
       } catch (e) {
-        console.error("Feil ved tilbakestilling:", e);
+        console.error(e);
         errorMsg.style.color = "#FF4136";
         errorMsg.textContent = "Feil ved tilbakestilling";
       }
