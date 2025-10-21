@@ -1,152 +1,232 @@
 <!DOCTYPE html>
 <html lang="no">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Triflex Login</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-<style>
-body { margin:0; font-family:Poppins,sans-serif; background:#001f3f; color:white; display:flex; justify-content:center; align-items:center; height:100vh; }
-.login-container { background: rgba(2,28,60,0.95); padding:40px; border-radius:12px; width:100%; max-width:400px; box-shadow:0 4px 15px rgba(0,0,0,0.5); text-align:center; }
-.login-container img { height:100px; margin-bottom:20px; }
-.login-container h1 { margin-bottom:20px; }
-input, select { width:100%; padding:12px; margin:10px 0; border-radius:8px; border:none; background:#023060; color:white; }
-input::placeholder { color:#cfcfcf; }
-button { width:100%; padding:12px; margin-top:10px; border:none; border-radius:8px; background:#0074D9; color:white; font-weight:bold; cursor:pointer; transition:0.3s; }
-button:hover { background:#005fa3; }
-.forgot { margin-top:10px; font-size:0.9em; color:#cfcfcf; cursor:pointer; text-decoration:underline; }
-.error { color:#FF4136; margin-top:10px; font-weight:bold; }
-.company-detect { font-size:0.9em; color:#7FDBFF; margin-top:-5px; min-height:18px; transition:0.3s; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Triflex Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: Poppins, sans-serif;
+      background: #001f3f;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .login-container {
+      background: rgba(2,28,60,0.95);
+      padding: 40px;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+      text-align: center;
+    }
+    .login-container img {
+      height: 100px;
+      margin-bottom: 20px;
+    }
+    .login-container h1 {
+      margin-bottom: 20px;
+    }
+    input, select {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: none;
+      background: #023060;
+      color: white;
+    }
+    input::placeholder {
+      color: #cfcfcf;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 8px;
+      background: #0074D9;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover {
+      background: #005fa3;
+    }
+    .forgot {
+      margin-top: 10px;
+      font-size: 0.9em;
+      color: #cfcfcf;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+    .error {
+      color: #FF4136;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    .company-detect {
+      font-size: 0.9em;
+      color: #7FDBFF;
+      margin-top: -5px;
+      min-height: 18px;
+      transition: 0.3s;
+    }
+  </style>
 </head>
 <body>
-<div class="login-container">
-  <img src="/triflex.png" alt="Triflex Logo">
-  <h1>Triflex Login</h1>
-  <select id="companySelect" required>
-    <option value="">Velg selskap</option>
-  </select>
-  <input type="email" id="email" placeholder="E-post" required>
-  <div class="company-detect" id="companyDetected"></div>
-  <input type="password" id="password" placeholder="Passord" required>
-  <button id="loginBtn">Logg inn</button>
-  <div class="forgot" id="forgotPass">Glemt passord?</div>
-  <div class="error" id="errorMsg"></div>
-</div>
+  <div class="login-container">
+    <img src="/triflex.png" alt="Triflex Logo">
+    <h1>Triflex Login</h1>
+    <select id="companySelect" required>
+      <option value="">Velg selskap</option>
+    </select>
+    <input type="email" id="email" placeholder="E-post" required>
+    <div class="company-detect" id="companyDetected"></div>
+    <input type="password" id="password" placeholder="Passord" required>
+    <button id="loginBtn">Logg inn</button>
+    <div class="forgot" id="forgotPass">Glemt passord?</div>
+    <div class="error" id="errorMsg"></div>
+  </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
-import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-import { firebaseConfig } from "./firebaseConfig.js";
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+    import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-const auth = getAuth(app);
+    const firebaseConfig = {
+      apiKey: "AIzaSyCKqwpql2Yl0kbpUIPrQUYyAjd1JlMvNg",
+      authDomain: "triflex-a08c7.firebaseapp.com",
+      projectId: "triflex-a08c7",
+      storageBucket: "triflex-a08c7.firebasestorage.app",
+      messagingSenderId: "835381689765",
+      appId: "1:835381689765:web:e0be4b22e5f35ca1e0bc4c",
+      databaseURL: "https://triflex-a08c7-default-rtdb.europe-west1.firebasedatabase.app"
+    };
 
-const companySelect = document.getElementById('companySelect');
-const emailInput = document.getElementById('email');
-const passwordInput = document.getElementById('password');
-const loginBtn = document.getElementById('loginBtn');
-const errorMsg = document.getElementById('errorMsg');
-const forgotPass = document.getElementById('forgotPass');
-const companyDetected = document.getElementById('companyDetected');
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const auth = getAuth(app);
 
-// 🔹 Automatisk deteksjon av selskap fra e-postdomene
-function detectCompanyFromEmail(email) {
-  if (!email.includes("@")) return "";
-  const domain = email.split("@")[1].toLowerCase();
-  if (domain === "tsoslo.no") return "Transportsentralen Oslo";
-  if (domain === "mtf.no") return "Moss Transportforum";
-  if (domain === "blakurer.no") return "Blå Kurér";
-  return "";
-}
+    const companySelect = document.getElementById('companySelect');
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const loginBtn = document.getElementById('loginBtn');
+    const errorMsg = document.getElementById('errorMsg');
+    const forgotPass = document.getElementById('forgotPass');
+    const companyDetected = document.getElementById('companyDetected');
 
-emailInput.addEventListener("input", () => {
-  const detected = detectCompanyFromEmail(emailInput.value);
-  companyDetected.textContent = detected ? `Oppdaget selskap: ${detected}` : "";
-  if (detected) {
-    companySelect.innerHTML = `<option value="${detected}">${detected}</option>`;
-  } else {
-    companySelect.innerHTML = `<option value="">Velg selskap</option>`;
-  }
-});
-
-// 🔹 Hent selskaper (fallback)
-async function loadCompanies() {
-  let companies = [];
-  const snapshot = await get(ref(db, 'companies'));
-  if(snapshot.exists()) {
-    const data = snapshot.val();
-    companies = Object.keys(data).map(key => data[key].name);
-  } else {
-    const posSnapshot = await get(ref(db, 'positions'));
-    if(posSnapshot.exists()) {
-      const vehicles = Object.values(posSnapshot.val());
-      companies = [...new Set(vehicles.map(v => v.company).filter(Boolean))];
-    }
-  }
-  if(companies.length === 0) companies.push("Standard selskap");
-  companies.forEach(name => {
-    const option = document.createElement('option');
-    option.value = name;
-    option.textContent = name;
-    companySelect.appendChild(option);
-  });
-}
-loadCompanies();
-
-// 🔹 Login
-loginBtn.addEventListener('click', async () => {
-  const email = emailInput.value.trim();
-  const password = passwordInput.value.trim();
-  const detected = detectCompanyFromEmail(email);
-  const company = companySelect.value || detected;
-
-  if(!email || !password || !company) { 
-    errorMsg.textContent="Fyll inn alle feltene"; 
-    return; 
-  }
-
-  try {
-    const usersSnapshot = await get(ref(db, 'users'));
-    const users = usersSnapshot.exists() ? usersSnapshot.val() : {};
-    const usersInCompany = Object.values(users).filter(u => u.company===company).length;
-
-    const maxUsers = company.toLowerCase().includes("budtjenester") ? 2 : 10;
-    if(usersInCompany >= maxUsers && !Object.values(users).some(u => u.email===email)) {
-      errorMsg.textContent = `Maks antall påloggede brukere for ${company} er nådd`;
-      return;
+    // 🔹 Automatisk deteksjon av selskap fra e-postdomene
+    function detectCompanyFromEmail(email) {
+      if (!email.includes("@")) return "";
+      const domain = email.split("@")[1].toLowerCase();
+      if (domain === "tsoslo.no") return "Transportsentralen Oslo";
+      if (domain === "mtf.no") return "Moss Transportforum";
+      if (domain === "blakurer.no") return "Blå Kurér";
+      if (domain === "budtjenester.no") return "Budtjenester";
+      return "";
     }
 
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    const uid = userCredential.user.uid;
+    emailInput.addEventListener("input", () => {
+      const detected = detectCompanyFromEmail(emailInput.value);
 
-    if(!users[uid]) {
-      await update(ref(db, 'users/'+uid), {email, company});
+      // ✅ Riktig bruk av template literals
+      companyDetected.textContent = detected ? `Oppdaget selskap: ${detected}` : "";
+
+      if (detected) {
+        companySelect.innerHTML = `<option value="${detected}">${detected}</option>`;
+      } else {
+        companySelect.innerHTML = `<option value="">Velg selskap</option>`;
+      }
+    });
+
+    // 🔹 Hent selskaper (fallback hvis ingen oppdages)
+    async function loadCompanies() {
+      let companies = [];
+      const snapshot = await get(ref(db, 'companies'));
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        companies = Object.keys(data).map(key => data[key].name);
+      } else {
+        const posSnapshot = await get(ref(db, 'positions'));
+        if (posSnapshot.exists()) {
+          const vehicles = Object.values(posSnapshot.val());
+          companies = [...new Set(vehicles.map(v => v.company).filter(Boolean))];
+        }
+      }
+
+      if (companies.length === 0) companies.push("Standard selskap");
+
+      companies.forEach(name => {
+        const option = document.createElement('option');
+        option.value = name;
+        option.textContent = name;
+        companySelect.appendChild(option);
+      });
     }
 
-    window.location.href="dashboard.html";
-  } catch(e) {
-    console.error(e);
-    errorMsg.textContent = "Feil e-post eller passord";
-  }
-});
+    loadCompanies();
 
-// 🔹 Glemt passord
-forgotPass.addEventListener('click', async () => {
-  const email = emailInput.value.trim();
-  if(!email) { errorMsg.textContent="Skriv inn e-post for tilbakestilling"; return; }
-  try {
-    await sendPasswordResetEmail(auth, email);
-    errorMsg.style.color="#00FF00";
-    errorMsg.textContent="Passordtilbakestilling sendt!";
-  } catch(e) {
-    console.error(e);
-    errorMsg.style.color="#FF4136";
-    errorMsg.textContent="Feil ved tilbakestilling";
-  }
-});
-</script>
+    // 🔹 Login
+    loginBtn.addEventListener('click', async () => {
+      const email = emailInput.value.trim();
+      const password = passwordInput.value.trim();
+      const detected = detectCompanyFromEmail(email);
+      const company = companySelect.value || detected;
+
+      if (!email || !password || !company) {
+        errorMsg.textContent = "Fyll inn alle feltene";
+        return;
+      }
+
+      try {
+        const usersSnapshot = await get(ref(db, 'users'));
+        const users = usersSnapshot.exists() ? usersSnapshot.val() : {};
+        const usersInCompany = Object.values(users).filter(u => u.company === company).length;
+        const maxUsers = company.toLowerCase().includes("budtjenester") ? 2 : 10;
+
+        if (usersInCompany >= maxUsers && !Object.values(users).some(u => u.email === email)) {
+          errorMsg.textContent = `Maks antall påloggede brukere for ${company} er nådd`;
+          return;
+        }
+
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const uid = userCredential.user.uid;
+
+        if (!users[uid]) {
+          await update(ref(db, 'users/' + uid), { email, company });
+        }
+
+        window.location.href = "dashboard.html";
+      } catch (e) {
+        console.error(e);
+        errorMsg.textContent = "Feil e-post eller passord";
+      }
+    });
+
+    // 🔹 Glemt passord
+    forgotPass.addEventListener('click', async () => {
+      const email = emailInput.value.trim();
+      if (!email) {
+        errorMsg.textContent = "Skriv inn e-post for tilbakestilling";
+        return;
+      }
+      try {
+        await sendPasswordResetEmail(auth, email);
+        errorMsg.style.color = "#00FF00";
+        errorMsg.textContent = "Passordtilbakestilling sendt!";
+      } catch (e) {
+        console.error(e);
+        errorMsg.style.color = "#FF4136";
+        errorMsg.textContent = "Feil ved tilbakestilling";
+      }
+    });
+  </script>
 </body>
 </html>
