@@ -1,240 +1,238 @@
 <!DOCTYPE html>
 <html lang="no">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Triflex Login</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-  <style>
-    body {
-      margin: 0;
-      font-family: Poppins, sans-serif;
-      background: #001f3f;
-      color: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-    .login-container {
-      background: rgba(2,28,60,0.95);
-      padding: 40px;
-      border-radius: 12px;
-      width: 100%;
-      max-width: 400px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-      text-align: center;
-      position: relative;
-    }
-    .login-container img { height: 100px; margin-bottom: 20px; }
-    h1 { margin-bottom: 20px; }
-    input, select {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      border-radius: 8px;
-      border: none;
-      background: #023060;
-      color: white;
-      box-sizing: border-box;
-    }
-    input::placeholder { color: #cfcfcf; }
-    button {
-      width: 100%;
-      padding: 12px;
-      margin-top: 10px;
-      border: none;
-      border-radius: 8px;
-      background: #0074D9;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-    button:hover { background: #005fa3; }
-    .forgot {
-      margin-top: 10px;
-      font-size: 0.9em;
-      color: #cfcfcf;
-      cursor: pointer;
-      text-decoration: underline;
-    }
-    .error {
-      margin-top: 10px;
-      font-weight: bold;
-      min-height: 20px;
-      transition: 0.3s;
-    }
-    .company-detect {
-      font-size: 0.9em;
-      color: #7FDBFF;
-      margin-top: -5px;
-      min-height: 18px;
-    }
-    .password-container { position: relative; }
-    .password-container input { padding-right: 40px; }
-    .toggle-password {
-      position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      cursor: pointer;
-      background: none;
-      border: none;
-      color: #7FDBFF;
-      font-size: 1.2em;
-      transition: 0.3s;
-    }
-    .toggle-password:hover { color: #fff; }
-    @media (max-width: 400px) {
-      .login-container { padding: 20px; }
-      button, input, select { padding: 10px; font-size: 0.9em; }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Triflex Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  body {
+    margin: 0;
+    font-family: Poppins, sans-serif;
+    background: #001f3f;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  .login-container {
+    background: rgba(2,28,60,0.95);
+    padding: 40px;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    text-align: center;
+  }
+  .login-container img { height: 100px; margin-bottom: 20px; }
+  h1 { margin-bottom: 20px; }
+  input, select {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 8px;
+    border: none;
+    background: #023060;
+    color: white;
+    box-sizing: border-box;
+  }
+  input::placeholder { color: #cfcfcf; }
+  button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 8px;
+    background: #0074D9;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  button:hover { background: #005fa3; }
+  .forgot {
+    margin-top: 10px;
+    font-size: 0.9em;
+    color: #cfcfcf;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+  .error {
+    margin-top: 10px;
+    font-weight: bold;
+    min-height: 20px;
+    transition: 0.3s;
+  }
+  .company-detect {
+    font-size: 0.9em;
+    color: #7FDBFF;
+    margin-top: -5px;
+    min-height: 18px;
+  }
+  .password-container { position: relative; }
+  .password-container input { padding-right: 30px; }
+  .toggle-password {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    font-size: 1.1em;
+    color: #7FDBFF;
+    user-select: none;
+  }
+  .toggle-password:hover { color: #fff; }
+  @media (max-width: 400px) {
+    .login-container { padding: 20px; }
+    button, input, select { padding: 10px; font-size: 0.9em; }
+  }
+</style>
 </head>
 <body>
-  <div class="login-container">
-    <img src="/triflex.png" alt="Triflex Logo">
-    <h1>Triflex Login</h1>
+<div class="login-container">
+  <img src="/triflex.png" alt="Triflex Logo">
+  <h1>Triflex Login</h1>
 
-    <select id="companySelect" required>
-      <option value="">Velg selskap</option>
-    </select>
+  <select id="companySelect" required>
+    <option value="">Velg selskap</option>
+  </select>
 
-    <input type="email" id="email" placeholder="E-post" required aria-label="E-post">
-    <div class="company-detect" id="companyDetected"></div>
+  <input type="email" id="email" placeholder="E-post" required>
+  <div class="company-detect" id="companyDetected"></div>
 
-    <div class="password-container">
-      <input type="password" id="password" placeholder="Passord" required aria-label="Passord">
-      <button type="button" id="togglePassword" class="toggle-password" title="Vis/skjul passord">👁️</button>
-    </div>
-
-    <button id="loginBtn">Logg inn</button>
-    <div class="forgot" id="forgotPass">Glemt passord?</div>
-    <div class="error" id="errorMsg" aria-live="polite"></div>
+  <div class="password-container">
+    <input type="password" id="password" placeholder="Passord" required>
+    <span id="togglePassword" class="toggle-password" title="Vis/skjul passord">👁️</span>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
-    import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+  <button id="loginBtn">Logg inn</button>
+  <div class="forgot" id="forgotPass">Glemt passord?</div>
+  <div class="error" id="errorMsg" aria-live="polite"></div>
+</div>
 
-    const firebaseConfig = {
-      apiKey: import.meta.env.FIREBASE_API_KEY,
-      authDomain: import.meta.env.FIREBASE_AUTH_DOMAIN,
-      databaseURL: import.meta.env.FIREBASE_DATABASE_URL,
-      projectId: import.meta.env.FIREBASE_PROJECT_ID,
-      storageBucket: import.meta.env.FIREBASE_STORAGE_BUCKET,
-      messagingSenderId: import.meta.env.FIREBASE_MESSAGING_SENDER_ID,
-      appId: import.meta.env.FIREBASE_APP_ID
-    };
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const auth = getAuth(app);
+// Sett inn dine Firebase ENV variabler
+const firebaseConfig = {
+  apiKey: import.meta.env.FIREBASE_API_KEY,
+  authDomain: import.meta.env.FIREBASE_AUTH_DOMAIN,
+  databaseURL: import.meta.env.FIREBASE_DATABASE_URL,
+  projectId: import.meta.env.FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.FIREBASE_APP_ID
+};
 
-    const companySelect = document.getElementById('companySelect');
-    const emailInput = document.getElementById('email');
-    const passwordInput = document.getElementById('password');
-    const togglePassword = document.getElementById('togglePassword');
-    const loginBtn = document.getElementById('loginBtn');
-    const errorMsg = document.getElementById('errorMsg');
-    const forgotPass = document.getElementById('forgotPass');
-    const companyDetected = document.getElementById('companyDetected');
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const auth = getAuth(app);
 
-    // 🔹 Auto redirect hvis logget inn
-    onAuthStateChanged(auth, user => { if (user) window.location.href = "/dashboard"; });
+const companySelect = document.getElementById('companySelect');
+const emailInput = document.getElementById('email');
+const passwordInput = document.getElementById('password');
+const togglePassword = document.getElementById('togglePassword');
+const loginBtn = document.getElementById('loginBtn');
+const errorMsg = document.getElementById('errorMsg');
+const forgotPass = document.getElementById('forgotPass');
+const companyDetected = document.getElementById('companyDetected');
 
-    // 👁 Toggle passordvisning
-    togglePassword.addEventListener('click', () => {
-      const type = passwordInput.type === 'password' ? 'text' : 'password';
-      passwordInput.type = type;
-      togglePassword.textContent = type === 'password' ? '👁️' : '🙈';
-    });
+// Auto redirect hvis allerede logget inn
+onAuthStateChanged(auth, user => { if (user) window.location.href = "/dashboard"; });
 
-    // 🔹 Dynamisk selskapdeteksjon
-    async function detectCompanyFromEmail(email) {
-      if (!email.includes("@")) return "";
-      const domain = email.split("@")[1].toLowerCase();
-      try {
-        const snapshot = await get(ref(db, 'companies'));
-        if (snapshot.exists()) {
-          const companies = snapshot.val();
-          for (let key in companies) {
-            if (domain.includes(companies[key].domain)) return companies[key].name;
-          }
-        }
-      } catch (e) { console.error(e); }
-      return "";
+// Vis/skjul passord
+togglePassword.addEventListener('click', () => {
+  passwordInput.type = passwordInput.type === 'password' ? 'text' : 'password';
+  togglePassword.textContent = passwordInput.type === 'password' ? '👁️' : '🙈';
+});
+
+// Hent selskaper fra Firebase
+async function loadCompanies() {
+  try {
+    const snapshot = await get(ref(db, 'companies'));
+    if (snapshot.exists()) {
+      const data = snapshot.val();
+      Object.keys(data).forEach(key => {
+        const option = document.createElement('option');
+        option.value = data[key].name;
+        option.textContent = data[key].name;
+        companySelect.appendChild(option);
+      });
     }
+  } catch (e) { console.error("Feil ved lasting av selskaper:", e); }
+}
+loadCompanies();
 
-    emailInput.addEventListener("input", async () => {
-      const detected = await detectCompanyFromEmail(emailInput.value);
-      companyDetected.textContent = detected ? `Oppdaget selskap: ${detected}` : "";
-      companySelect.innerHTML = detected
-        ? `<option value="${detected}">${detected}</option>`
-        : `<option value="">Velg selskap</option>`;
-    });
-
-    // 🔹 Last selskaper fra database
-    async function loadCompanies() {
-      try {
-        const snapshot = await get(ref(db, 'companies'));
-        if (snapshot.exists()) {
-          const data = snapshot.val();
-          Object.keys(data).forEach(key => {
-            const option = document.createElement('option');
-            option.value = data[key].name;
-            option.textContent = data[key].name;
-            companySelect.appendChild(option);
-          });
+// Automatisk selskapdeteksjon basert på e-post
+emailInput.addEventListener("input", async () => {
+  const email = emailInput.value.trim();
+  if (!email.includes("@")) {
+    companyDetected.textContent = "";
+    return;
+  }
+  const domain = email.split("@")[1].toLowerCase();
+  let detected = "";
+  try {
+    const snapshot = await get(ref(db, 'companies'));
+    if (snapshot.exists()) {
+      const companies = snapshot.val();
+      for (let key in companies) {
+        if (domain.includes(companies[key].name.replace(/\s+/g,'').toLowerCase()) || domain.includes(companies[key].domain?.toLowerCase() || "")) {
+          detected = companies[key].name;
+          break;
         }
-      } catch (e) { console.error("Feil ved lasting av selskaper:", e); }
+      }
     }
-    loadCompanies();
+  } catch(e) { console.error(e); }
+  companyDetected.textContent = detected ? `Oppdaget selskap: ${detected}` : "";
+  companySelect.innerHTML = detected ? `<option value="${detected}">${detected}</option>` : `<option value="">Velg selskap</option>`;
+});
 
-    // 🔹 Login
-    loginBtn.addEventListener('click', async () => {
-      const email = emailInput.value.trim();
-      const password = passwordInput.value.trim();
-      const company = companySelect.value || (await detectCompanyFromEmail(email));
+// Login
+loginBtn.addEventListener('click', async () => {
+  const email = emailInput.value.trim();
+  const password = passwordInput.value.trim();
+  const company = companySelect.value || companyDetected.textContent.replace("Oppdaget selskap: ", "");
 
-      if (!email || !password || !company) {
-        errorMsg.style.color = "#FF4136";
-        errorMsg.textContent = "Fyll inn alle feltene";
-        return;
-      }
+  if (!email || !password || !company) {
+    errorMsg.style.color = "#FF4136";
+    errorMsg.textContent = "Fyll inn alle feltene";
+    return;
+  }
 
-      try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        const uid = userCredential.user.uid;
-        await update(ref(db, 'users/' + uid), { email, company });
-        window.location.href = "/dashboard";
-      } catch (e) {
-        console.error("Innloggingsfeil:", e);
-        errorMsg.style.color = "#FF4136";
-        errorMsg.textContent = "Feil e-post eller passord.";
-      }
-    });
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const uid = userCredential.user.uid;
+    await update(ref(db, 'users/' + uid), { email, company });
+    window.location.href = "/dashboard";
+  } catch (e) {
+    console.error("Innloggingsfeil:", e);
+    errorMsg.style.color = "#FF4136";
+    errorMsg.textContent = "Feil e-post eller passord.";
+  }
+});
 
-    // 🔹 Glemt passord
-    forgotPass.addEventListener('click', async () => {
-      const email = emailInput.value.trim();
-      if (!email) {
-        errorMsg.style.color = "#FF4136";
-        errorMsg.textContent = "Skriv inn e-post for tilbakestilling";
-        return;
-      }
-      try {
-        await sendPasswordResetEmail(auth, email);
-        errorMsg.style.color = "#00FF00";
-        errorMsg.textContent = "Passordtilbakestilling sendt!";
-      } catch (e) {
-        console.error(e);
-        errorMsg.style.color = "#FF4136";
-        errorMsg.textContent = "Feil ved tilbakestilling";
-      }
-    });
-  </script>
+// Glemt passord
+forgotPass.addEventListener('click', async () => {
+  const email = emailInput.value.trim();
+  if (!email) {
+    errorMsg.style.color = "#FF4136";
+    errorMsg.textContent = "Skriv inn e-post for tilbakestilling";
+    return;
+  }
+  try {
+    await sendPasswordResetEmail(auth, email);
+    errorMsg.style.color = "#00FF00";
+    errorMsg.textContent = "Passordtilbakestilling sendt!";
+  } catch (e) {
+    console.error(e);
+    errorMsg.style.color = "#FF4136";
+    errorMsg.textContent = "Feil ved tilbakestilling";
+  }
+});
+</script>
 </body>
 </html>
