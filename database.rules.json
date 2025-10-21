@@ -9,7 +9,13 @@
       ".write": false
     },
     "users": {
-      ".read": true,
+      "$uid": {
+        ".read": "$uid === auth.uid",
+        ".write": "$uid === auth.uid"
+      }
+    },
+    "cars": {
+      ".read": "auth != null",
       ".write": true
     }
   }
