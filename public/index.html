@@ -24,6 +24,7 @@
       max-width: 400px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.5);
       text-align: center;
+      position: relative;
     }
     .login-container img { height: 100px; margin-bottom: 20px; }
     h1 { margin-bottom: 20px; }
@@ -62,6 +63,7 @@
       margin-top: 10px;
       font-weight: bold;
       min-height: 20px;
+      transition: 0.3s;
     }
     .company-detect {
       font-size: 0.9em;
@@ -70,7 +72,7 @@
       min-height: 18px;
     }
     .password-container { position: relative; }
-    .password-container input { padding-right: 36px; }
+    .password-container input { padding-right: 35px; }
     .toggle-password {
       position: absolute;
       right: 10px;
@@ -80,11 +82,14 @@
       background: none;
       border: none;
       color: #7FDBFF;
-      font-size: 1.2em;
+      font-size: 1.1em;
       line-height: 1;
-      padding: 0;
     }
     .toggle-password:hover { color: #fff; }
+    @media (max-width: 400px) {
+      .login-container { padding: 20px; }
+      button, input, select { padding: 10px; font-size: 0.9em; }
+    }
   </style>
 </head>
 <body>
@@ -101,7 +106,7 @@
 
     <div class="password-container">
       <input type="password" id="password" placeholder="Passord" required>
-      <button type="button" id="togglePassword" class="toggle-password">👁️</button>
+      <button type="button" id="togglePassword" class="toggle-password" title="Vis/skjul passord">👁️</button>
     </div>
 
     <button id="loginBtn">Logg inn</button>
@@ -114,14 +119,15 @@
     import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
     import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
+    // 🔹 Skriv inn dine Firebase-nøkler direkte her
     const firebaseConfig = {
-      apiKey: import.meta.env.FIREBASE_API_KEY,
-      authDomain: import.meta.env.FIREBASE_AUTH_DOMAIN,
-      databaseURL: import.meta.env.FIREBASE_DATABASE_URL,
-      projectId: import.meta.env.FIREBASE_PROJECT_ID,
-      storageBucket: import.meta.env.FIREBASE_STORAGE_BUCKET,
-      messagingSenderId: import.meta.env.FIREBASE_MESSAGING_SENDER_ID,
-      appId: import.meta.env.FIREBASE_APP_ID
+      apiKey: "AIzaSyCKqwpql2Yl0kbpUIPrQUYyVd7m1OeH-D8",
+      authDomain: "triflex-a08c7.firebaseapp.com",
+      databaseURL: "https://triflex-a08c7-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "triflex-a08c7",
+      storageBucket: "triflex-a08c7.appspot.com",
+      messagingSenderId: "835381689765",
+      appId: "1:835381689765:web:e0be4b22e5f35ca1e0bc4c"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -137,52 +143,63 @@
     const forgotPass = document.getElementById('forgotPass');
     const companyDetected = document.getElementById('companyDetected');
 
-    // 🔹 Toggle passord
+    // 🔹 Auto redirect hvis logget inn
+    onAuthStateChanged(auth, user => { if (user) window.location.href = "/dashboard"; });
+
+    // 👁 Toggle passordvisning
     togglePassword.addEventListener('click', () => {
-      const type = passwordInput.type === 'password' ? 'text' : 'password';
-      passwordInput.type = type;
-      togglePassword.textContent = type === 'password' ? '👁️' : '🙈';
+      passwordInput.type = passwordInput.type === 'password' ? 'text' : 'password';
+      togglePassword.textContent = passwordInput.type === 'password' ? '👁️' : '🙈';
     });
 
-    // 🔹 Last selskaper fra DB
-    let companies = {};
+    // 🔹 Automatisk selskapdeteksjon basert på e-post
+    async function detectCompanyFromEmail(email) {
+      if (!email.includes("@")) return "";
+      const domain = email.split("@")[1].toLowerCase();
+      try {
+        const snapshot = await get(ref(db, 'companies'));
+        if (snapshot.exists()) {
+          const companies = snapshot.val();
+          for (let key in companies) {
+            if (domain.includes(companies[key].name.toLowerCase().replace(/\s/g,''))) {
+              return companies[key].name;
+            }
+          }
+        }
+      } catch(e) { console.error(e); }
+      return "";
+    }
+
+    emailInput.addEventListener('input', async () => {
+      const detected = await detectCompanyFromEmail(emailInput.value);
+      companyDetected.textContent = detected ? `Oppdaget selskap: ${detected}` : "";
+      companySelect.innerHTML = detected
+        ? `<option value="${detected}">${detected}</option>`
+        : `<option value="">Velg selskap</option>`;
+    });
+
+    // 🔹 Last selskaper fra database
     async function loadCompanies() {
       try {
         const snapshot = await get(ref(db, 'companies'));
         if (snapshot.exists()) {
-          companies = snapshot.val();
-          Object.values(companies).forEach(c => {
-            const opt = document.createElement('option');
-            opt.value = c.name;
-            opt.textContent = c.name;
-            companySelect.appendChild(opt);
+          const data = snapshot.val();
+          Object.keys(data).forEach(key => {
+            const option = document.createElement('option');
+            option.value = data[key].name;
+            option.textContent = data[key].name;
+            companySelect.appendChild(option);
           });
         }
-      } catch (e) { console.error(e); }
+      } catch(e){ console.error(e); }
     }
     loadCompanies();
-
-    // 🔹 Automatisk selskapdeteksjon
-    emailInput.addEventListener('input', () => {
-      const email = emailInput.value;
-      if (!email.includes('@')) return;
-      const domain = email.split('@')[1].toLowerCase();
-      let detected = "";
-      for (let key in companies) {
-        if (companies[key].domain && domain.includes(companies[key].domain.toLowerCase())) {
-          detected = companies[key].name;
-          break;
-        }
-      }
-      companyDetected.textContent = detected ? `Oppdaget selskap: ${detected}` : "";
-      companySelect.value = detected || "";
-    });
 
     // 🔹 Login
     loginBtn.addEventListener('click', async () => {
       const email = emailInput.value.trim();
       const password = passwordInput.value.trim();
-      const company = companySelect.value.trim();
+      const company = companySelect.value || await detectCompanyFromEmail(email);
 
       if (!email || !password || !company) {
         errorMsg.style.color = "#FF4136";
@@ -193,10 +210,10 @@
       try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const uid = userCredential.user.uid;
-        await update(ref(db, `users/${uid}`), { email, company });
+        await update(ref(db, 'users/' + uid), { email, company });
         window.location.href = "/dashboard";
-      } catch (e) {
-        console.error("Login error:", e);
+      } catch(e) {
+        console.error("Innloggingsfeil:", e);
         errorMsg.style.color = "#FF4136";
         errorMsg.textContent = "Feil e-post eller passord.";
       }
@@ -214,12 +231,13 @@
         await sendPasswordResetEmail(auth, email);
         errorMsg.style.color = "#00FF00";
         errorMsg.textContent = "Passordtilbakestilling sendt!";
-      } catch (e) {
+      } catch(e) {
         console.error(e);
         errorMsg.style.color = "#FF4136";
         errorMsg.textContent = "Feil ved tilbakestilling";
       }
     });
+
   </script>
 </body>
 </html>
