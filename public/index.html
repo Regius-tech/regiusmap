@@ -24,6 +24,7 @@
       max-width: 400px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.5);
       text-align: center;
+      position: relative;
     }
     .login-container img {
       height: 100px;
@@ -40,6 +41,7 @@
       border: none;
       background: #023060;
       color: white;
+      box-sizing: border-box;
     }
     input::placeholder {
       color: #cfcfcf;
@@ -78,18 +80,46 @@
       min-height: 18px;
       transition: 0.3s;
     }
+
+    /* 👁 Vis/skjul passord ikon */
+    .password-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .toggle-password {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      background: none;
+      border: none;
+      color: #7FDBFF;
+      font-size: 1.1em;
+    }
+    .toggle-password:hover {
+      color: #fff;
+    }
   </style>
 </head>
 <body>
   <div class="login-container">
     <img src="/triflex.png" alt="Triflex Logo">
     <h1>Triflex Login</h1>
+
     <select id="companySelect" required>
       <option value="">Velg selskap</option>
     </select>
+
     <input type="email" id="email" placeholder="E-post" required>
     <div class="company-detect" id="companyDetected"></div>
-    <input type="password" id="password" placeholder="Passord" required>
+
+    <div class="password-container">
+      <input type="password" id="password" placeholder="Passord" required>
+      <button type="button" id="togglePassword" class="toggle-password">👁️</button>
+    </div>
+
     <button id="loginBtn">Logg inn</button>
     <div class="forgot" id="forgotPass">Glemt passord?</div>
     <div class="error" id="errorMsg"></div>
@@ -100,8 +130,9 @@
     import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
     import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
+    // 🔧 Sjekk at du bruker RIKTIG apiKey fra prosjektet i Firebase Console
     const firebaseConfig = {
-      apiKey: "AIzaSyCKqwpql2Yl0kbpUIPrQUYyAjd1JlMvNg",
+      apiKey: "apiKey: "AIzaSyCKqwpql2Yl0kbpUIPrQUYyVd7m1OeH-D8",",
       authDomain: "triflex-a08c7.firebaseapp.com",
       projectId: "triflex-a08c7",
       storageBucket: "triflex-a08c7.firebasestorage.app",
@@ -117,12 +148,20 @@
     const companySelect = document.getElementById('companySelect');
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
+    const togglePassword = document.getElementById('togglePassword');
     const loginBtn = document.getElementById('loginBtn');
     const errorMsg = document.getElementById('errorMsg');
     const forgotPass = document.getElementById('forgotPass');
     const companyDetected = document.getElementById('companyDetected');
 
-    // 🔹 Automatisk deteksjon av selskap fra e-postdomene
+    // 👁 Toggle vis/skjul passord
+    togglePassword.addEventListener('click', () => {
+      const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+      passwordInput.setAttribute('type', type);
+      togglePassword.textContent = type === 'password' ? '👁️' : '🙈';
+    });
+
+    // 🔹 Automatisk selskap fra e-post
     function detectCompanyFromEmail(email) {
       if (!email.includes("@")) return "";
       const domain = email.split("@")[1].toLowerCase();
@@ -135,10 +174,7 @@
 
     emailInput.addEventListener("input", () => {
       const detected = detectCompanyFromEmail(emailInput.value);
-
-      // ✅ Riktig bruk av template literals
       companyDetected.textContent = detected ? `Oppdaget selskap: ${detected}` : "";
-
       if (detected) {
         companySelect.innerHTML = `<option value="${detected}">${detected}</option>`;
       } else {
@@ -146,31 +182,23 @@
       }
     });
 
-    // 🔹 Hent selskaper (fallback hvis ingen oppdages)
+    // 🔹 Hent selskaper fallback
     async function loadCompanies() {
-      let companies = [];
-      const snapshot = await get(ref(db, 'companies'));
-      if (snapshot.exists()) {
-        const data = snapshot.val();
-        companies = Object.keys(data).map(key => data[key].name);
-      } else {
-        const posSnapshot = await get(ref(db, 'positions'));
-        if (posSnapshot.exists()) {
-          const vehicles = Object.values(posSnapshot.val());
-          companies = [...new Set(vehicles.map(v => v.company).filter(Boolean))];
+      try {
+        const snapshot = await get(ref(db, 'companies'));
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          Object.keys(data).forEach(key => {
+            const option = document.createElement('option');
+            option.value = data[key].name;
+            option.textContent = data[key].name;
+            companySelect.appendChild(option);
+          });
         }
+      } catch (e) {
+        console.error("Feil ved lasting av selskaper:", e);
       }
-
-      if (companies.length === 0) companies.push("Standard selskap");
-
-      companies.forEach(name => {
-        const option = document.createElement('option');
-        option.value = name;
-        option.textContent = name;
-        companySelect.appendChild(option);
-      });
     }
-
     loadCompanies();
 
     // 🔹 Login
@@ -186,27 +214,13 @@
       }
 
       try {
-        const usersSnapshot = await get(ref(db, 'users'));
-        const users = usersSnapshot.exists() ? usersSnapshot.val() : {};
-        const usersInCompany = Object.values(users).filter(u => u.company === company).length;
-        const maxUsers = company.toLowerCase().includes("budtjenester") ? 2 : 10;
-
-        if (usersInCompany >= maxUsers && !Object.values(users).some(u => u.email === email)) {
-          errorMsg.textContent = `Maks antall påloggede brukere for ${company} er nådd`;
-          return;
-        }
-
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const uid = userCredential.user.uid;
-
-        if (!users[uid]) {
-          await update(ref(db, 'users/' + uid), { email, company });
-        }
-
+        await update(ref(db, 'users/' + uid), { email, company });
         window.location.href = "dashboard.html";
       } catch (e) {
-        console.error(e);
-        errorMsg.textContent = "Feil e-post eller passord";
+        console.error("Innloggingsfeil:", e);
+        errorMsg.textContent = "Feil e-post eller passord, eller ugyldig API-nøkkel.";
       }
     });
 
