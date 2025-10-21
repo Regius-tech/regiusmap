@@ -16,6 +16,7 @@
   button:hover { background:#005fa3; }
   .forgot { margin-top:10px; font-size:0.9em; color:#cfcfcf; cursor:pointer; text-decoration:underline; }
   .error { color:#FF4136; margin-top:10px; font-weight:bold; }
+  .company-detect { font-size:0.9em; color:#7FDBFF; margin-top:-5px; min-height:18px; transition:0.3s; }
 </style>
 </head>
 <body>
@@ -26,6 +27,7 @@
     <option value="">Velg selskap</option>
   </select>
   <input type="email" id="email" placeholder="E-post" required>
+  <div class="company-detect" id="companyDetected"></div>
   <input type="password" id="password" placeholder="Passord" required>
   <button id="loginBtn">Logg inn</button>
   <div class="forgot" id="forgotPass">Glemt passord?</div>
@@ -57,29 +59,44 @@ const passwordInput = document.getElementById('password');
 const loginBtn = document.getElementById('loginBtn');
 const errorMsg = document.getElementById('errorMsg');
 const forgotPass = document.getElementById('forgotPass');
+const companyDetected = document.getElementById('companyDetected');
 
+// 🔹 Automatisk deteksjon av selskap fra e-postdomene
+function detectCompanyFromEmail(email) {
+  if (!email.includes("@")) return "";
+  const domain = email.split("@")[1].toLowerCase();
+  if (domain === "tsoslo.no") return "Transportsentralen Oslo";
+  if (domain === "mtf.no") return "Moss Transportforum";
+  if (domain === "blakurer.no") return "Blå Kurér";
+  return "";
+}
+
+emailInput.addEventListener("input", () => {
+  const detected = detectCompanyFromEmail(emailInput.value);
+  companyDetected.textContent = detected ? `Oppdaget selskap: ${detected}` : "";
+  if (detected) {
+    companySelect.innerHTML = `<option value="${detected}">${detected}</option>`;
+  } else {
+    companySelect.innerHTML = `<option value="">Velg selskap</option>`;
+  }
+});
+
+// 🔹 Hent selskaper (fallback)
 async function loadCompanies() {
   let companies = [];
-
-  // Først prøv 'companies' noden
   const snapshot = await get(ref(db, 'companies'));
-  console.log('Companies node snapshot:', snapshot.val());
   if(snapshot.exists()) {
     const data = snapshot.val();
     companies = Object.keys(data).map(key => data[key].name);
   } else {
-    // Fallback: hent unike selskaper fra bilposisjoner
     const posSnapshot = await get(ref(db, 'positions'));
-    console.log('Positions snapshot:', posSnapshot.val());
     if(posSnapshot.exists()) {
       const vehicles = Object.values(posSnapshot.val());
       companies = [...new Set(vehicles.map(v => v.company).filter(Boolean))];
     }
   }
 
-  if(companies.length === 0) {
-    companies.push("Standard selskap");
-  }
+  if(companies.length === 0) companies.push("Standard selskap");
 
   companies.forEach(name => {
     const option = document.createElement('option');
@@ -90,13 +107,17 @@ async function loadCompanies() {
 }
 loadCompanies();
 
-// Login
+// 🔹 Login
 loginBtn.addEventListener('click', async () => {
   const email = emailInput.value.trim();
   const password = passwordInput.value.trim();
-  const company = companySelect.value;
+  const detected = detectCompanyFromEmail(email);
+  const company = companySelect.value || detected;
 
-  if(!email || !password || !company) { errorMsg.textContent="Fyll inn alle feltene"; return; }
+  if(!email || !password || !company) { 
+    errorMsg.textContent="Fyll inn alle feltene"; 
+    return; 
+  }
 
   try {
     const usersSnapshot = await get(ref(db, 'users'));
@@ -123,7 +144,7 @@ loginBtn.addEventListener('click', async () => {
   }
 });
 
-// Glemt passord
+// 🔹 Glemt passord
 forgotPass.addEventListener('click', async () => {
   const email = emailInput.value.trim();
   if(!email) { errorMsg.textContent="Skriv inn e-post for tilbakestilling"; return; }
