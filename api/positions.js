@@ -1,15 +1,28 @@
 const fetch = (...args) => import("node-fetch").then(({ default: fetch }) => fetch(...args));
 const admin = require("firebase-admin");
 
+console.log("🚀 Starter positions.js...");
+
+// Logg alle Firebase-miljøvariabler
+console.log("FIREBASE_PROJECT_ID:", !!process.env.FIREBASE_PROJECT_ID);
+console.log("FIREBASE_CLIENT_EMAIL:", !!process.env.FIREBASE_CLIENT_EMAIL);
+console.log("FIREBASE_PRIVATE_KEY:", !!process.env.FIREBASE_PRIVATE_KEY);
+console.log("FIREBASE_DATABASE_URL:", !!process.env.FIREBASE_DATABASE_URL);
+
 if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
-    }),
-    databaseURL: process.env.FIREBASE_DATABASE_URL,
-  });
+  try {
+    admin.initializeApp({
+      credential: admin.credential.cert({
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
+      }),
+      databaseURL: process.env.FIREBASE_DATABASE_URL,
+    });
+    console.log("✅ Firebase Admin initialisert");
+  } catch (err) {
+    console.error("❌ Feil ved initialisering av Firebase Admin:", err);
+  }
 }
 
 const db = admin.database();
@@ -59,12 +72,14 @@ function ensureString(value) {
 }
 
 module.exports = async (req, res) => {
+  console.log("📡 Mottatt request til /api/positions");
+
   try {
-    // 🔹 Hent alle biler fra Firebase Realtime Database
+    console.log("🔹 Henter biler fra Firebase Realtime Database");
     const carsSnapshot = await db.ref("cars").once("value");
     const carsData = carsSnapshot.val() || {};
+    console.log(`📊 Fant ${Object.keys(carsData).length} biler i Firebase`);
 
-    // Lag oppslag basert på kjøretøynummer
     const vehiclesData = Object.values(carsData).reduce((acc, car) => {
       if (car.number) acc[car.number.toString()] = car;
       return acc;
@@ -72,24 +87,32 @@ module.exports = async (req, res) => {
 
     const allPositions = [];
 
-    // 🔹 Hent data fra alle API-kilder
     for (const config of apiConfigurations) {
-      if (!config.url || !config.apiKey) continue;
+      if (!config.url || !config.apiKey) {
+        console.warn(`⚠️ Mangler url eller apiKey for ${config.company}, hopper over`);
+        continue;
+      }
 
       try {
-        console.log(`🔄 Henter data fra ${config.company}`);
+        console.log(`🔄 Henter data fra ${config.company} (${config.url})`);
+
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 8000); // 8 sek timeout
 
         const response = await fetch(config.url, {
           method: "GET",
           headers: { "x-api-key": config.apiKey },
+          signal: controller.signal
         });
+        clearTimeout(timeout);
 
         if (!response.ok) {
-          console.error(`Feil fra ${config.company}: ${response.statusText}`);
+          console.error(`❌ Feil fra ${config.company}: ${response.status} ${response.statusText}`);
           continue;
         }
 
         const data = await response.json();
+        console.log(`✅ Fikk ${data.length} posisjoner fra ${config.company}`);
 
         const vehiclesWithDetails = data.map((vehicle) => {
           const number = ensureString(vehicle.number);
@@ -108,13 +131,18 @@ module.exports = async (req, res) => {
 
         allPositions.push(...vehiclesWithDetails);
       } catch (error) {
-        console.error(`Feil ved behandling av ${config.company}: ${error.message}`);
+        if (error.name === "AbortError") {
+          console.error(`⏱️ Timeout ved henting fra ${config.company}`);
+        } else {
+          console.error(`❌ Feil ved behandling av ${config.company}: ${error.message}`);
+        }
       }
     }
 
+    console.log(`📦 Totalt posisjoner som sendes: ${allPositions.length}`);
     res.status(200).json(allPositions);
   } catch (error) {
-    console.error("Feil i positions.js:", error.message);
+    console.error("❌ Feil i positions.js:", error.message);
     res.status(500).json({ error: "Kunne ikke hente kjøretøydata" });
   }
 };

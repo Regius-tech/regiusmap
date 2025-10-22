@@ -238,9 +238,16 @@
     }
 
     async function loadPositions() {
+  console.log("🔹 Laster posisjoner fra /api/positions...");
   try {
     const response = await fetch("/api/positions");
+    if (!response.ok) {
+      console.error("❌ /api/positions returnerte feil:", response.status, response.statusText);
+      return;
+    }
+
     const data = await response.json();
+    console.log(`📦 Fikk ${data.length} posisjoner fra /api/positions`);
 
     const activeToday = document.getElementById('activeToday').checked;
     const selectedCompany = document.getElementById('company-filter').value;
@@ -279,9 +286,10 @@
       }
     }
   } catch (error) {
-    console.error('Error loading positions:', error);
+    console.error('❌ Error loading positions:', error);
   }
 }
+
 
   <!-- Google Maps JS API -->
   <script async
