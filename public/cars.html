@@ -17,6 +17,7 @@ body {
     max-width: 1400px;
     margin: 20px auto;
     padding: 20px;
+    position: relative;
 }
 h1 {
     text-align:center;
@@ -53,6 +54,27 @@ h1 {
     border:none;
     background:#023060;
     color:white;
+}
+
+/* === Nye knapper øverst høyre === */
+.top-buttons {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 10px;
+}
+.top-buttons a {
+    padding: 10px 16px;
+    background: #0074D9;
+    color: white;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background 0.3s;
+}
+.top-buttons a:hover {
+    background: #005fa3;
 }
 
 .grid-container {
@@ -92,6 +114,12 @@ tr:hover { background-color: rgba(255,255,255,0.1); }
 <body>
 
 <div class="container">
+<!-- Nye knapper øverst høyre -->
+<div class="top-buttons">
+    <a href="dashboard.html">Dashboard</a>
+    <a href="kart.html">Kart</a>
+</div>
+
 <h1>Biloversikt - Triflex</h1>
 
 <!-- Statistikkkort -->
