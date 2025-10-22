@@ -1,6 +1,6 @@
 // firebaseConfig.js
 export const firebaseConfig = {
-  apiKey: "apiKey: "AIzaSyCKqwpql2Yl0kbpUIPrQUYyVd7m1OeH-D8",
+  apiKey: "AIzaSyCKqwpql2Yl0kbpUIPrQUYyVd7m1OeH-D8",
   authDomain: "triflex-a08c7.firebaseapp.com",
   projectId: "triflex-a08c7",
   storageBucket: "triflex-a08c7.firebasestorage.app",
