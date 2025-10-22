@@ -238,52 +238,50 @@
     }
 
     async function loadPositions() {
-      try {
-        const snapshot = await get(ref(window.db, "positions"));
-        if (!snapshot.exists()) return;
-        const data = Object.values(snapshot.val());
+  try {
+    const response = await fetch("/api/positions");
+    const data = await response.json();
 
-        const activeToday = document.getElementById('activeToday').checked;
-        const selectedCompany = document.getElementById('company-filter').value;
+    const activeToday = document.getElementById('activeToday').checked;
+    const selectedCompany = document.getElementById('company-filter').value;
 
-        const filteredData = data.filter(vehicle => {
-          const matchesCompany = selectedCompany === 'all' || vehicle.company === selectedCompany;
-          const isActiveToday = !activeToday || vehicle.isActiveToday;
-          return matchesCompany && isActiveToday && vehicle.isParticipant;
+    const filteredData = data.filter(vehicle => {
+      const matchesCompany = selectedCompany === 'all' || vehicle.company === selectedCompany;
+      const isActiveToday = !activeToday || vehicle.isActiveToday;
+      return matchesCompany && isActiveToday && vehicle.isParticipant;
+    });
+
+    markers.forEach(marker => marker.setMap(null));
+    markers = [];
+
+    for (const vehicle of filteredData) {
+      if (vehicle.latitude && vehicle.longitude) {
+        const iconUrl = await createPinDataURL(vehicle);
+
+        const marker = new google.maps.Marker({
+          map,
+          position: { lat: vehicle.latitude, lng: vehicle.longitude },
+          icon: { url: iconUrl, scaledSize: new google.maps.Size(45, 55) },
+          title: vehicle.name
         });
 
-        markers.forEach(marker => marker.setMap(null));
-        markers = [];
+        const infoWindow = new google.maps.InfoWindow({
+          content: `
+            <b>Navn:</b> ${vehicle.name}<br>
+            <b>Type:</b> ${vehicle.type}<br>
+            <b>Palleplasser:</b> ${vehicle.palleplasser}<br>
+            <b>Klokkeslett:</b> ${formatTimestamp(vehicle.time)}<br>
+            <b>Selskap:</b> ${vehicle.company}`
+        });
 
-        for (const vehicle of filteredData) {
-          if (vehicle.latitude && vehicle.longitude) {
-            const iconUrl = await createPinDataURL(vehicle);
-
-            const marker = new google.maps.Marker({
-              map,
-              position: { lat: vehicle.latitude, lng: vehicle.longitude },
-              icon: { url: iconUrl, scaledSize: new google.maps.Size(45, 55) },
-              title: vehicle.name
-            });
-
-            const infoWindow = new google.maps.InfoWindow({
-              content: `
-                <b>Navn:</b> ${vehicle.name}<br>
-                <b>Type:</b> ${vehicle.type}<br>
-                <b>Palleplasser:</b> ${vehicle.palleplasser}<br>
-                <b>Klokkeslett:</b> ${formatTimestamp(vehicle.time)}<br>
-                <b>Selskap:</b> ${vehicle.company}`
-            });
-
-            marker.addListener('click', () => infoWindow.open(map, marker));
-            markers.push(marker);
-          }
-        }
-      } catch (error) {
-        console.error('Error loading positions:', error);
+        marker.addListener('click', () => infoWindow.open(map, marker));
+        markers.push(marker);
       }
     }
-  </script>
+  } catch (error) {
+    console.error('Error loading positions:', error);
+  }
+}
 
   <!-- Google Maps JS API -->
   <script async
