@@ -1,5 +1,3 @@
-const fetch = (...args) => import("node-fetch").then(({ default: fetch }) => fetch(...args));
-
 const FIREBASE_DB_URL = "https://triflex-a08c7-default-rtdb.europe-west1.firebasedatabase.app";
 
 const apiConfigurations = [
@@ -63,7 +61,6 @@ export default async function handler(req, res) {
     console.log("📡 Henter bildata fra Firebase...");
     const carsData = await fetchFirebase("cars");
 
-    // Lag en lookup med string som nøkkel
     const vehiclesData = {};
     Object.values(carsData).forEach(car => {
       if (car.number !== undefined) vehiclesData[ensureString(car.number)] = car;
