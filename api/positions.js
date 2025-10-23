@@ -1,3 +1,5 @@
+const fetch = (...args) => import("node-fetch").then(({ default: fetch }) => fetch(...args));
+
 const FIREBASE_DB_URL = "https://triflex-a08c7-default-rtdb.europe-west1.firebasedatabase.app";
 
 const apiConfigurations = [
@@ -27,7 +29,23 @@ const apiConfigurations = [
   },
 ];
 
-// Hent data fra Firebase
+function isActiveToday(vehicle) {
+  if (!vehicle.time) return false;
+  const vehicleTime = new Date(vehicle.time);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  vehicleTime.setHours(0, 0, 0, 0);
+  return vehicleTime.getTime() === today.getTime();
+}
+
+function parseIsParticipant(value) {
+  return value === true || value === "TRUE" || value === "true";
+}
+
+function ensureString(value) {
+  return value !== undefined && value !== null ? value.toString() : "";
+}
+
 async function fetchFirebase(path) {
   try {
     const res = await fetch(`${FIREBASE_DB_URL}/${path}.json`);
@@ -45,9 +63,10 @@ export default async function handler(req, res) {
     console.log("📡 Henter bildata fra Firebase...");
     const carsData = await fetchFirebase("cars");
 
+    // Lag en lookup med string som nøkkel
     const vehiclesData = {};
     Object.values(carsData).forEach(car => {
-      if (car.number) vehiclesData[car.number.toString()] = car;
+      if (car.number !== undefined) vehiclesData[ensureString(car.number)] = car;
     });
 
     const allPositions = [];
@@ -65,7 +84,6 @@ export default async function handler(req, res) {
           headers: { "x-api-key": config.apiKey },
           signal: controller.signal
         });
-
         clearTimeout(timeout);
 
         if (!response.ok) {
@@ -74,33 +92,28 @@ export default async function handler(req, res) {
         }
 
         const data = await response.json();
-        if (!Array.isArray(data)) {
-          console.warn(`⚠️ Ugyldig data fra ${config.company}:`, data);
-          continue;
-        }
+        if (!Array.isArray(data)) continue;
 
-        const vehiclesWithDetails = data.map(vehicle => {
-          const number = vehicle.number ? vehicle.number.toString() : "";
-          const carInfo = vehiclesData[number] || {};
-          return {
+        data.forEach(vehicle => {
+          const numberKey = ensureString(vehicle.number);
+          const carInfo = vehiclesData[numberKey] || {};
+
+          allPositions.push({
             ...vehicle,
             logo: config.logo,
             company: config.company,
             type: carInfo.type || "Ukjent",
             palleplasser: carInfo.palleplasser || "Ukjent",
-            isParticipant: carInfo.isParticipant || false
-          };
+            isParticipant: parseIsParticipant(carInfo.isParticipant),
+            isActiveToday: isActiveToday(vehicle)
+          });
         });
-
-        allPositions.push(...vehiclesWithDetails);
       } catch (err) {
-        console.error(`❌ Feil ved henting fra ${config.company}:`, err.message);
+        console.error(`❌ Feil ved henting fra ${config.company}: ${err.message}`);
       }
     }
 
-    console.log(`✅ Returnerer ${allPositions.length} kjøretøy`);
     res.status(200).json(allPositions);
-
   } catch (err) {
     console.error("❌ Feil i /api/positions:", err);
     res.status(500).json({ error: "Kunne ikke hente kjøretøydata" });
