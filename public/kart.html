@@ -1,240 +1,211 @@
 <!DOCTYPE html>
 <html lang="no">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Triflex Kart</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Triflex Kart</title>
+<style>
+body { font-family: Poppins,sans-serif; margin:0; padding:0; background:#001f3f; overflow:hidden; }
+#map { height:100vh; width:100%; }
+.filter-container {
+  position:absolute; top:20px; left:50%; transform:translateX(-50%);
+  display:flex; align-items:center; gap:15px;
+  background:rgba(2,28,60,0.95); color:white;
+  padding:10px 25px; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.4);
+  z-index:1000; backdrop-filter: blur(5px); opacity:0;
+  animation: fadeIn 1s ease forwards; transition: opacity 0.5s ease;
+}
+@keyframes fadeIn { from { opacity:0; transform:translate(-50%,-10px);} to{opacity:1; transform:translate(-50%,0);} }
+.filter-container.inactive { opacity:0.4; }
+.filter-container label { font-weight:bold; font-size:14px; }
+.filter-container select, .filter-container input[type="checkbox"] { margin-left:5px; padding:6px; border-radius:6px; border:none; outline:none; font-size:14px; }
+select { background:#fff; color:#000; }
+#themeSwitch { cursor:pointer; font-weight:bold; border:none; padding:8px 16px; border-radius:8px; background:#0074D9; color:white; transition:0.3s; }
+#themeSwitch:hover { background:#005fa3; }
+.btn-secondary { cursor:pointer; font-weight:bold; border:none; padding:6px 14px; border-radius:8px; background:rgba(255,255,255,0.15); color:white; text-decoration:none; transition:0.3s; }
+.btn-secondary:hover { background:rgba(255,255,255,0.25); }
 
-  <style>
-    body {
-      font-family: Poppins, sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: #001f3f;
-      overflow: hidden;
-    }
+/* InfoWindow */
+.custom-info-window { background:#021f3f; color:white; padding:12px 16px; border-radius:12px; box-shadow:0 4px 16px rgba(0,0,0,0.6); font-size:14px; line-height:1.4; max-width:220px; font-weight:500; }
+.custom-info-window b { color:#FFD700; }
 
-    #map {
-      height: 100vh;
-      width: 100%;
-    }
-
-    .filter-container {
-      position: absolute;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 15px;
-      background-color: rgba(2, 28, 60, 0.95);
-      color: white;
-      padding: 10px 25px;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-      z-index: 1000;
-      backdrop-filter: blur(5px);
-      opacity: 0;
-      animation: fadeIn 1s ease forwards;
-      transition: opacity 0.5s ease;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translate(-50%, -10px); }
-      to { opacity: 1; transform: translate(-50%, 0); }
-    }
-
-    .filter-container.inactive { opacity: 0.4; }
-    .filter-container label { font-weight: bold; font-size: 14px; }
-    .filter-container select,
-    .filter-container input[type="checkbox"] { margin-left: 5px; padding: 6px; border-radius: 6px; border: none; outline: none; font-size: 14px; }
-    select { background-color: #fff; color: #000; }
-    #themeSwitch { cursor: pointer; font-weight: bold; border: none; padding: 8px 16px; border-radius: 8px; background-color: #0074D9; color: white; transition: background-color 0.3s ease; }
-    #themeSwitch:hover { background-color: #005fa3; }
-    .btn-secondary { cursor: pointer; font-weight: bold; border: none; padding: 6px 14px; border-radius: 8px; background-color: rgba(255,255,255,0.15); color: white; text-decoration: none; transition: all 0.3s ease; }
-    .btn-secondary:hover { background-color: rgba(255,255,255,0.25); }
-  </style>
+/* Redigeringsskjema */
+#editForm {
+  display:none; position:absolute; background:#021f3f; color:white; padding:20px; border-radius:12px;
+  box-shadow:0 6px 20px rgba(0,0,0,0.7); max-width:300px; width:90%; cursor:move; z-index:2000;
+}
+#editForm input, #editForm select { width:100%; margin:8px 0; padding:8px; border-radius:6px; border:none; }
+#editForm button { padding:10px; border:none; border-radius:6px; cursor:pointer; margin-top:10px; }
+#editForm .save-btn { background:#0074D9; color:white; }
+#editForm .cancel-btn { background:#FF4136; color:white; margin-left:10px; }
+</style>
 </head>
-
 <body>
-  <div class="filter-container" id="menu">
-    <label for="company-filter">Selskap:</label>
-    <select id="company-filter">
-      <option value="all">Alle</option>
-      <option value="Transportsentralen Oslo">Transportsentralen Oslo</option>
-      <option value="Moss Transportforum">Moss Transportforum</option>
-      <option value="Blå Kurér">Blå Kurér</option>
-      <option value="TS Oslo Budtjenester">TS Oslo Budtjenester</option>
-    </select>
 
-    <label>
-      <input type="checkbox" id="activeToday" checked> Aktive i dag
-    </label>
+<div class="filter-container" id="menu">
+  <label for="company-filter">Selskap:</label>
+  <select id="company-filter">
+    <option value="all">Alle</option>
+  </select>
+  <label><input type="checkbox" id="activeToday" checked> Aktive i dag</label>
+  <button id="themeSwitch">🌙 Mørk modus</button>
+  <a class="btn-secondary" href="cars.html">Bilpark</a>
+  <a class="btn-secondary" href="dashboard.html">Dashboard</a>
+</div>
 
-    <button id="themeSwitch">🌙 Mørk modus</button>
-    <a class="btn-secondary" href="cars.html">Bilpark</a>
-    <a class="btn-secondary" href="dashboard.html">Dashboard</a>
-  </div>
+<div id="map"></div>
 
-  <div id="map"></div>
+<div id="editForm">
+  <h3>Rediger bil</h3>
+  <input type="text" id="editName" placeholder="Navn">
+  <input type="text" id="editType" placeholder="Type">
+  <input type="number" id="editPalleplasser" placeholder="Palleplasser">
+  <input type="text" id="editCompany" placeholder="Selskap" readonly>
+  <label><input type="checkbox" id="editIsActiveToday"> Aktiv i dag</label>
+  <label><input type="checkbox" id="editIsParticipant"> Deltaker</label>
+  <button class="save-btn" id="saveEditBtn">Lagre</button>
+  <button class="cancel-btn" id="cancelEditBtn">Avbryt</button>
+</div>
 
-  <script>
-    let map;
-    let markers = [];
-    let darkMode = true;
-    let inactivityTimer;
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { firebaseConfig } from "./firebaseConfig.js";
 
-    const darkStyle = [
-      { elementType: "geometry", stylers: [{ color: "#1d2c4d" }] },
-      { elementType: "labels.text.fill", stylers: [{ color: "#8ec3b9" }] },
-      { elementType: "labels.text.stroke", stylers: [{ color: "#1a3646" }] },
-      { featureType: "water", elementType: "geometry", stylers: [{ color: "#0e1626" }] },
-      { featureType: "road", elementType: "geometry", stylers: [{ color: "#304a7d" }] },
-      { featureType: "poi", elementType: "geometry", stylers: [{ color: "#283d6a" }] },
-      { featureType: "landscape.natural", elementType: "geometry", stylers: [{ color: "#023e58" }] }
-    ];
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const auth = getAuth(app);
 
-    const companyColors = {
-      "Transportsentralen Oslo": "#ffffff",
-      "Blå Kurér": "#FFD700",
-      "Moss Transportforum": ["#00008b", "#8b0000"],
-      "TS Oslo Budtjenester": "#004080"
-    };
+let userCompany = "";
+let vehicleData = [];
+let map, darkMode=true, inactivityTimer, openInfoWindow=null;
+const markersMap = new Map();
 
-    function initMap() {
-      map = new google.maps.Map(document.getElementById("map"), {
-        center: { lat: 59.9139, lng: 10.7522 },
-        zoom: 10,
-        styles: darkMode ? darkStyle : [],
-        mapTypeControl: false,
-        fullscreenControl: true
-      });
+const darkStyle = [ { elementType:"geometry", stylers:[{color:"#1d2c4d"}]}, {elementType:"labels.text.fill", stylers:[{color:"#8ec3b9"}]}, {elementType:"labels.text.stroke", stylers:[{color:"#1a3646"}]}, {featureType:"water",elementType:"geometry",stylers:[{color:"#0e1626"}]}, {featureType:"road",elementType:"geometry",stylers:[{color:"#304a7d"}]}, {featureType:"poi",elementType:"geometry",stylers:[{color:"#283d6a"}]}, {featureType:"landscape.natural",elementType:"geometry",stylers:[{color:"#023e58"}]} ];
 
-      document.getElementById("themeSwitch").addEventListener("click", () => {
-        darkMode = !darkMode;
-        map.setOptions({ styles: darkMode ? darkStyle : [] });
-        document.getElementById("themeSwitch").textContent = darkMode ? "🌙 Mørk modus" : "☀️ Lys modus";
-      });
+const companyColors = {
+  "Transportsentralen Oslo":"#ffffff",
+  "Blå Kurér":"#FFD700",
+  "Moss Transportforum":["#00008b","#8b0000"],
+  "TS Oslo Budtjenester":"#004080"
+};
 
-      const menu = document.getElementById("menu");
-      const resetInactivity = () => {
-        menu.classList.remove("inactive");
-        clearTimeout(inactivityTimer);
-        inactivityTimer = setTimeout(() => menu.classList.add("inactive"), 4000);
-      };
-      document.addEventListener("mousemove", resetInactivity);
-      document.addEventListener("click", resetInactivity);
-      resetInactivity();
-
+// Login sjekk
+onAuthStateChanged(auth,user=>{
+  if(!user) window.location.href="login.html";
+  else {
+    const uid = user.uid;
+    // Hent selskap fra Firebase brukerprofil (eksempel)
+    const userRef = ref(db,'users/'+uid);
+    onValue(userRef,snap=>{
+      if(snap.exists()) userCompany = snap.val().company;
+      document.getElementById('company-filter').innerHTML=`<option value="${userCompany}">${userCompany}</option>`;
       loadPositions();
-      document.getElementById("company-filter").addEventListener("change", loadPositions);
-      document.getElementById("activeToday").addEventListener("change", loadPositions);
-      setInterval(loadPositions, 10000);
-    }
+    });
+  }
+});
 
-    function formatTimestamp(timestamp) {
-      if (!timestamp) return "Ukjent tid";
-      return new Date(timestamp).toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' });
-    }
+function formatTimestamp(ts){ return ts?new Date(ts).toLocaleTimeString('no-NO',{hour:'2-digit',minute:'2-digit'}):"Ukjent tid"; }
 
-    function createPinDataURL(vehicle) {
-      return new Promise((resolve) => {
-        const canvas = document.createElement("canvas");
-        canvas.width = 60;
-        canvas.height = 70;
-        const ctx = canvas.getContext("2d");
+function createPinDataURL(vehicle){ return new Promise(resolve=>{
+  const canvas=document.createElement("canvas"); canvas.width=60; canvas.height=70;
+  const ctx=canvas.getContext("2d");
+  const color=companyColors[vehicle.company]||"#888";
+  ctx.fillStyle=Array.isArray(color)?color[0]:color;
+  ctx.beginPath(); ctx.moveTo(30,70); ctx.lineTo(20,50); ctx.lineTo(40,50); ctx.closePath(); ctx.fill();
+  ctx.fillStyle=Array.isArray(color)?ctx.createLinearGradient(0,0,60,0):color;
+  if(Array.isArray(color)){ const grad=ctx.createLinearGradient(0,0,60,0); grad.addColorStop(0,color[0]); grad.addColorStop(1,color[1]); ctx.fillStyle=grad; }
+  ctx.beginPath(); ctx.arc(30,30,20,0,Math.PI*2); ctx.fill();
+  const img=new Image(); img.crossOrigin="anonymous"; img.src=vehicle.logo;
+  img.onload=()=>{ ctx.save(); ctx.beginPath(); ctx.arc(30,30,18,0,Math.PI*2); ctx.closePath(); ctx.clip(); ctx.drawImage(img,12,12,36,36); ctx.restore(); resolve(canvas.toDataURL()); };
+  img.onerror=()=>resolve(canvas.toDataURL());
+});}
 
-        const color = companyColors[vehicle.company] || "#888";
+function initMap(){
+  map=new google.maps.Map(document.getElementById("map"),{center:{lat:59.9139,lng:10.7522},zoom:10,styles:darkMode?darkStyle:[],mapTypeControl:false,fullscreenControl:true});
+  document.getElementById("themeSwitch").addEventListener("click",()=>{
+    darkMode=!darkMode;
+    map.setOptions({styles:darkMode?darkStyle:[]});
+    document.getElementById("themeSwitch").textContent=darkMode?"🌙 Mørk modus":"☀️ Lys modus";
+  });
+  const menu=document.getElementById("menu");
+  const resetInactivity=()=>{
+    menu.classList.remove("inactive");
+    clearTimeout(inactivityTimer);
+    inactivityTimer=setTimeout(()=>menu.classList.add("inactive"),4000);
+  };
+  document.addEventListener("mousemove",resetInactivity);
+  document.addEventListener("click",resetInactivity);
+  resetInactivity();
+}
 
-        ctx.fillStyle = Array.isArray(color) ? color[0] : color;
-        ctx.beginPath();
-        ctx.moveTo(30, 70);
-        ctx.lineTo(20, 50);
-        ctx.lineTo(40, 50);
-        ctx.closePath();
-        ctx.fill();
+async function loadPositions(){
+  const snapshot = await get(ref(db,'cars/'+userCompany));
+  if(!snapshot.exists()) return;
+  vehicleData = Object.values(snapshot.val());
+  const activeToday = document.getElementById('activeToday').checked;
 
-        if (Array.isArray(color)) {
-          const gradient = ctx.createLinearGradient(0, 0, 60, 0);
-          gradient.addColorStop(0, color[0]);
-          gradient.addColorStop(1, color[1]);
-          ctx.fillStyle = gradient;
-        } else {
-          ctx.fillStyle = color;
-        }
-
-        ctx.beginPath();
-        ctx.arc(30, 30, 20, 0, Math.PI * 2);
-        ctx.fill();
-
-        const img = new Image();
-        img.crossOrigin = "anonymous";
-        img.src = vehicle.logo;
-        img.onload = () => {
-          ctx.save();
-          ctx.beginPath();
-          ctx.arc(30, 30, 18, 0, Math.PI * 2);
-          ctx.closePath();
-          ctx.clip();
-          ctx.drawImage(img, 12, 12, 36, 36);
-          ctx.restore();
-          resolve(canvas.toDataURL());
-        };
-        img.onerror = () => resolve(canvas.toDataURL());
+  for(const v of vehicleData){
+    if(!v.latitude || !v.longitude) continue;
+    if(markersMap.has(v.number)){
+      markersMap.get(v.number).setPosition({lat:v.latitude,lng:v.longitude});
+    } else {
+      const iconUrl = await createPinDataURL(v);
+      const marker = new google.maps.Marker({map,position:{lat:v.latitude,lng:v.longitude},icon:{url:iconUrl,scaledSize:new google.maps.Size(45,55)},title:v.name});
+      const infoWindow = new google.maps.InfoWindow({content:`
+        <div class="custom-info-window">
+          <b>Navn:</b> ${v.name}<br>
+          <b>Type:</b> ${v.type}<br>
+          <b>Palleplasser:</b> ${v.palleplasser}<br>
+          <b>Klokkeslett:</b> ${formatTimestamp(v.time)}<br>
+          <b>Selskap:</b> ${v.company}<br>
+          <button onclick="openEdit('${v.number}')">Rediger</button>
+        </div>`});
+      marker.addListener('click',()=>{
+        if(openInfoWindow) openInfoWindow.close();
+        infoWindow.open(map,marker);
+        openInfoWindow=infoWindow;
       });
+      markersMap.set(v.number,marker);
     }
+  }
+}
 
-    async function loadPositions() {
-      try {
-        const response = await fetch("/api/positions");
-        if (!response.ok) throw new Error("Kunne ikke hente posisjoner fra API");
-        const data = await response.json();
+// Redigeringsskjema
+const editForm = document.getElementById('editForm');
+function openEdit(number){
+  const car = vehicleData.find(v=>v.number===number);
+  if(!car) return;
+  editForm.style.display='block';
+  editForm.style.left='50px';
+  editForm.style.top='50px';
+  document.getElementById('editName').value = car.name;
+  document.getElementById('editType').value = car.type;
+  document.getElementById('editPalleplasser').value = car.palleplasser;
+  document.getElementById('editCompany').value = car.company;
+  document.getElementById('editIsActiveToday').checked = car.isActiveToday;
+  document.getElementById('editIsParticipant').checked = car.isParticipant;
 
-        const activeToday = document.getElementById('activeToday').checked;
-        const selectedCompany = document.getElementById('company-filter').value;
+  document.getElementById('saveEditBtn').onclick = async ()=>{
+    const updatedCar = {
+      ...car,
+      name: document.getElementById('editName').value,
+      type: document.getElementById('editType').value,
+      palleplasser: parseInt(document.getElementById('editPalleplasser').value),
+      isActiveToday: document.getElementById('editIsActiveToday').checked,
+      isParticipant: document.getElementById('editIsParticipant').checked
+    };
+    await set(ref(db,'cars/'+userCompany+'/'+number), updatedCar);
+    editForm.style.display='none';
+    loadPositions();
+  };
+}
 
-        const filteredData = data.filter(vehicle => {
-          const matchesCompany = selectedCompany === 'all' || vehicle.company === selectedCompany;
-          const isActiveToday = !activeToday || vehicle.isActiveToday;
-          return matchesCompany && isActiveToday && vehicle.isParticipant;
-        });
+document.getElementById('cancelEditBtn').addEventListener('click',()=>{ editForm.style.display='none'; });
 
-        markers.forEach(marker => marker.setMap(null));
-        markers = [];
-
-        for (const vehicle of filteredData) {
-          if (vehicle.latitude && vehicle.longitude) {
-            const iconUrl = await createPinDataURL(vehicle);
-
-            const marker = new google.maps.Marker({
-              map,
-              position: { lat: vehicle.latitude, lng: vehicle.longitude },
-              icon: { url: iconUrl, scaledSize: new google.maps.Size(45, 55) },
-              title: vehicle.name
-            });
-
-            const infoWindow = new google.maps.InfoWindow({
-              content: `
-                <b>Navn:</b> ${vehicle.name}<br>
-                <b>Type:</b> ${vehicle.type}<br>
-                <b>Palleplasser:</b> ${vehicle.palleplasser}<br>
-                <b>Klokkeslett:</b> ${formatTimestamp(vehicle.time)}<br>
-                <b>Selskap:</b> ${vehicle.company}`
-            });
-
-            marker.addListener('click', () => infoWindow.open(map, marker));
-            markers.push(marker);
-          }
-        }
-      } catch (error) {
-        console.error('Error loading positions:', error);
-      }
-    }
-  </script>
-
-  <script async
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBtSvAG_uN9QBI0Fi_GOJVIyAjd1JlMvNg&callback=initMap&v=beta">
-  </script>
+initMap();
+</script>
+<script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBtSvAG_uN9QBI0Fi_GOJVIyAjd1JlMvNg&callback=initMap&v=beta"></script>
 </body>
 </html>

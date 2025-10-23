@@ -52,6 +52,7 @@ tr:hover { background-color: rgba(255,255,255,0.1); }
 .header-btn:hover { background:#005fa3; }
 .header-left { left:0; transform:translateY(-50%); }
 .header-right { right:0; transform:translateY(-50%); }
+.header-logout { right:90px; transform:translateY(-50%); }
 </style>
 </head>
 <body>
@@ -60,6 +61,7 @@ tr:hover { background-color: rgba(255,255,255,0.1); }
 <h1>Triflex Admin Dashboard
   <button class="header-btn header-left" onclick="window.location.href='admin.html'">Bilparken</button>
   <button class="header-btn header-right" onclick="window.location.href='kart.html'">Kart</button>
+  <button class="header-btn header-logout" onclick="window.location.href='index.html'">Logg ut</button>
 </h1>
 
 <div class="stats-grid" id="globalStats">
@@ -116,7 +118,7 @@ tr:hover { background-color: rgba(255,255,255,0.1); }
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { getDatabase, ref, set, remove, onValue, get } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 import { firebaseConfig } from "./firebaseConfig.js";
 
 const app = initializeApp(firebaseConfig);
@@ -129,6 +131,11 @@ let vehicleData = [];
 onAuthStateChanged(auth,user=>{
   if(!user) window.location.href='login.html';
 });
+
+// Logg ut-funksjon
+function logout(){
+  signOut(auth).then(()=> window.location.href='index.html');
+}
 
 async function loadVehicles(){
   const snapshot=await get(ref(db,"cars"));
