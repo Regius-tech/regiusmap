@@ -1,5 +1,3 @@
-import fetch from "node-fetch";
-
 const FIREBASE_DB_URL =
   "https://triflex-a08c7-default-rtdb.europe-west1.firebasedatabase.app";
 
