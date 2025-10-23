@@ -106,29 +106,6 @@
 
   <div id="map"></div>
 
-  <!-- Firebase SDK -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyCKqwpql2Yl0kbpUIPrQUYyVd7m1OeH-D8",
-      authDomain: "triflex-a08c7.firebaseapp.com",
-      projectId: "triflex-a08c7",
-      storageBucket: "triflex-a08c7.firebasestorage.app",
-      messagingSenderId: "835381689765",
-      appId: "1:835381689765:web:e0be4b22e5f35ca1e0bc4c",
-      measurementId: "G-0WJP4SRVYK",
-      databaseURL: "https://triflex-a08c7-default-rtdb.europe-west1.firebasedatabase.app"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    window.db = db;
-    window.get = get;
-    window.ref = ref;
-  </script>
-
   <script>
     let map;
     let markers = [];
@@ -239,9 +216,10 @@
 
     async function loadPositions() {
       try {
-        const snapshot = await get(ref(window.db, "positions"));
-        if (!snapshot.exists()) return;
-        const data = Object.values(snapshot.val());
+        // ✅ Hent live posisjoner med bilinfo fra backend
+        const response = await fetch("/api/positions");
+        if (!response.ok) throw new Error("Kunne ikke hente posisjoner fra API");
+        const data = await response.json();
 
         const activeToday = document.getElementById('activeToday').checked;
         const selectedCompany = document.getElementById('company-filter').value;
