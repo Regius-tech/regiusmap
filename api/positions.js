@@ -47,9 +47,14 @@ function ensureString(value) {
 }
 
 async function fetchFirebase(path) {
-  const res = await fetch(`${FIREBASE_DB_URL}/${path}.json`);
-  if (!res.ok) throw new Error(`Feil ved henting av ${path}: ${res.status} ${res.statusText}`);
-  return res.json();
+  try {
+    const res = await fetch(`${FIREBASE_DB_URL}/${path}.json`);
+    if (!res.ok) throw new Error(`Feil ved henting av ${path}: ${res.status} ${res.statusText}`);
+    return res.json();
+  } catch (err) {
+    console.warn(`⚠️ Kan ikke hente ${path} fra Firebase:`, err.message);
+    return null; // return null hvis tomt eller feil
+  }
 }
 
 module.exports = async (req, res) => {
@@ -57,11 +62,8 @@ module.exports = async (req, res) => {
     const selectedCompany = req.query.company || "all";
     const activeTodayOnly = req.query.activeToday === "true";
 
-    console.log("📡 Henter data fra Firebase...");
-    const [positionsData, carsData] = await Promise.all([
-      fetchFirebase("positions"),
-      fetchFirebase("cars")
-    ]);
+    console.log("📡 Henter data fra Firebase cars...");
+    const carsData = await fetchFirebase("cars");
 
     const vehiclesData = {};
     if (carsData) {
@@ -93,6 +95,8 @@ module.exports = async (req, res) => {
         }
 
         const data = await response.json();
+        if (!Array.isArray(data)) continue; // sikkerhetssjekk
+
         const vehiclesWithDetails = data.map(vehicle => {
           const number = ensureString(vehicle.number);
           const carInfo = vehiclesData[number] || {};
@@ -113,7 +117,6 @@ module.exports = async (req, res) => {
       }
     }
 
-    // Filtrering på server-siden
     const filteredPositions = allPositions.filter(vehicle => {
       const matchesCompany = selectedCompany === "all" || vehicle.company === selectedCompany;
       const matchesActive = !activeTodayOnly || vehicle.isActiveToday;
