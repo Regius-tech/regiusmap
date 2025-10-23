@@ -58,10 +58,7 @@ module.exports = async (req, res) => {
     const activeTodayOnly = req.query.activeToday === "true";
 
     console.log("📡 Henter data fra Firebase...");
-    const [positionsData, carsData] = await Promise.all([
-      fetchFirebase("positions"),
-      fetchFirebase("cars")
-    ]);
+    const carsData = await fetchFirebase("cars"); // 🔹 Henter kun bilinfo
 
     const vehiclesData = {};
     if (carsData) {
@@ -73,7 +70,10 @@ module.exports = async (req, res) => {
     const allPositions = [];
 
     for (const config of apiConfigurations) {
-      if (!config.url || !config.apiKey) continue;
+      if (!config.url || !config.apiKey) {
+        console.warn(`⚠️ Mangler URL eller API-nøkkel for ${config.company}`);
+        continue;
+      }
 
       try {
         console.log(`🔄 Henter data fra ${config.company}`);
@@ -93,6 +93,8 @@ module.exports = async (req, res) => {
         }
 
         const data = await response.json();
+        console.log(`✅ Mottatt ${data.length} kjøretøy fra ${config.company}`);
+
         const vehiclesWithDetails = data.map(vehicle => {
           const number = ensureString(vehicle.number);
           const carInfo = vehiclesData[number] || {};
@@ -121,6 +123,7 @@ module.exports = async (req, res) => {
       return matchesCompany && matchesActive && vehicle.isParticipant;
     });
 
+    console.log(`🚗 Returnerer ${filteredPositions.length} biler etter filtrering`);
     res.status(200).json(filteredPositions);
   } catch (err) {
     console.error("❌ Feil i /api/positions:", err.message);
