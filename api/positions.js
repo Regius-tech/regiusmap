@@ -1,4 +1,4 @@
-import fetch from "node-fetch";
+const fetch = require("node-fetch");
 
 const FIREBASE_DB_URL = "https://triflex-a08c7-default-rtdb.europe-west1.firebasedatabase.app";
 
@@ -52,7 +52,7 @@ async function fetchFirebase(path) {
   return res.json();
 }
 
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
   try {
     const selectedCompany = req.query.company || "all";
     const activeTodayOnly = req.query.activeToday === "true";
@@ -125,4 +125,4 @@ export default async function handler(req, res) {
     console.error("❌ Feil i /api/positions:", err.message);
     res.status(500).json({ error: "Kunne ikke hente kjøretøydata" });
   }
-}
+};
