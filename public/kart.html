@@ -54,6 +54,17 @@
     #themeSwitch:hover { background-color: #005fa3; }
     .btn-secondary { cursor: pointer; font-weight: bold; border: none; padding: 6px 14px; border-radius: 8px; background-color: rgba(255,255,255,0.15); color: white; text-decoration: none; transition: all 0.3s ease; }
     .btn-secondary:hover { background-color: rgba(255,255,255,0.25); }
+
+    .info-window {
+      background-color: #012040;
+      color: #fff;
+      padding: 12px 15px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-family: Poppins, sans-serif;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+    }
+    .info-window b { color: #FFD700; }
   </style>
 </head>
 
@@ -81,7 +92,7 @@
 
   <script>
     let map;
-    let markers = [];
+    let markers = {};
     let darkMode = true;
     let inactivityTimer;
 
@@ -200,33 +211,46 @@
           return matchesCompany && isActiveToday && vehicle.isParticipant;
         });
 
-        markers.forEach(marker => marker.setMap(null));
-        markers = [];
-
+        // Oppdater eksisterende markører
         for (const vehicle of filteredData) {
           if (vehicle.latitude && vehicle.longitude) {
-            const iconUrl = await createPinDataURL(vehicle);
+            const position = { lat: vehicle.latitude, lng: vehicle.longitude };
+            if (markers[vehicle.id]) {
+              markers[vehicle.id].setPosition(position);
+            } else {
+              const iconUrl = await createPinDataURL(vehicle);
+              const marker = new google.maps.Marker({
+                map,
+                position,
+                icon: { url: iconUrl, scaledSize: new google.maps.Size(45, 55) },
+                title: vehicle.name
+              });
 
-            const marker = new google.maps.Marker({
-              map,
-              position: { lat: vehicle.latitude, lng: vehicle.longitude },
-              icon: { url: iconUrl, scaledSize: new google.maps.Size(45, 55) },
-              title: vehicle.name
-            });
+              const infoWindow = new google.maps.InfoWindow({
+                content: `
+                  <div class="info-window">
+                    <b>Navn:</b> ${vehicle.name}<br>
+                    <b>Type:</b> ${vehicle.type}<br>
+                    <b>Palleplasser:</b> ${vehicle.palleplasser}<br>
+                    <b>Klokkeslett:</b> ${formatTimestamp(vehicle.time)}<br>
+                    <b>Selskap:</b> ${vehicle.company}
+                  </div>`
+              });
 
-            const infoWindow = new google.maps.InfoWindow({
-              content: `
-                <b>Navn:</b> ${vehicle.name}<br>
-                <b>Type:</b> ${vehicle.type}<br>
-                <b>Palleplasser:</b> ${vehicle.palleplasser}<br>
-                <b>Klokkeslett:</b> ${formatTimestamp(vehicle.time)}<br>
-                <b>Selskap:</b> ${vehicle.company}`
-            });
-
-            marker.addListener('click', () => infoWindow.open(map, marker));
-            markers.push(marker);
+              marker.addListener('click', () => infoWindow.open(map, marker));
+              markers[vehicle.id] = marker;
+            }
           }
         }
+
+        // Fjern markører som ikke lenger er i filteredData
+        Object.keys(markers).forEach(id => {
+          if (!filteredData.find(v => v.id === id)) {
+            markers[id].setMap(null);
+            delete markers[id];
+          }
+        });
+
       } catch (error) {
         console.error('Error loading positions:', error);
       }
