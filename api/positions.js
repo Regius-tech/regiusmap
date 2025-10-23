@@ -1,68 +1,122 @@
+const fetch = (...args) => import("node-fetch").then(({ default: fetch }) => fetch(...args));
+
+const FIREBASE_DB_URL = "https://triflex-a08c7-default-rtdb.europe-west1.firebasedatabase.app";
+
+const apiConfigurations = [
+  {
+    url: process.env.API_URL_1,
+    apiKey: process.env.API_KEY_1,
+    logo: "/logo1.png",
+    company: "Transportsentralen Oslo",
+  },
+  {
+    url: process.env.API_URL_2,
+    apiKey: process.env.API_KEY_2,
+    logo: "/logo2.png",
+    company: "TS Oslo Budtjenester",
+  },
+  {
+    url: process.env.API_URL_3,
+    apiKey: process.env.API_KEY_3,
+    logo: "/logo3.png",
+    company: "Moss Transportforum",
+  },
+  {
+    url: process.env.API_URL_4,
+    apiKey: process.env.API_KEY_4,
+    logo: "/logo4.png",
+    company: "Blå Kurér",
+  },
+];
+
+function isActiveToday(vehicle) {
+  if (!vehicle.time) return false;
+  const vehicleTime = new Date(vehicle.time);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  vehicleTime.setHours(0, 0, 0, 0);
+  return vehicleTime.getTime() === today.getTime();
+}
+
+function parseIsParticipant(value) {
+  return value === true || value === "TRUE" || value === "true";
+}
+
+function ensureString(value) {
+  return value ? value.toString() : "";
+}
+
+async function fetchFirebase(path) {
+  try {
+    const res = await fetch(`${FIREBASE_DB_URL}/${path}.json`);
+    if (!res.ok) throw new Error(`Feil ved henting av ${path}: ${res.status} ${res.statusText}`);
+    const data = await res.json();
+    return data || {};
+  } catch (err) {
+    console.warn(`⚠️ Kan ikke hente ${path} fra Firebase:`, err.message);
+    return {};
+  }
+}
+
 export default async function handler(req, res) {
   try {
-    const FIREBASE_DB_URL = "https://triflex-a08c7-default-rtdb.europe-west1.firebasedatabase.app";
-
-    const apiConfigs = [
-      { url: process.env.API_URL_1, key: process.env.API_KEY_1, company: "Transportsentralen Oslo", logo: "/logo1.png" },
-      { url: process.env.API_URL_2, key: process.env.API_KEY_2, company: "TS Oslo Budtjenester", logo: "/logo2.png" },
-      { url: process.env.API_URL_3, key: process.env.API_KEY_3, company: "Moss Transportforum", logo: "/logo3.png" },
-      { url: process.env.API_URL_4, key: process.env.API_KEY_4, company: "Blå Kurér", logo: "/logo4.png" },
-    ];
-
-    // --- Hent Firebase-bildata ---
     console.log("📡 Henter bildata fra Firebase...");
-    const carsRes = await fetch(`${FIREBASE_DB_URL}/cars.json`);
-    const carsData = await carsRes.json();
-    const vehiclesMap = {};
-    if (carsData) {
-      Object.values(carsData).forEach(car => {
-        if (car.number) vehiclesMap[car.number.toString()] = car;
-      });
-    }
+    const carsData = await fetchFirebase("cars");
 
-    // --- Hent posisjoner fra alle APIer ---
+    const vehiclesData = {};
+    Object.values(carsData).forEach(car => {
+      if (car.number) vehiclesData[car.number.toString()] = car;
+    });
+
     const allPositions = [];
 
-    for (const cfg of apiConfigs) {
-      if (!cfg.url || !cfg.key) {
-        console.warn(`⚠️ Mangler miljøvariabler for ${cfg.company}`);
-        continue;
-      }
+    for (const config of apiConfigurations) {
+      if (!config.url || !config.apiKey) continue;
 
-      console.log(`🌍 Henter fra ${cfg.company}: ${cfg.url}`);
-      const response = await fetch(cfg.url, { headers: { "x-api-key": cfg.key } });
+      try {
+        console.log(`🌍 Henter posisjoner fra ${config.company}: ${config.url}`);
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 8000);
 
-      if (!response.ok) {
-        console.warn(`❌ Feil fra ${cfg.company}: ${response.status}`);
-        continue;
-      }
-
-      const data = await response.json();
-      if (!Array.isArray(data)) continue;
-
-      data.forEach(vehicle => {
-        const number = vehicle.number?.toString() || "";
-        const carInfo = vehiclesMap[number] || {};
-
-        allPositions.push({
-          ...vehicle,
-          company: cfg.company,
-          logo: cfg.logo,
-          type: carInfo.type || "Ukjent",
-          palleplasser: carInfo.palleplasser || "Ukjent",
-          isParticipant: carInfo.isParticipant === true || carInfo.isParticipant === "true" || carInfo.isParticipant === "TRUE",
+        const response = await fetch(config.url, {
+          method: "GET",
+          headers: { "x-api-key": config.apiKey },
+          signal: controller.signal
         });
-      });
+        clearTimeout(timeout);
+
+        if (!response.ok) {
+          console.warn(`❌ Feil fra ${config.company}: ${response.status}`);
+          continue;
+        }
+
+        const data = await response.json();
+        if (!Array.isArray(data)) continue;
+
+        const vehiclesWithDetails = data.map(vehicle => {
+          const number = ensureString(vehicle.number);
+          const carInfo = vehiclesData[number] || {};
+          return {
+            ...vehicle,
+            logo: config.logo,
+            company: config.company,
+            type: carInfo.type || "Ukjent",
+            palleplasser: carInfo.palleplasser || "Ukjent",
+            isParticipant: parseIsParticipant(carInfo.isParticipant),
+            isActiveToday: isActiveToday(vehicle)
+          };
+        });
+
+        allPositions.push(...vehiclesWithDetails);
+      } catch (err) {
+        console.error(`❌ Feil ved henting fra ${config.company}: ${err.message}`);
+      }
     }
 
-    // --- Filtrer bort de som ikke deltar ---
-    const participants = allPositions.filter(v => v.isParticipant);
-
-    console.log(`✅ Returnerer ${participants.length} kjøretøy`);
-
-    return res.status(200).json(participants);
+    // 🔹 Ingen filtrering, returner alt
+    res.status(200).json(allPositions);
   } catch (err) {
     console.error("❌ Feil i /api/positions:", err);
-    return res.status(500).json({ error: "Kunne ikke hente kjøretøydata" });
+    res.status(500).json({ error: "Kunne ikke hente kjøretøydata" });
   }
 }
