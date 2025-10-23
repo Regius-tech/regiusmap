@@ -211,45 +211,47 @@
           return matchesCompany && isActiveToday && vehicle.isParticipant;
         });
 
-        // Oppdater eksisterende markører
+        const idsInData = filteredData.map(v => String(v.id));
+
         for (const vehicle of filteredData) {
-          if (vehicle.latitude && vehicle.longitude) {
-            const position = { lat: vehicle.latitude, lng: vehicle.longitude };
-            if (markers[vehicle.id]) {
-              markers[vehicle.id].setPosition(position);
-            } else {
-              const iconUrl = await createPinDataURL(vehicle);
-              const marker = new google.maps.Marker({
-                map,
-                position,
-                icon: { url: iconUrl, scaledSize: new google.maps.Size(45, 55) },
-                title: vehicle.name
-              });
+          if (!vehicle.latitude || !vehicle.longitude) continue;
+          const id = String(vehicle.id);
+          const position = { lat: vehicle.latitude, lng: vehicle.longitude };
 
-              const infoWindow = new google.maps.InfoWindow({
-                content: `
-                  <div class="info-window">
-                    <b>Navn:</b> ${vehicle.name}<br>
-                    <b>Type:</b> ${vehicle.type}<br>
-                    <b>Palleplasser:</b> ${vehicle.palleplasser}<br>
-                    <b>Klokkeslett:</b> ${formatTimestamp(vehicle.time)}<br>
-                    <b>Selskap:</b> ${vehicle.company}
-                  </div>`
-              });
+          if (markers[id]) {
+            markers[id].setPosition(position);
+          } else {
+            const iconUrl = await createPinDataURL(vehicle);
+            const marker = new google.maps.Marker({
+              map,
+              position,
+              icon: { url: iconUrl, scaledSize: new google.maps.Size(45, 55) },
+              title: vehicle.name
+            });
 
-              marker.addListener('click', () => infoWindow.open(map, marker));
-              markers[vehicle.id] = marker;
-            }
+            const infoWindow = new google.maps.InfoWindow({
+              content: `
+                <div class="info-window">
+                  <b>Navn:</b> ${vehicle.name}<br>
+                  <b>Type:</b> ${vehicle.type}<br>
+                  <b>Palleplasser:</b> ${vehicle.palleplasser}<br>
+                  <b>Klokkeslett:</b> ${formatTimestamp(vehicle.time)}<br>
+                  <b>Selskap:</b> ${vehicle.company}
+                </div>`
+            });
+
+            marker.addListener('click', () => infoWindow.open(map, marker));
+            markers[id] = marker;
           }
         }
 
-        // Fjern markører som ikke lenger er i filteredData
-        Object.keys(markers).forEach(id => {
-          if (!filteredData.find(v => v.id === id)) {
+        // Fjern kun de som faktisk ikke finnes i datasettet lenger
+        for (const id in markers) {
+          if (!idsInData.includes(id)) {
             markers[id].setMap(null);
             delete markers[id];
           }
-        });
+        }
 
       } catch (error) {
         console.error('Error loading positions:', error);
