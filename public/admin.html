@@ -20,6 +20,8 @@ h1,h2 { text-align:center; margin-bottom:20px; }
 .grid-container { display:grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap:20px; }
 .car-card { background: rgba(2,28,60,0.95); border-radius:12px; padding:20px; box-shadow:0 4px 15px rgba(0,0,0,0.5); transition: transform 0.3s; cursor:pointer; }
 .car-card:hover { transform:translateY(-5px); }
+.car-card h3 { margin:0; margin-bottom:5px; }
+.car-card p { margin:5px 0; font-size:14px; color:#cfcfcf; }
 .delete-btn { background:#FF4136; color:white; padding:6px 12px; border:none; border-radius:6px; cursor:pointer; margin-top:5px; }
 .delete-btn:hover { background:#a33228; }
 .edit-btn { background:#0074D9; color:white; padding:6px 12px; border:none; border-radius:6px; cursor:pointer; margin-top:5px; }
@@ -38,7 +40,6 @@ h1,h2 { text-align:center; margin-bottom:20px; }
 
 <div class="container">
   <button class="back-btn" onclick="window.location.href='dashboard.html'">Tilbake til dashboard</button>
-  <button class="back-btn" style="right:150px;" onclick="window.location.href='cars.html'">Bilparken</button>
   <h1>Triflex Admin</h1>
 
   <div class="stats-grid" id="statsGrid">
@@ -92,26 +93,19 @@ const db = getDatabase(app);
 const auth = getAuth(app);
 
 let vehicleData = [];
-let currentUserCompany = "";
 
-// Login + hent selskap fra brukerprofil
+// Login + redirect hvis ikke logget inn
 onAuthStateChanged(auth, user => {
   if (!user) window.location.href = "login.html";
-  else {
-    get(ref(db,'users/'+user.uid)).then(snap=>{
-      if(snap.exists()) currentUserCompany = snap.val().company || "";
-      loadVehicles();
-    });
-  }
 });
 
-// Last biler fra Firebase
 async function loadVehicles() {
   const snapshot = await get(ref(db, "cars"));
   if (!snapshot.exists()) return;
   const data = snapshot.val();
-  vehicleData = [];
 
+  // Flatten cars from all companies
+  vehicleData = [];
   Object.values(data).forEach(companyCars => {
     Object.values(companyCars).forEach(car => {
       if (car && car.number) {
@@ -123,8 +117,7 @@ async function loadVehicles() {
           company: car.company || "",
           logo: car.logo || "",
           isActiveToday: car.isActiveToday || false,
-          isParticipant: car.isParticipant || false,
-          time: car.time || new Date().toISOString()
+          isParticipant: car.isParticipant || false
         });
       }
     });
@@ -135,7 +128,6 @@ async function loadVehicles() {
   renderCards();
 }
 
-// Filtre
 function updateFilters() {
   const companies = [...new Set(vehicleData.map(v => v.company))];
   const types = [...new Set(vehicleData.map(v => v.type))];
@@ -147,30 +139,12 @@ function updateFilters() {
   types.forEach(t => typeSelect.appendChild(Object.assign(document.createElement('option'), { value: t, textContent: t })));
 }
 
-// Stats: aktive biler siste time + påloggede brukere siste time
 function updateStats() {
-  const now = new Date();
-  const oneHourAgo = new Date(now.getTime() - 60*60*1000);
-
-  const activeCarsCount = vehicleData.filter(v => new Date(v.time) >= oneHourAgo).length;
   document.getElementById('totalCars').textContent = vehicleData.length;
-  document.getElementById('activeCars').textContent = activeCarsCount;
-
-  get(ref(db,'users')).then(snap=>{
-    let loggedUsers = 0;
-    if(snap.exists()){
-      Object.values(snap.val()).forEach(u=>{
-        if(u.lastLogin){
-          const lastLogin = new Date(u.lastLogin);
-          if(lastLogin >= oneHourAgo) loggedUsers++;
-        }
-      });
-    }
-    document.getElementById('loggedUsers').textContent = loggedUsers;
-  });
+  document.getElementById('activeCars').textContent = vehicleData.filter(v => v.isActiveToday).length;
+  document.getElementById('loggedUsers').textContent = 0;
 }
 
-// Render biler, filtrerer på selskap + søk + type
 function renderCards() {
   const grid = document.getElementById('adminGrid');
   const companyFilter = document.getElementById('companyFilter').value;
@@ -178,7 +152,6 @@ function renderCards() {
   const searchInput = document.getElementById('searchInput').value.toLowerCase();
   grid.innerHTML = "";
   vehicleData.filter(v => 
-    v.company === currentUserCompany &&
     (companyFilter === 'all' || v.company === companyFilter) &&
     (typeFilter === 'all' || v.type === typeFilter) &&
     (v.name.toLowerCase().includes(searchInput) || v.type.toLowerCase().includes(searchInput))
@@ -202,7 +175,7 @@ const editForm = document.getElementById('editForm');
 
 function openEditForm(id) {
   const car = vehicleData.find(c => c.id === id);
-  if (!car || car.company !== currentUserCompany) return;
+  if (!car) return;
   document.getElementById('editCarId').value = id;
   document.getElementById('editName').value = car.name;
   document.getElementById('editType').value = car.type;
@@ -220,7 +193,6 @@ document.getElementById('cancelEditBtn').addEventListener('click', () => {
   editForm.style.display = 'none';
 });
 
-// Lagre endringer, kun eget selskap
 document.getElementById('saveEditBtn').addEventListener('click', async () => {
   const id = document.getElementById('editCarId').value;
   const updatedCar = {
@@ -230,10 +202,8 @@ document.getElementById('saveEditBtn').addEventListener('click', async () => {
     company: document.getElementById('editCompany').value,
     logo: document.getElementById('editLogo').value,
     isActiveToday: document.getElementById('editIsActiveToday').checked,
-    isParticipant: document.getElementById('editIsParticipant').checked,
-    time: new Date().toISOString()
+    isParticipant: document.getElementById('editIsParticipant').checked
   };
-  if(updatedCar.company !== currentUserCompany) return;
   await set(ref(db, 'cars/' + updatedCar.company + '/' + id), updatedCar);
   overlay.style.display = 'none';
   editForm.style.display = 'none';
@@ -245,9 +215,10 @@ document.getElementById('searchInput').addEventListener('input', renderCards);
 document.getElementById('companyFilter').addEventListener('change', renderCards);
 document.getElementById('typeFilter').addEventListener('change', renderCards);
 
-// Live update
+// Live update fra Firebase
 onValue(ref(db, 'cars'), () => loadVehicles());
 
+loadVehicles();
 </script>
 </body>
 </html>

@@ -52,7 +52,6 @@ tr:hover { background-color: rgba(255,255,255,0.1); }
 .header-btn:hover { background:#005fa3; }
 .header-left { left:0; transform:translateY(-50%); }
 .header-right { right:0; transform:translateY(-50%); }
-.header-logout { right:90px; transform:translateY(-50%); }
 </style>
 </head>
 <body>
@@ -61,13 +60,12 @@ tr:hover { background-color: rgba(255,255,255,0.1); }
 <h1>Triflex Admin Dashboard
   <button class="header-btn header-left" onclick="window.location.href='admin.html'">Bilparken</button>
   <button class="header-btn header-right" onclick="window.location.href='kart.html'">Kart</button>
-  <button class="header-btn header-logout" onclick="window.location.href='index.html'">Logg ut</button>
 </h1>
 
 <div class="stats-grid" id="globalStats">
   <div class="stat-card"><h3 id="totalCars">0</h3><p>Totalt biler</p></div>
-  <div class="stat-card"><h3 id="activeCars">0</h3><p>Aktive biler siste time</p></div>
-  <div class="stat-card"><h3 id="loggedUsers">0</h3><p>Påloggede brukere siste time</p></div>
+  <div class="stat-card"><h3 id="activeCars">0</h3><p>Aktive biler i dag</p></div>
+  <div class="stat-card"><h3 id="loggedUsers">0</h3><p>Påloggede brukere</p></div>
 </div>
 
 <div class="chart-container">
@@ -118,7 +116,7 @@ tr:hover { background-color: rgba(255,255,255,0.1); }
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { getDatabase, ref, set, remove, onValue, get } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 import { firebaseConfig } from "./firebaseConfig.js";
 
 const app = initializeApp(firebaseConfig);
@@ -127,24 +125,20 @@ const auth = getAuth(app);
 
 let vehicleData = [];
 
-// Hent og vis biler
-onAuthStateChanged(auth,user=>{
-  if(!user) window.location.href='login.html';
+// Login sjekk
+onAuthStateChanged(auth, user => {
+  if(!user) window.location.href = "login.html";
 });
 
-// Logg ut-funksjon
-function logout(){
-  signOut(auth).then(()=> window.location.href='index.html');
-}
-
+// Load biler fra Firebase `cars`-noden
 async function loadVehicles(){
-  const snapshot=await get(ref(db,"cars"));
+  const snapshot = await get(ref(db,"cars"));
   if(!snapshot.exists()) return;
-  vehicleData=[];
-  const companiesObj=snapshot.val();
+  vehicleData = [];
+  const companiesObj = snapshot.val();
   Object.values(companiesObj).forEach(companyCars=>{
     Object.values(companyCars).forEach(car=>{
-      if(car && car.number) vehicleData.push({...car, id:car.number});
+      if(car && car.number) vehicleData.push({ id: car.number, ...car });
     });
   });
   updateFilters();
@@ -153,7 +147,7 @@ async function loadVehicles(){
   updateTable();
 }
 
-// Filter
+// Filter selects
 function updateFilters(){
   const companies=[...new Set(vehicleData.map(v=>v.company))];
   const types=[...new Set(vehicleData.map(v=>v.type))];
@@ -165,24 +159,11 @@ function updateFilters(){
   types.forEach(t=>typeSelect.appendChild(Object.assign(document.createElement('option'),{value:t,textContent:t})));
 }
 
-// Stats og tall per selskap
+// Stats
 function updateStats(){
-  const now=new Date();
-  const oneHourAgo=new Date(now.getTime()-60*60*1000);
-  document.getElementById('totalCars').textContent=vehicleData.length;
-  document.getElementById('activeCars').textContent=vehicleData.filter(v=>v.isActiveToday).length;
-  get(ref(db,'users')).then(snap=>{
-    let loggedUsers=0;
-    if(snap.exists()){
-      Object.values(snap.val()).forEach(u=>{
-        if(u.lastLogin){
-          const lastLogin=new Date(u.lastLogin);
-          if(lastLogin>=oneHourAgo) loggedUsers++;
-        }
-      });
-    }
-    document.getElementById('loggedUsers').textContent=loggedUsers;
-  });
+  document.getElementById('totalCars').textContent = vehicleData.length;
+  document.getElementById('activeCars').textContent = vehicleData.filter(v => v.isActiveToday).length;
+  document.getElementById('loggedUsers').textContent = 0;
 }
 
 // Diagrammer
@@ -195,7 +176,7 @@ function updateCharts(){
   const activePerCompany=companyNames.map(c=>vehicleData.filter(v=>v.company===c && v.isActiveToday).length);
   if(carsChart) carsChart.destroy();
   if(activeChart) activeChart.destroy();
-  carsChart=new Chart(ctx1,{type:'bar',data:{labels:companyNames,datasets:[{label:'Totalt biler',data:carsPerCompany,backgroundColor:'#0074D9'}]},options:{responsive:true,plugins:{legend:{display:false}}}});
+  carsChart=new Chart(ctx1,{type:'bar',data:{labels:companyNames,datasets:[{label:'Antall biler',data:carsPerCompany,backgroundColor:'#0074D9'}]},options:{responsive:true,plugins:{legend:{display:false}}}});
   activeChart=new Chart(ctx2,{type:'bar',data:{labels:companyNames,datasets:[{label:'Aktive biler i dag',data:activePerCompany,backgroundColor:'#FFDC00'}]},options:{responsive:true,plugins:{legend:{display:false}}}});
 }
 
@@ -214,15 +195,15 @@ function updateTable(){
   }).forEach(v=>{
     const row=document.createElement('tr');
     row.innerHTML=`<td>${v.name}</td><td>${v.type}</td><td>${v.palleplasser}</td><td>${v.company}</td><td>${new Date(v.time).toLocaleString('no-NO')}</td>
-    <td>
-      <button class="edit-btn" onclick="openEditForm('${v.id}','${v.company}')">Rediger</button>
-      <button class="delete-btn" onclick="deleteCar('${v.id}','${v.company}')">Slett</button>
-    </td>`;
+      <td>
+        <button class="edit-btn" onclick="openEditForm('${v.id}','${v.company}')">Rediger</button>
+        <button class="delete-btn" onclick="deleteCar('${v.id}','${v.company}')">Slett</button>
+      </td>`;
     tbody.appendChild(row);
   });
 }
 
-// Rediger
+// Redigeringsform
 const overlay=document.getElementById('overlay');
 const editForm=document.getElementById('editForm');
 
@@ -246,7 +227,7 @@ document.getElementById('cancelEditBtn').addEventListener('click', ()=>{
   editForm.style.display='none';
 });
 
-// Lagre
+// Lagre redigering
 document.getElementById('saveEditBtn').addEventListener('click', async ()=>{
   const id=document.getElementById('editCarId').value;
   const company=document.getElementById('editCompany').value;
@@ -266,7 +247,7 @@ document.getElementById('saveEditBtn').addEventListener('click', async ()=>{
   loadVehicles();
 });
 
-// Slett
+// Slett bil
 async function deleteCar(id, company){
   if(confirm('Er du sikker på at du vil slette denne bilen?')){
     await remove(ref(db,'cars/'+company+'/'+id));
@@ -285,19 +266,19 @@ onValue(ref(db,'cars'), ()=>loadVehicles());
 loadVehicles();
 
 // Sorter tabell
-let sortDirection=1;
-let lastSortedColumn=-1;
+let sortDirection = 1;
+let lastSortedColumn = -1;
 function sortTable(idx){
-  const table=document.querySelector('table');
-  const rows=Array.from(table.rows).slice(1);
-  const isNum=idx===2;
-  const isDate=idx===4;
+  const table = document.querySelector('table');
+  const rows = Array.from(table.rows).slice(1);
+  const isNum = idx===2;
+  const isDate = idx===4;
   if(lastSortedColumn===idx) sortDirection*=-1;
   else sortDirection=1;
   lastSortedColumn=idx;
   rows.sort((a,b)=>{
-    let valA=isDate?new Date(a.cells[idx].innerText):(isNum?Number(a.cells[idx].innerText):a.cells[idx].innerText);
-    let valB=isDate?new Date(b.cells[idx].innerText):(isNum?Number(b.cells[idx].innerText):b.cells[idx].innerText);
+    let valA = isDate?new Date(a.cells[idx].innerText):(isNum?Number(a.cells[idx].innerText):a.cells[idx].innerText);
+    let valB = isDate?new Date(b.cells[idx].innerText):(isNum?Number(b.cells[idx].innerText):b.cells[idx].innerText);
     return (valA<valB?-1:valA>valB?1:0)*sortDirection;
   });
   rows.forEach(r=>table.appendChild(r));
