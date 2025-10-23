@@ -1,4 +1,4 @@
-const fetch = (...args) => import("node-fetch").then(({ default: fetch }) => fetch(...args));
+import fetch from "node-fetch";
 
 const FIREBASE_DB_URL = "https://triflex-a08c7-default-rtdb.europe-west1.firebasedatabase.app";
 
@@ -52,13 +52,16 @@ async function fetchFirebase(path) {
   return res.json();
 }
 
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
   try {
     const selectedCompany = req.query.company || "all";
     const activeTodayOnly = req.query.activeToday === "true";
 
     console.log("📡 Henter data fra Firebase...");
-    const carsData = await fetchFirebase("cars"); // 🔹 Henter kun bilinfo
+    const [positionsData, carsData] = await Promise.all([
+      fetchFirebase("positions"),
+      fetchFirebase("cars")
+    ]);
 
     const vehiclesData = {};
     if (carsData) {
@@ -70,10 +73,7 @@ module.exports = async (req, res) => {
     const allPositions = [];
 
     for (const config of apiConfigurations) {
-      if (!config.url || !config.apiKey) {
-        console.warn(`⚠️ Mangler URL eller API-nøkkel for ${config.company}`);
-        continue;
-      }
+      if (!config.url || !config.apiKey) continue;
 
       try {
         console.log(`🔄 Henter data fra ${config.company}`);
@@ -93,12 +93,10 @@ module.exports = async (req, res) => {
         }
 
         const data = await response.json();
-        console.log(`✅ Mottatt ${data.length} kjøretøy fra ${config.company}`);
-
         const vehiclesWithDetails = data.map(vehicle => {
           const number = ensureString(vehicle.number);
           const carInfo = vehiclesData[number] || {};
-          const detailedVehicle = {
+          return {
             ...vehicle,
             logo: config.logo,
             company: config.company,
@@ -107,7 +105,6 @@ module.exports = async (req, res) => {
             isParticipant: parseIsParticipant(carInfo.isParticipant),
             isActiveToday: isActiveToday(vehicle)
           };
-          return detailedVehicle;
         });
 
         allPositions.push(...vehiclesWithDetails);
@@ -123,10 +120,9 @@ module.exports = async (req, res) => {
       return matchesCompany && matchesActive && vehicle.isParticipant;
     });
 
-    console.log(`🚗 Returnerer ${filteredPositions.length} biler etter filtrering`);
     res.status(200).json(filteredPositions);
   } catch (err) {
     console.error("❌ Feil i /api/positions:", err.message);
     res.status(500).json({ error: "Kunne ikke hente kjøretøydata" });
   }
-};
+}
