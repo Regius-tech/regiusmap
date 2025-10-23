@@ -181,8 +181,8 @@
         : `<option value="">Velg selskap</option>`;
     });
 
-    // Login
-    loginBtn.addEventListener('click', async () => {
+    // Login-funksjon (egen for gjenbruk)
+    async function handleLogin() {
       const email = emailInput.value.trim();
       const password = passwordInput.value.trim();
       const company = companySelect.value || await detectCompanyFromEmail(email);
@@ -203,6 +203,16 @@
         console.error("Innloggingsfeil:", e);
         errorMsg.style.color = "#FF4136";
         errorMsg.textContent = "Feil e-post eller passord.";
+      }
+    }
+
+    // Klikk på logg inn
+    loginBtn.addEventListener('click', handleLogin);
+
+    // 🔹 Legg til ENTER-tast funksjon
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        handleLogin();
       }
     });
 

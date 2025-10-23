@@ -1,22 +1,10 @@
 {
   "rules": {
-    "companies": {
-      ".read": true,
-      ".write": false
-    },
-    "positions": {
-      ".read": true,
-      ".write": false
-    },
+    "companies": { ".read": true, ".write": false },
+    "positions": { ".read": true, ".write": false },
     "users": {
-      "$uid": {
-        ".read": "$uid === auth.uid",
-        ".write": "$uid === auth.uid"
-      }
+      "$uid": { ".read": "$uid === auth.uid", ".write": "$uid === auth.uid" }
     },
-    "cars": {
-      ".read": "auth != null",
-      ".write": true
-    }
+    "cars": { ".read": true, ".write": true }
   }
 }
