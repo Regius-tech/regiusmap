@@ -35,6 +35,15 @@ function parseIsParticipant(value) {
   return value === true || value === "TRUE" || value === "true";
 }
 
+function isActiveToday(vehicle) {
+  if (!vehicle.time) return false;
+  const vehicleTime = new Date(vehicle.time);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  vehicleTime.setHours(0, 0, 0, 0);
+  return vehicleTime.getTime() === today.getTime();
+}
+
 async function fetchFirebase(path) {
   try {
     const res = await fetch(`${FIREBASE_DB_URL}/${path}.json`);
@@ -94,7 +103,8 @@ export default async function handler(req, res) {
             company: config.company,
             type: carInfo.type || "Ukjent",
             palleplasser: carInfo.palleplasser || "Ukjent",
-            isParticipant: parseIsParticipant(carInfo.isParticipant)
+            isParticipant: parseIsParticipant(carInfo.isParticipant),
+            isActiveToday: isActiveToday(vehicle)
           };
         });
 

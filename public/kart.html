@@ -19,7 +19,6 @@
       width: 100%;
     }
 
-    /* === Meny midt på skjermen === */
     .filter-container {
       position: absolute;
       top: 20px;
@@ -47,40 +46,14 @@
     }
 
     .filter-container.inactive { opacity: 0.4; }
-
     .filter-container label { font-weight: bold; font-size: 14px; }
     .filter-container select,
     .filter-container input[type="checkbox"] { margin-left: 5px; padding: 6px; border-radius: 6px; border: none; outline: none; font-size: 14px; }
     select { background-color: #fff; color: #000; }
-
-    /* === Knapper === */
-    #themeSwitch {
-      cursor: pointer;
-      font-weight: bold;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 8px;
-      background-color: #0074D9;
-      color: white;
-      transition: background-color 0.3s ease;
-    }
-
+    #themeSwitch { cursor: pointer; font-weight: bold; border: none; padding: 8px 16px; border-radius: 8px; background-color: #0074D9; color: white; transition: background-color 0.3s ease; }
     #themeSwitch:hover { background-color: #005fa3; }
-
-    .btn-secondary {
-      cursor: pointer;
-      font-weight: bold;
-      border: none;
-      padding: 6px 14px;
-      border-radius: 8px;
-      background-color: rgba(255,255,255,0.15);
-      color: white;
-      text-decoration: none;
-      transition: all 0.3s ease;
-    }
-    .btn-secondary:hover {
-      background-color: rgba(255,255,255,0.25);
-    }
+    .btn-secondary { cursor: pointer; font-weight: bold; border: none; padding: 6px 14px; border-radius: 8px; background-color: rgba(255,255,255,0.15); color: white; text-decoration: none; transition: all 0.3s ease; }
+    .btn-secondary:hover { background-color: rgba(255,255,255,0.25); }
   </style>
 </head>
 
@@ -141,8 +114,7 @@
       document.getElementById("themeSwitch").addEventListener("click", () => {
         darkMode = !darkMode;
         map.setOptions({ styles: darkMode ? darkStyle : [] });
-        document.getElementById("themeSwitch").textContent =
-          darkMode ? "🌙 Mørk modus" : "☀️ Lys modus";
+        document.getElementById("themeSwitch").textContent = darkMode ? "🌙 Mørk modus" : "☀️ Lys modus";
       });
 
       const menu = document.getElementById("menu");
@@ -163,8 +135,7 @@
 
     function formatTimestamp(timestamp) {
       if (!timestamp) return "Ukjent tid";
-      const date = new Date(timestamp);
-      return date.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' });
+      return new Date(timestamp).toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' });
     }
 
     function createPinDataURL(vehicle) {
@@ -216,7 +187,6 @@
 
     async function loadPositions() {
       try {
-        // ✅ Hent live posisjoner med bilinfo fra backend
         const response = await fetch("/api/positions");
         if (!response.ok) throw new Error("Kunne ikke hente posisjoner fra API");
         const data = await response.json();
@@ -263,7 +233,6 @@
     }
   </script>
 
-  <!-- Google Maps JS API -->
   <script async
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBtSvAG_uN9QBI0Fi_GOJVIyAjd1JlMvNg&callback=initMap&v=beta">
   </script>
