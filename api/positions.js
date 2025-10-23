@@ -1,4 +1,4 @@
-const fetch = require("node-fetch");
+const fetch = (...args) => import("node-fetch").then(({ default: fetch }) => fetch(...args));
 
 const FIREBASE_DB_URL = "https://triflex-a08c7-default-rtdb.europe-west1.firebasedatabase.app";
 
@@ -50,27 +50,26 @@ async function fetchFirebase(path) {
   try {
     const res = await fetch(`${FIREBASE_DB_URL}/${path}.json`);
     if (!res.ok) throw new Error(`Feil ved henting av ${path}: ${res.status} ${res.statusText}`);
-    return res.json();
+    const data = await res.json();
+    return data || {};
   } catch (err) {
     console.warn(`⚠️ Kan ikke hente ${path} fra Firebase:`, err.message);
-    return null; // return null hvis tomt eller feil
+    return {};
   }
 }
 
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
   try {
     const selectedCompany = req.query.company || "all";
     const activeTodayOnly = req.query.activeToday === "true";
 
-    console.log("📡 Henter data fra Firebase cars...");
+    console.log("📡 Henter bilinfo fra Firebase...");
     const carsData = await fetchFirebase("cars");
 
     const vehiclesData = {};
-    if (carsData) {
-      Object.values(carsData).forEach(car => {
-        if (car.number) vehiclesData[car.number.toString()] = car;
-      });
-    }
+    Object.values(carsData).forEach(car => {
+      if (car.number) vehiclesData[car.number.toString()] = car;
+    });
 
     const allPositions = [];
 
@@ -78,7 +77,7 @@ module.exports = async (req, res) => {
       if (!config.url || !config.apiKey) continue;
 
       try {
-        console.log(`🔄 Henter data fra ${config.company}`);
+        console.log(`🔄 Henter posisjoner fra ${config.company}`);
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 8000);
 
@@ -90,12 +89,12 @@ module.exports = async (req, res) => {
         clearTimeout(timeout);
 
         if (!response.ok) {
-          console.error(`❌ Feil fra ${config.company}: ${response.status}`);
+          console.warn(`❌ Feil fra ${config.company}: ${response.status}`);
           continue;
         }
 
         const data = await response.json();
-        if (!Array.isArray(data)) continue; // sikkerhetssjekk
+        if (!Array.isArray(data)) continue;
 
         const vehiclesWithDetails = data.map(vehicle => {
           const number = ensureString(vehicle.number);
@@ -117,6 +116,7 @@ module.exports = async (req, res) => {
       }
     }
 
+    // Filtrering
     const filteredPositions = allPositions.filter(vehicle => {
       const matchesCompany = selectedCompany === "all" || vehicle.company === selectedCompany;
       const matchesActive = !activeTodayOnly || vehicle.isActiveToday;
@@ -125,7 +125,7 @@ module.exports = async (req, res) => {
 
     res.status(200).json(filteredPositions);
   } catch (err) {
-    console.error("❌ Feil i /api/positions:", err.message);
+    console.error("❌ Feil i /api/positions:", err);
     res.status(500).json({ error: "Kunne ikke hente kjøretøydata" });
   }
-};
+}
