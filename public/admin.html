@@ -64,10 +64,6 @@ h1,h2 { text-align:center; margin-bottom:20px; }
     <input type="text" id="editName" placeholder="Navn">
     <input type="text" id="editType" placeholder="Type">
     <input type="number" id="editPalleplasser" placeholder="Palleplasser">
-    <input type="text" id="editCompany" placeholder="Selskap">
-    <input type="text" id="editLogo" placeholder="Logo URL">
-    <label><input type="checkbox" id="editIsActiveToday"> Aktiv i dag</label>
-    <label><input type="checkbox" id="editIsParticipant"> Deltaker</label>
     <button class="save-btn" id="saveEditBtn">Lagre</button>
     <button class="cancel-btn" id="cancelEditBtn">Avbryt</button>
   </div>
@@ -104,20 +100,25 @@ async function loadVehicles() {
   if (!snapshot.exists()) return;
   const data = snapshot.val();
 
-  // Flatten cars from all companies
   vehicleData = [];
+  const todayStr = new Date().toISOString().split('T')[0];
   Object.values(data).forEach(companyCars => {
     Object.values(companyCars).forEach(car => {
       if (car && car.number) {
+        // Beregn om bilen er aktiv i dag basert på tid-feltet
+        let isActiveToday = false;
+        if (car.time) {
+          const carDate = new Date(car.time).toISOString().split('T')[0];
+          if (carDate === todayStr) isActiveToday = true;
+        }
+
         vehicleData.push({
           id: car.number,
           name: car.name || "",
           type: car.type || "Ukjent",
           palleplasser: car.palleplasser || 0,
           company: car.company || "",
-          logo: car.logo || "",
-          isActiveToday: car.isActiveToday || false,
-          isParticipant: car.isParticipant || false
+          isActiveToday: isActiveToday
         });
       }
     });
@@ -180,10 +181,6 @@ function openEditForm(id) {
   document.getElementById('editName').value = car.name;
   document.getElementById('editType').value = car.type;
   document.getElementById('editPalleplasser').value = car.palleplasser;
-  document.getElementById('editCompany').value = car.company;
-  document.getElementById('editLogo').value = car.logo;
-  document.getElementById('editIsActiveToday').checked = car.isActiveToday;
-  document.getElementById('editIsParticipant').checked = car.isParticipant;
   overlay.style.display = 'block';
   editForm.style.display = 'block';
 }
@@ -195,16 +192,18 @@ document.getElementById('cancelEditBtn').addEventListener('click', () => {
 
 document.getElementById('saveEditBtn').addEventListener('click', async () => {
   const id = document.getElementById('editCarId').value;
+  const car = vehicleData.find(c => c.id === id);
+  if (!car) return;
+
   const updatedCar = {
     name: document.getElementById('editName').value,
     type: document.getElementById('editType').value,
     palleplasser: parseInt(document.getElementById('editPalleplasser').value),
-    company: document.getElementById('editCompany').value,
-    logo: document.getElementById('editLogo').value,
-    isActiveToday: document.getElementById('editIsActiveToday').checked,
-    isParticipant: document.getElementById('editIsParticipant').checked
+    company: car.company,
+    time: car.time || new Date().toISOString()
   };
-  await set(ref(db, 'cars/' + updatedCar.company + '/' + id), updatedCar);
+  await set(ref(db, 'cars/' + car.company + '/' + id), updatedCar);
+
   overlay.style.display = 'none';
   editForm.style.display = 'none';
   loadVehicles();

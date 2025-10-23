@@ -9,14 +9,28 @@
 <style>
 body { margin:0; font-family:Poppins,sans-serif; background:#001f3f; color:white; }
 .container { max-width:1400px; margin:20px auto; padding:20px; position:relative; }
-h1,h2 { text-align:center; margin-bottom:20px; position:relative; }
+
+/* Header */
+.header-container { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+.header-title { text-align:center; flex-grow:1; font-size:1.8em; }
+.header-btn {
+  padding:10px 20px; border:none; border-radius:8px; font-weight:600;
+  cursor:pointer; background:#023060; color:white; transition:0.3s;
+}
+.header-btn:hover { background:#005fa3; }
+
+/* Stats grid */
 .stats-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:20px; margin-bottom:30px; }
 .stat-card { background: rgba(2,28,60,0.95); padding:20px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.5); text-align:center; transition: transform 0.3s; }
 .stat-card:hover { transform:translateY(-5px); }
 .stat-card h3 { font-size:2em; margin:10px 0; }
 .stat-card p { font-size:1em; color:#cfcfcf; }
+
+/* Filter */
 .filter-container { display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:20px; }
 .filter-container select, .filter-container input { padding:10px; border-radius:8px; border:none; background:#023060; color:white; }
+
+/* Table */
 table { width:100%; border-collapse: collapse; margin-bottom:40px; }
 th, td { border:1px solid #072D60; padding:10px; text-align:left; }
 th { background:#072D60; cursor:pointer; position:relative; }
@@ -28,76 +42,71 @@ tr:hover { background-color: rgba(255,255,255,0.1); }
 .edit-btn:hover { background:#005fa3; }
 .delete-btn { background:#FF4136; color:white; }
 .delete-btn:hover { background:#a33228; }
-.form-popup { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:rgba(2,28,60,0.95); padding:30px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.7); z-index:1000; max-width:400px; width:90%; }
+
+/* Form popup */
+.form-popup { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%);
+  background:rgba(2,28,60,0.95); padding:30px; border-radius:12px;
+  box-shadow:0 4px 15px rgba(0,0,0,0.7); z-index:1000; max-width:400px; width:90%; }
 .form-popup input, .form-popup select { width:100%; margin:10px 0; padding:10px; border-radius:8px; border:none; }
 .form-popup button { padding:12px; border:none; border-radius:8px; cursor:pointer; }
 .form-popup .save-btn { background:#0074D9; color:white; }
 .form-popup .cancel-btn { background:#FF4136; color:white; margin-left:10px; }
+
 .overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:999; }
 .chart-container { background: rgba(2,28,60,0.95); padding:20px; border-radius:12px; margin-bottom:30px; box-shadow:0 4px 15px rgba(0,0,0,0.5); }
-
-/* Nye knapp-stiler */
-.header-btn {
-  position:absolute;
-  top:0;
-  padding:10px 20px;
-  border:none;
-  border-radius:8px;
-  font-weight:600;
-  cursor:pointer;
-  background:#023060;
-  color:white;
-  transition:0.3s;
-}
-.header-btn:hover { background:#005fa3; }
-.header-left { left:0; transform:translateY(-50%); }
-.header-right { right:0; transform:translateY(-50%); }
 </style>
 </head>
 <body>
 
 <div class="container">
-<h1>Triflex Admin Dashboard
-  <button class="header-btn header-left" onclick="window.location.href='admin.html'">Bilparken</button>
-  <button class="header-btn header-right" onclick="window.location.href='kart.html'">Kart</button>
-</h1>
 
-<div class="stats-grid" id="globalStats">
-  <div class="stat-card"><h3 id="totalCars">0</h3><p>Totalt biler</p></div>
-  <div class="stat-card"><h3 id="activeCars">0</h3><p>Aktive biler i dag</p></div>
-  <div class="stat-card"><h3 id="loggedUsers">0</h3><p>Påloggede brukere</p></div>
+  <!-- Header -->
+  <div class="header-container">
+    <button class="header-btn" onclick="window.location.href='admin.html'">Bilparken</button>
+    <div class="header-title">Triflex Admin Dashboard</div>
+    <div>
+      <button class="header-btn" onclick="window.location.href='kart.html'">Kart</button>
+      <button class="header-btn" id="logoutBtn">Logg ut</button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid" id="globalStats">
+    <div class="stat-card"><h3 id="totalCars">0</h3><p>Totalt biler</p></div>
+    <div class="stat-card"><h3 id="activeCars">0</h3><p>Aktive biler i dag</p></div>
+    <div class="stat-card"><h3 id="loggedUsers">0</h3><p>Påloggede brukere</p></div>
+  </div>
+
+  <!-- Charts -->
+  <div class="chart-container"><canvas id="carsChart"></canvas></div>
+  <div class="chart-container"><canvas id="activeChart"></canvas></div>
+
+  <!-- Filter -->
+  <div class="filter-container">
+    <input type="text" id="searchInput" placeholder="Søk bil...">
+    <select id="companyFilter"><option value="all">Alle selskap</option></select>
+    <select id="typeFilter"><option value="all">Alle typer</option></select>
+    <input type="date" id="dateFilter">
+  </div>
+
+  <!-- Table -->
+  <table>
+    <thead>
+      <tr>
+        <th onclick="sortTable(0)">Navn</th>
+        <th onclick="sortTable(1)">Type</th>
+        <th onclick="sortTable(2)">Palleplasser</th>
+        <th onclick="sortTable(3)">Selskap</th>
+        <th onclick="sortTable(4)">Dato & Tid</th>
+        <th>Handlinger</th>
+      </tr>
+    </thead>
+    <tbody id="vehicleTableBody"></tbody>
+  </table>
+
 </div>
 
-<div class="chart-container">
-  <canvas id="carsChart"></canvas>
-</div>
-
-<div class="chart-container">
-  <canvas id="activeChart"></canvas>
-</div>
-
-<div class="filter-container">
-  <input type="text" id="searchInput" placeholder="Søk bil...">
-  <select id="companyFilter"><option value="all">Alle selskap</option></select>
-  <select id="typeFilter"><option value="all">Alle typer</option></select>
-  <input type="date" id="dateFilter">
-</div>
-
-<table>
-  <thead>
-    <tr>
-      <th onclick="sortTable(0)">Navn</th>
-      <th onclick="sortTable(1)">Type</th>
-      <th onclick="sortTable(2)">Palleplasser</th>
-      <th onclick="sortTable(3)">Selskap</th>
-      <th onclick="sortTable(4)">Dato & Tid</th>
-      <th>Handlinger</th>
-    </tr>
-  </thead>
-  <tbody id="vehicleTableBody"></tbody>
-</table>
-</div>
-
+<!-- Edit Form -->
 <div class="overlay" id="overlay"></div>
 <div class="form-popup" id="editForm">
   <h2>Rediger bil</h2>
@@ -115,7 +124,7 @@ tr:hover { background-color: rgba(255,255,255,0.1); }
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getDatabase, ref, set, remove, onValue, get } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+import { getDatabase, ref, set, remove, onValue } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 import { firebaseConfig } from "./firebaseConfig.js";
 
@@ -125,12 +134,15 @@ const auth = getAuth(app);
 
 let vehicleData = [];
 
-// Login sjekk
-onAuthStateChanged(auth, user => {
-  if(!user) window.location.href = "login.html";
+// Sjekk login
+onAuthStateChanged(auth, user => { if(!user) window.location.href = "login.html"; });
+
+// Logg ut
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  auth.signOut().then(()=>window.location.href='index.html');
 });
 
-// Load biler fra Firebase `cars`-noden
+// Last biler
 async function loadVehicles(){
   const snapshot = await get(ref(db,"cars"));
   if(!snapshot.exists()) return;
@@ -166,7 +178,7 @@ function updateStats(){
   document.getElementById('loggedUsers').textContent = 0;
 }
 
-// Diagrammer
+// Charts
 let carsChart, activeChart;
 function updateCharts(){
   const ctx1=document.getElementById('carsChart').getContext('2d');
@@ -203,7 +215,7 @@ function updateTable(){
   });
 }
 
-// Redigeringsform
+// Edit form
 const overlay=document.getElementById('overlay');
 const editForm=document.getElementById('editForm');
 
@@ -227,7 +239,7 @@ document.getElementById('cancelEditBtn').addEventListener('click', ()=>{
   editForm.style.display='none';
 });
 
-// Lagre redigering
+// Save edit
 document.getElementById('saveEditBtn').addEventListener('click', async ()=>{
   const id=document.getElementById('editCarId').value;
   const company=document.getElementById('editCompany').value;
@@ -247,7 +259,7 @@ document.getElementById('saveEditBtn').addEventListener('click', async ()=>{
   loadVehicles();
 });
 
-// Slett bil
+// Delete
 async function deleteCar(id, company){
   if(confirm('Er du sikker på at du vil slette denne bilen?')){
     await remove(ref(db,'cars/'+company+'/'+id));
@@ -255,7 +267,7 @@ async function deleteCar(id, company){
   }
 }
 
-// Event listeners
+// Event listeners for filter/search
 document.getElementById('searchInput').addEventListener('input', updateTable);
 document.getElementById('companyFilter').addEventListener('change', updateTable);
 document.getElementById('typeFilter').addEventListener('change', updateTable);
@@ -265,7 +277,7 @@ onValue(ref(db,'cars'), ()=>loadVehicles());
 
 loadVehicles();
 
-// Sorter tabell
+// Sort table
 let sortDirection = 1;
 let lastSortedColumn = -1;
 function sortTable(idx){
@@ -284,5 +296,6 @@ function sortTable(idx){
   rows.forEach(r=>table.appendChild(r));
 }
 </script>
+
 </body>
 </html>
