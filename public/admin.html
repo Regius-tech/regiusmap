@@ -5,40 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Administrer bilparken</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 body { margin:0; font-family:Poppins,sans-serif; background:#001f3f; color:white; }
 .container { max-width:1400px; margin:20px auto; padding:20px; position:relative; }
 
 /* Fanemeny */
-.nav-tabs {
-  width: 100%;
-  background: #023060;
-  text-align: center;
-  margin-bottom: 20px;
-}
-.nav-tabs ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: inline-flex;
-}
-.nav-tabs ul li {
-  margin: 0 10px;
-}
-.nav-tabs ul li a {
-  display: block;
-  padding: 12px 20px;
-  color: white;
-  text-decoration: none;
-  font-weight: 600;
-  border-radius: 8px 8px 0 0;
-  transition: 0.3s;
-}
-.nav-tabs ul li a:hover,
-.nav-tabs ul li.active a {
-  background: #0074D9;
-}
+.nav-tabs { width: 100%; background: #023060; text-align: center; margin-bottom: 20px; }
+.nav-tabs ul { list-style: none; padding: 0; margin: 0; display: inline-flex; }
+.nav-tabs ul li { margin: 0 10px; }
+.nav-tabs ul li a { display: block; padding: 12px 20px; color: white; text-decoration: none; font-weight: 600; border-radius: 8px 8px 0 0; transition: 0.3s; }
+.nav-tabs ul li a:hover, .nav-tabs ul li.active a { background: #0074D9; }
 
 /* Stats */
 h1,h2 { text-align:center; margin-bottom:20px; }
@@ -76,7 +52,8 @@ h1,h2 { text-align:center; margin-bottom:20px; }
     <li class="active"><a href="admin.html">Administrer biler</a></li>
     <li><a href="cars.html">Konsernbilpark</a></li>
     <li><a href="dashboard.html">Dashboard</a></li>
-    <li><a href="map.html">Kart</a></li>
+    <li><a href="kart.html">Kart</a></li>
+    <li><a href="#" id="logoutTab">Logg ut</a></li>
   </ul>
 </nav>
 
@@ -113,45 +90,43 @@ h1,h2 { text-align:center; margin-bottom:20px; }
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
-const firebaseConfig = { /* ... din firebaseConfig ... */ };
-
+const firebaseConfig = { /* din firebaseConfig */ };
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const auth = getAuth(app);
 
 let vehicleData = [];
 
-// Login + redirect hvis ikke logget inn
-onAuthStateChanged(auth, user => {
-  if (!user) window.location.href = "login.html";
-});
+// Login + redirect
+onAuthStateChanged(auth, user => { if(!user) window.location.href = "login.html"; });
+
+// Logg ut
+document.getElementById('logoutTab').addEventListener('click', ()=>{ signOut(auth).then(()=>window.location.href='login.html'); });
 
 // Load biler
 async function loadVehicles() {
   const snapshot = await get(ref(db, "cars"));
   if (!snapshot.exists()) return;
   const data = snapshot.val();
-
   vehicleData = [];
   const todayStr = new Date().toISOString().split('T')[0];
-  Object.values(data).forEach(companyCars => {
-    Object.values(companyCars).forEach(car => {
-      if (car && car.number) {
-        let isActiveToday = car.time ? new Date(car.time).toISOString().split('T')[0] === todayStr : false;
-        vehicleData.push({
-          id: car.number,
-          name: car.name || "",
-          type: car.type || "Ukjent",
-          palleplasser: car.palleplasser || 0,
-          company: car.company || "",
-          isActiveToday: isActiveToday,
-          time: car.time || new Date().toISOString()
-        });
-      }
-    });
-  });
+
+  for (const company in data) {
+    for (const carId in data[company]) {
+      const car = data[company][carId];
+      vehicleData.push({
+        id: carId,
+        name: car.name || "",
+        type: car.type || "Ukjent",
+        palleplasser: car.palleplasser || 0,
+        company: company,
+        time: car.time || new Date().toISOString(),
+        isActiveToday: car.time ? new Date(car.time).toISOString().split('T')[0]===todayStr : false
+      });
+    }
+  }
   updateFilters();
   updateStats();
   renderCards();
@@ -180,6 +155,7 @@ function renderCards() {
   const typeFilter = document.getElementById('typeFilter').value;
   const searchInput = document.getElementById('searchInput').value.toLowerCase();
   grid.innerHTML = "";
+
   vehicleData.filter(v =>
     (companyFilter === 'all' || v.company === companyFilter) &&
     (typeFilter === 'all' || v.type === typeFilter) &&
@@ -187,12 +163,7 @@ function renderCards() {
   ).forEach(v => {
     const card = document.createElement('div');
     card.className = "car-card";
-    card.innerHTML = `
-      <h3>${v.name}</h3>
-      <p>Type: ${v.type}</p>
-      <p>Palleplasser: ${v.palleplasser}</p>
-      <p>Selskap: ${v.company}</p>
-    `;
+    card.innerHTML = `<h3>${v.name}</h3><p>Type: ${v.type}</p><p>Palleplasser: ${v.palleplasser}</p><p>Selskap: ${v.company}</p>`;
     card.addEventListener('click', () => openEditForm(v.id));
     grid.appendChild(card);
   });
@@ -226,7 +197,6 @@ document.getElementById('saveEditBtn').addEventListener('click', async () => {
     name: document.getElementById('editName').value,
     type: document.getElementById('editType').value,
     palleplasser: parseInt(document.getElementById('editPalleplasser').value),
-    company: car.company,
     time: car.time
   };
   await set(ref(db, 'cars/' + car.company + '/' + id), updatedCar);
@@ -235,7 +205,7 @@ document.getElementById('saveEditBtn').addEventListener('click', async () => {
   loadVehicles();
 });
 
-// Filtre + søk
+// Event listeners
 document.getElementById('searchInput').addEventListener('input', renderCards);
 document.getElementById('companyFilter').addEventListener('change', renderCards);
 document.getElementById('typeFilter').addEventListener('change', renderCards);
@@ -245,5 +215,6 @@ onValue(ref(db, 'cars'), () => loadVehicles());
 
 loadVehicles();
 </script>
+
 </body>
 </html>
