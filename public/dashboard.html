@@ -82,10 +82,10 @@ tr:hover { background-color: rgba(255,255,255,0.1); }
 <!-- Fanemeny -->
 <nav class="nav-tabs">
   <ul>
-    <li class="active"><a href="admin.html">Bilparken</a></li>
-    <li><a href="stats.html">Statistikk</a></li>
-    <li><a href="users.html">Brukere</a></li>
-    <li><a href="reports.html">Rapporter</a></li>
+    <li><a href="admin.html">Administrer biler</a></li>
+    <li><a href="cars.html">Konsernbilpark</a></li>
+    <li class="active"><a href="dashboard.html">Dashboard</a></li>
+    <li><a href="map.html">Kart</a></li>
     <li><a href="#" id="logoutTab">Logg ut</a></li>
   </ul>
 </nav>
@@ -137,9 +137,7 @@ tr:hover { background-color: rgba(255,255,255,0.1); }
   <input type="text" id="editType" placeholder="Type">
   <input type="number" id="editPalleplasser" placeholder="Palleplasser">
   <input type="text" id="editCompany" placeholder="Selskap">
-  <input type="text" id="editLogo" placeholder="Logo URL">
   <label><input type="checkbox" id="editIsActiveToday"> Aktiv i dag</label>
-  <label><input type="checkbox" id="editIsParticipant"> Deltaker</label>
   <button class="save-btn" id="saveEditBtn">Lagre</button>
   <button class="cancel-btn" id="cancelEditBtn">Avbryt</button>
 </div>
@@ -148,7 +146,17 @@ tr:hover { background-color: rgba(255,255,255,0.1); }
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { getDatabase, ref, set, remove, onValue } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-import { firebaseConfig } from "./firebaseConfig.js";
+
+// Sett inn din firebaseConfig her
+const firebaseConfig = {
+  apiKey: "...",
+  authDomain: "...",
+  projectId: "...",
+  storageBucket: "...",
+  messagingSenderId: "...",
+  appId: "...",
+  databaseURL: "..."
+};
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
@@ -159,16 +167,14 @@ let vehicleData = [];
 // Sjekk login
 onAuthStateChanged(auth, user => { if(!user) window.location.href = "login.html"; });
 
-// Logout fra fanemeny
-document.getElementById('logoutTab').addEventListener('click', () => {
-  auth.signOut().then(()=>window.location.href='login.html');
-});
+// Logout
+document.getElementById('logoutTab').addEventListener('click', ()=>{ auth.signOut().then(()=>window.location.href='login.html'); });
 
-// Last biler
+// Load biler
 async function loadVehicles(){
   const snapshot = await get(ref(db,"cars"));
   if(!snapshot.exists()) return;
-  vehicleData = [];
+  vehicleData=[];
   const companiesObj = snapshot.val();
   Object.values(companiesObj).forEach(companyCars=>{
     Object.values(companyCars).forEach(car=>{
@@ -214,7 +220,7 @@ function updateCharts(){
   activeChart=new Chart(ctx2,{type:'bar',data:{labels:companyNames,datasets:[{label:'Aktive biler i dag',data:activePerCompany,backgroundColor:'#FFDC00'}]},options:{responsive:true,plugins:{legend:{display:false}}}});
 }
 
-// Tabell
+// Table
 function updateTable(){
   const tbody=document.getElementById('vehicleTableBody');
   const searchInput=document.getElementById('searchInput').value.toLowerCase();
@@ -240,7 +246,6 @@ function updateTable(){
 // Edit form
 const overlay=document.getElementById('overlay');
 const editForm=document.getElementById('editForm');
-
 function openEditForm(id, company){
   const car=vehicleData.find(c=>c.id===id && c.company===company);
   if(!car) return;
@@ -249,13 +254,10 @@ function openEditForm(id, company){
   document.getElementById('editType').value=car.type;
   document.getElementById('editPalleplasser').value=car.palleplasser;
   document.getElementById('editCompany').value=car.company;
-  document.getElementById('editLogo').value=car.logo;
   document.getElementById('editIsActiveToday').checked=car.isActiveToday;
-  document.getElementById('editIsParticipant').checked=car.isParticipant;
   overlay.style.display='block';
   editForm.style.display='block';
 }
-
 document.getElementById('cancelEditBtn').addEventListener('click', ()=>{
   overlay.style.display='none';
   editForm.style.display='none';
@@ -270,9 +272,7 @@ document.getElementById('saveEditBtn').addEventListener('click', async ()=>{
     type: document.getElementById('editType').value,
     palleplasser: parseInt(document.getElementById('editPalleplasser').value),
     company: company,
-    logo: document.getElementById('editLogo').value,
     isActiveToday: document.getElementById('editIsActiveToday').checked,
-    isParticipant: document.getElementById('editIsParticipant').checked,
     time: new Date().toISOString()
   };
   await set(ref(db,'cars/'+company+'/'+id), updatedCar);
@@ -289,15 +289,13 @@ async function deleteCar(id, company){
   }
 }
 
-// Event listeners for filter/search
+// Filters
 document.getElementById('searchInput').addEventListener('input', updateTable);
 document.getElementById('companyFilter').addEventListener('change', updateTable);
 document.getElementById('typeFilter').addEventListener('change', updateTable);
 
 // Live update
 onValue(ref(db,'cars'), ()=>loadVehicles());
-
-loadVehicles();
 
 // Sort table
 let sortDirection = 1;
@@ -317,6 +315,8 @@ function sortTable(idx){
   });
   rows.forEach(r=>table.appendChild(r));
 }
+
+loadVehicles();
 </script>
 
 </body>
