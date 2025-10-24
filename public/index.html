@@ -28,6 +28,12 @@
       display: flex;
       flex-direction: column;
       gap: 15px;
+      position: relative;
+    }
+
+    .login-container img.logo {
+      width: 120px;
+      margin-bottom: 15px;
     }
 
     input, select, button {
@@ -78,11 +84,25 @@
     }
     .password-toggle-icon:hover { color: #ffffff; }
 
+    .remember {
+      display: flex;
+      align-items: center;
+      justify-content: start;
+      margin-top: 5px;
+      font-size: 0.9em;
+    }
+    .remember input { margin-right: 8px; }
+
+    footer {
+      margin-top: 10px;
+      font-size: 0.8em;
+      color: rgba(255,255,255,0.7);
+    }
   </style>
 </head>
 <body>
   <div class="login-container">
-    <h1>Triflex Login</h1>
+    <img src="images/triflex-logo.png" alt="Triflex Logo" class="logo">
 
     <select id="companySelect">
       <option value="">Velg selskap</option>
@@ -96,15 +116,23 @@
       <span class="password-toggle-icon" id="togglePassword">👁️</span>
     </div>
 
+    <div class="remember">
+      <input type="checkbox" id="rememberMe">
+      <label for="rememberMe">Husk meg</label>
+    </div>
+
     <button id="loginBtn">Logg inn</button>
     <div class="forgot" id="forgotPass">Glemt passord?</div>
     <div class="error" id="errorMsg"></div>
+
+    <footer>© Regius Tech</footer>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
     import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
-    import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged, setPersistence, browserLocalPersistence, browserSessionPersistence } 
+      from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCKqwpql2Yl0kbpUIPrQUYyVd7m1OeH-D8",
@@ -128,18 +156,16 @@
     const errorMsg = document.getElementById('errorMsg');
     const forgotPass = document.getElementById('forgotPass');
     const companyDetected = document.getElementById('companyDetected');
+    const rememberMe = document.getElementById('rememberMe');
 
-    // Auto redirect hvis allerede logget inn
     onAuthStateChanged(auth, user => { if (user) window.location.href = "/dashboard"; });
 
-    // Toggle passord
     togglePassword.addEventListener('click', () => {
       const type = passwordInput.type === 'password' ? 'text' : 'password';
       passwordInput.type = type;
       togglePassword.textContent = type === 'password' ? '👁️' : '🙈';
     });
 
-    // Last selskaper
     async function loadCompanies() {
       try {
         const snapshot = await get(ref(db, 'companies'));
@@ -156,7 +182,6 @@
     }
     loadCompanies();
 
-    // Oppdag selskap fra e-post
     async function detectCompanyFromEmail(email) {
       if (!email.includes("@")) return "";
       const domain = email.split("@")[1].toLowerCase();
@@ -181,7 +206,6 @@
         : `<option value="">Velg selskap</option>`;
     });
 
-    // Login-funksjon (egen for gjenbruk)
     async function handleLogin() {
       const email = emailInput.value.trim();
       const password = passwordInput.value.trim();
@@ -193,11 +217,13 @@
         return;
       }
 
+      const persistenceType = rememberMe.checked ? browserLocalPersistence : browserSessionPersistence;
+
       try {
+        await setPersistence(auth, persistenceType);
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const uid = userCredential.user.uid;
         await update(ref(db, `users/${uid}`), { email, company });
-        console.log("Innlogging vellykket:", email, "Company:", company);
         window.location.href = "/dashboard";
       } catch (e) {
         console.error("Innloggingsfeil:", e);
@@ -206,17 +232,12 @@
       }
     }
 
-    // Klikk på logg inn
     loginBtn.addEventListener('click', handleLogin);
 
-    // 🔹 Legg til ENTER-tast funksjon
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        handleLogin();
-      }
+      if (e.key === 'Enter') handleLogin();
     });
 
-    // Glemt passord
     forgotPass.addEventListener('click', async () => {
       const email = emailInput.value.trim();
       if (!email) {
