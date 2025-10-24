@@ -131,7 +131,7 @@ function loadVehicles() {
         for(const company in data){
             for(const carId in data[company]){
                 const car = data[company][carId];
-                if(car.isParticipant !== false){ // bare biler som skal vises
+                if(car.isParticipant !== false){ 
                     vehicleData.push({
                         id: carId,
                         name: car.name || "",
@@ -158,19 +158,68 @@ function updateStats() {
     document.getElementById('activeCars').textContent = vehicleData.filter(v => v.time.split('T')[0]===todayStr).length;
 }
 
-let carsChart, activeChart;
+// --- Nye grafer med linjer ---
+let carsChart, activeChart, capacityChart;
 function updateCharts() {
-    const ctx1 = document.getElementById('carsChart').getContext('2d');
-    const ctx2 = document.getElementById('activeChart').getContext('2d');
-    const companies = [...new Set(vehicleData.map(v => v.company))];
-    const carsPerCompany = companies.map(c => vehicleData.filter(v=>v.company===c).length);
-    const activePerCompany = companies.map(c => vehicleData.filter(v=>v.company===c && v.time.split('T')[0]===new Date().toISOString().split('T')[0]).length);
+  const ctx1 = document.getElementById('carsChart').getContext('2d');
+  const ctx2 = document.getElementById('activeChart').getContext('2d');
 
-    if(carsChart) carsChart.destroy();
-    if(activeChart) activeChart.destroy();
+  const companies = [...new Set(vehicleData.map(v => v.company))];
+  const colors = ['#0074D9','#FF4136','#2ECC40','#FFDC00','#B10DC9','#39CCCC','#85144b'];
 
-    carsChart = new Chart(ctx1,{ type:'bar', data:{labels:companies,datasets:[{label:'Antall biler',data:carsPerCompany,backgroundColor:'#0074D9'}]}, options:{responsive:true,plugins:{legend:{display:false}}} });
-    activeChart = new Chart(ctx2,{ type:'bar', data:{labels:companies,datasets:[{label:'Aktive biler i dag',data:activePerCompany,backgroundColor:'#FFDC00'}]}, options:{responsive:true,plugins:{legend:{display:false}}} });
+  const totals = companies.map(c => vehicleData.filter(v => v.company===c).length);
+  const active = companies.map(c => vehicleData.filter(v => v.company===c && v.time.split('T')[0]===new Date().toISOString().split('T')[0]).length);
+  const avgPalle = companies.map(c=>{
+    const cars=vehicleData.filter(v=>v.company===c);
+    return cars.length?cars.reduce((a,b)=>a+(b.palleplasser||0),0)/cars.length:0;
+  });
+
+  if(carsChart) carsChart.destroy();
+  if(activeChart) activeChart.destroy();
+  if(capacityChart) capacityChart.destroy();
+
+  carsChart = new Chart(ctx1,{
+    type:'line',
+    data:{labels:companies,datasets:companies.map((c,i)=>({
+      label:`${c} Totalt biler`,
+      data:[totals[i]],
+      borderColor:colors[i%colors.length],
+      backgroundColor:colors[i%colors.length]+'33',
+      tension:0.4,
+      fill:false,
+      pointRadius:5
+    }))},
+    options:{responsive:true,plugins:{legend:{display:true,position:'bottom',labels:{color:'#fff'}}},scales:{x:{ticks:{color:'#ccc'}},y:{ticks:{color:'#ccc'}}}}
+  });
+
+  activeChart = new Chart(ctx2,{
+    type:'line',
+    data:{labels:companies,datasets:companies.map((c,i)=>({
+      label:`${c} Aktive i dag`,
+      data:[active[i]],
+      borderColor:colors[i%colors.length],
+      backgroundColor:colors[i%colors.length]+'33',
+      tension:0.4,
+      fill:false,
+      pointRadius:5
+    }))},
+    options:{responsive:true,plugins:{legend:{display:true,position:'bottom',labels:{color:'#fff'}}},scales:{x:{ticks:{color:'#ccc'}},y:{ticks:{color:'#ccc'}}}}
+  });
+
+  // Ekstra liten graf for snitt pallekapasitet
+  const existing = document.getElementById('capacityChart');
+  if(existing) existing.remove();
+  const extraDiv = document.createElement('div');
+  extraDiv.className='chart-container';
+  extraDiv.innerHTML='<canvas id="capacityChart"></canvas>';
+  document.querySelector('.container').insertBefore(extraDiv, document.querySelector('.search-container'));
+
+  const ctx3=document.getElementById('capacityChart').getContext('2d');
+  capacityChart=new Chart(ctx3,{
+    type:'line',
+    data:{labels:companies,datasets:[{label:'Gj.snitt palleplasser per selskap',data:avgPalle,borderColor:'#AAAAFF',tension:0.3,pointRadius:4}]},
+    options:{responsive:true,plugins:{legend:{display:true,position:'bottom',labels:{color:'#fff'}}},scales:{x:{ticks:{color:'#ccc'}},y:{ticks:{color:'#ccc'}}}}
+  });
 }
 
 function populateFilters(){

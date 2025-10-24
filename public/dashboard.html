@@ -83,7 +83,6 @@ tr:hover { background-color: rgba(255,255,255,0.1); }
         <th onclick="sortTable(2)">Palleplasser</th>
         <th onclick="sortTable(3)">Selskap</th>
         <th onclick="sortTable(4)">Dato & Tid</th>
-        <!-- Fjernet handlinger-kolonne -->
       </tr>
     </thead>
     <tbody id="vehicleTableBody"></tbody>
@@ -117,86 +116,158 @@ onAuthStateChanged(auth, user => { if(!user) window.location.href="login.html"; 
 // Logout
 document.getElementById('logoutTab').addEventListener('click', ()=>{ auth.signOut().then(()=>window.location.href='login.html'); });
 
-// Load biler med live update
+// Hent biler fra Firebase
 function loadVehicles() {
-    onValue(ref(db,"cars"), snapshot=>{
-        if(!snapshot.exists()) return;
-        vehicleData = [];
-        const todayStr = new Date().toISOString().split('T')[0];
-        const data = snapshot.val();
-        for(const company in data){
-            for(const carId in data[company]){
-                const car = data[company][carId];
-                vehicleData.push({
-                    id: carId,
-                    name: car.name || "",
-                    type: car.type || "Ukjent",
-                    palleplasser: car.palleplasser || 0,
-                    company: company,
-                    time: car.time || new Date().toISOString(),
-                    isActiveToday: car.time ? new Date(car.time).toISOString().split('T')[0] === todayStr : false
-                });
-            }
-        }
-        updateFilters();
-        updateStats();
-        updateCharts();
-        updateTable();
-    });
+  onValue(ref(db,"cars"), snapshot=>{
+    if(!snapshot.exists()) return;
+    vehicleData = [];
+    const todayStr = new Date().toISOString().split('T')[0];
+    const data = snapshot.val();
+    for(const company in data){
+      for(const carId in data[company]){
+        const car = data[company][carId];
+        vehicleData.push({
+          id: carId,
+          name: car.name || "",
+          type: car.type || "Ukjent",
+          palleplasser: car.palleplasser || 0,
+          company: company,
+          time: car.time || new Date().toISOString(),
+          isActiveToday: car.time ? new Date(car.time).toISOString().split('T')[0] === todayStr : false
+        });
+      }
+    }
+    updateFilters();
+    updateStats();
+    updateCharts();
+    updateTable();
+  });
 }
 
 // Filter
 function updateFilters(){
-    const companies = [...new Set(vehicleData.map(v=>v.company))];
-    const types = [...new Set(vehicleData.map(v=>v.type))];
-    const companySelect = document.getElementById('companyFilter');
-    const typeSelect = document.getElementById('typeFilter');
-    companySelect.innerHTML='<option value="all">Alle selskap</option>';
-    typeSelect.innerHTML='<option value="all">Alle typer</option>';
-    companies.forEach(c=>companySelect.appendChild(Object.assign(document.createElement('option'),{value:c,textContent:c})));
-    types.forEach(t=>typeSelect.appendChild(Object.assign(document.createElement('option'),{value:t,textContent:t})));
+  const companies = [...new Set(vehicleData.map(v=>v.company))];
+  const types = [...new Set(vehicleData.map(v=>v.type))];
+  const companySelect = document.getElementById('companyFilter');
+  const typeSelect = document.getElementById('typeFilter');
+  companySelect.innerHTML='<option value="all">Alle selskap</option>';
+  typeSelect.innerHTML='<option value="all">Alle typer</option>';
+  companies.forEach(c=>companySelect.appendChild(Object.assign(document.createElement('option'),{value:c,textContent:c})));
+  types.forEach(t=>typeSelect.appendChild(Object.assign(document.createElement('option'),{value:t,textContent:t})));
 }
 
 // Stats
 function updateStats(){
-    document.getElementById('totalCars').textContent = vehicleData.length;
-    document.getElementById('activeCars').textContent = vehicleData.filter(v=>v.isActiveToday).length;
-    document.getElementById('loggedUsers').textContent = 0;
+  document.getElementById('totalCars').textContent = vehicleData.length;
+  document.getElementById('activeCars').textContent = vehicleData.filter(v=>v.isActiveToday).length;
+  document.getElementById('loggedUsers').textContent = 0;
 }
 
-// Charts
-let carsChart, activeChart;
-function updateCharts(){
-    const ctx1=document.getElementById('carsChart').getContext('2d');
-    const ctx2=document.getElementById('activeChart').getContext('2d');
-    const companyNames=[...new Set(vehicleData.map(v=>v.company))];
-    const carsPerCompany=companyNames.map(c=>vehicleData.filter(v=>v.company===c).length);
-    const activePerCompany=companyNames.map(c=>vehicleData.filter(v=>v.company===c && v.isActiveToday).length);
-    if(carsChart) carsChart.destroy();
-    if(activeChart) activeChart.destroy();
-    carsChart=new Chart(ctx1,{type:'bar',data:{labels:companyNames,datasets:[{label:'Totalt biler',data:carsPerCompany,backgroundColor:'#0074D9'}]},options:{responsive:true,plugins:{legend:{display:false}}}});
-    activeChart=new Chart(ctx2,{type:'bar',data:{labels:companyNames,datasets:[{label:'Aktive biler i dag',data:activePerCompany,backgroundColor:'#FFDC00'}]},options:{responsive:true,plugins:{legend:{display:false}}}});
+// === Nye grafer ===
+let carsChart, activeChart, capacityChart;
+
+function updateCharts() {
+  const ctx1 = document.getElementById('carsChart').getContext('2d');
+  const ctx2 = document.getElementById('activeChart').getContext('2d');
+
+  const companyNames = [...new Set(vehicleData.map(v => v.company))];
+  const colors = ['#0074D9', '#FF4136', '#2ECC40', '#FFDC00', '#B10DC9', '#39CCCC', '#85144b'];
+
+  const totals = companyNames.map(c => vehicleData.filter(v => v.company === c).length);
+  const active = companyNames.map(c => vehicleData.filter(v => v.company === c && v.isActiveToday).length);
+  const avgPalle = companyNames.map(c => {
+    const cars = vehicleData.filter(v => v.company === c);
+    return cars.length ? cars.reduce((a,b)=>a+(b.palleplasser||0),0)/cars.length : 0;
+  });
+
+  if (carsChart) carsChart.destroy();
+  if (activeChart) activeChart.destroy();
+  if (capacityChart) capacityChart.destroy();
+
+  carsChart = new Chart(ctx1, {
+    type: 'line',
+    data: { labels: companyNames,
+      datasets: companyNames.map((c,i)=>({
+        label: `${c} - Totalt biler`,
+        data:[totals[i]],
+        borderColor: colors[i % colors.length],
+        backgroundColor: colors[i % colors.length]+'33',
+        tension:0.4, fill:false, pointRadius:5
+      }))
+    },
+    options:{
+      responsive:true,
+      plugins:{legend:{display:true,position:'bottom',labels:{color:'#fff'}}},
+      scales:{x:{ticks:{color:'#ccc'}},y:{ticks:{color:'#ccc'}}}
+    }
+  });
+
+  activeChart = new Chart(ctx2, {
+    type: 'line',
+    data: { labels: companyNames,
+      datasets: companyNames.map((c,i)=>({
+        label: `${c} - Aktive i dag`,
+        data:[active[i]],
+        borderColor: colors[i % colors.length],
+        backgroundColor: colors[i % colors.length]+'33',
+        tension:0.4, fill:false, pointRadius:5
+      }))
+    },
+    options:{
+      responsive:true,
+      plugins:{legend:{display:true,position:'bottom',labels:{color:'#fff'}}},
+      scales:{x:{ticks:{color:'#ccc'}},y:{ticks:{color:'#ccc'}}}
+    }
+  });
+
+  // Ekstra graf for snitt palleplasser
+  const existing = document.getElementById('capacityChart');
+  if (existing) existing.parentElement.remove();
+  const extraContainer = document.createElement('div');
+  extraContainer.className = 'chart-container';
+  extraContainer.innerHTML = `<canvas id="capacityChart"></canvas>`;
+  document.querySelector('.container').insertBefore(extraContainer, document.querySelector('.filter-container'));
+  const ctx3 = document.getElementById('capacityChart').getContext('2d');
+
+  capacityChart = new Chart(ctx3, {
+    type: 'line',
+    data: {
+      labels: companyNames,
+      datasets: [{
+        label: 'Gj.snitt palleplasser per selskap',
+        data: avgPalle,
+        borderColor: '#AAAAFF',
+        tension: 0.3,
+        pointRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins:{legend:{display:true,position:'bottom',labels:{color:'#fff'}}},
+      scales:{x:{ticks:{color:'#ccc'}},y:{ticks:{color:'#ccc'}}}
+    }
+  });
 }
 
-// Table
+// Tabell
 function updateTable(){
-    const tbody=document.getElementById('vehicleTableBody');
-    const searchInput=document.getElementById('searchInput').value.toLowerCase();
-    const companyFilter=document.getElementById('companyFilter').value;
-    const typeFilter=document.getElementById('typeFilter').value;
-    const dateFilter=document.getElementById('dateFilter').value;
-    tbody.innerHTML='';
-    vehicleData.filter(v=>{
-        const matchesCompany=companyFilter==='all'||v.company===companyFilter;
-        const matchesType=typeFilter==='all'||v.type===typeFilter;
-        const matchesSearch=v.name.toLowerCase().includes(searchInput)||v.type.toLowerCase().includes(searchInput)||v.company.toLowerCase().includes(searchInput);
-        const matchesDate=!dateFilter||new Date(v.time).toISOString().split('T')[0]===dateFilter;
-        return matchesCompany && matchesType && matchesSearch && matchesDate;
-    }).forEach(v=>{
-        const row=document.createElement('tr');
-        row.innerHTML=`<td>${v.name}</td><td>${v.type}</td><td>${v.palleplasser}</td><td>${v.company}</td><td>${new Date(v.time).toLocaleString('no-NO')}</td>`;
-        tbody.appendChild(row);
-    });
+  const tbody=document.getElementById('vehicleTableBody');
+  const searchInput=document.getElementById('searchInput').value.toLowerCase();
+  const companyFilter=document.getElementById('companyFilter').value;
+  const typeFilter=document.getElementById('typeFilter').value;
+  const dateFilter=document.getElementById('dateFilter').value;
+  tbody.innerHTML='';
+  vehicleData.filter(v=>{
+    const matchesCompany=companyFilter==='all'||v.company===companyFilter;
+    const matchesType=typeFilter==='all'||v.type===typeFilter;
+    const matchesSearch=v.name.toLowerCase().includes(searchInput)||v.type.toLowerCase().includes(searchInput)||v.company.toLowerCase().includes(searchInput);
+    const matchesDate=!dateFilter||new Date(v.time).toISOString().split('T')[0]===dateFilter;
+    return matchesCompany && matchesType && matchesSearch && matchesDate;
+  }).forEach(v=>{
+    const row=document.createElement('tr');
+    row.innerHTML=`<td>${v.name}</td><td>${v.type}</td><td>${v.palleplasser}</td><td>${v.company}</td><td>${new Date(v.time).toLocaleString('no-NO')}</td>`;
+    tbody.appendChild(row);
+  });
 }
 
 // Event listeners
@@ -205,24 +276,24 @@ document.getElementById('companyFilter').addEventListener('change', updateTable)
 document.getElementById('typeFilter').addEventListener('change', updateTable);
 document.getElementById('dateFilter').addEventListener('change', updateTable);
 
-// Sort table
+// Sortering
 let sortDirection=1,lastSortedColumn=-1;
 function sortTable(idx){
-    const table=document.querySelector('table');
-    const rows=Array.from(table.rows).slice(1);
-    const isNum=idx===2;
-    const isDate=idx===4;
-    if(lastSortedColumn===idx) sortDirection*=-1; else sortDirection=1;
-    lastSortedColumn=idx;
-    rows.sort((a,b)=>{
-        let valA=isDate?new Date(a.cells[idx].innerText):(isNum?Number(a.cells[idx].innerText):a.cells[idx].innerText);
-        let valB=isDate?new Date(b.cells[idx].innerText):(isNum?Number(b.cells[idx].innerText):b.cells[idx].innerText);
-        return (valA<valB?-1:valA>valB?1:0)*sortDirection;
-    });
-    rows.forEach(r=>table.appendChild(r));
+  const table=document.querySelector('table');
+  const rows=Array.from(table.rows).slice(1);
+  const isNum=idx===2;
+  const isDate=idx===4;
+  if(lastSortedColumn===idx) sortDirection*=-1; else sortDirection=1;
+  lastSortedColumn=idx;
+  rows.sort((a,b)=>{
+    let valA=isDate?new Date(a.cells[idx].innerText):(isNum?Number(a.cells[idx].innerText):a.cells[idx].innerText);
+    let valB=isDate?new Date(b.cells[idx].innerText):(isNum?Number(b.cells[idx].innerText):a.cells[idx].innerText);
+    return (valA<valB?-1:valA>valB?1:0)*sortDirection;
+  });
+  rows.forEach(r=>table.appendChild(r));
 }
 
-// Load initial
+// Init
 loadVehicles();
 </script>
 

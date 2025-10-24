@@ -45,6 +45,25 @@ h1,h2 { text-align:center; margin-bottom:20px; }
 .custom-fields { margin-top:10px; }
 .custom-field { display:flex; gap:10px; margin-bottom:5px; }
 .custom-field input[type=text] { flex:1; }
+
+/* Switch style */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 26px;
+}
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider {
+  position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #ccc; transition: .4s; border-radius: 26px;
+}
+.slider:before {
+  position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px;
+  background-color: white; transition: .4s; border-radius: 50%;
+}
+input:checked + .slider { background-color: #0074D9; }
+input:checked + .slider:before { transform: translateX(24px); }
 </style>
 </head>
 <body>
@@ -66,7 +85,7 @@ h1,h2 { text-align:center; margin-bottom:20px; }
   <div class="stats-grid" id="statsGrid">
     <div class="stat-card"><h3 id="totalCars">0</h3><p>Totalt biler</p></div>
     <div class="stat-card"><h3 id="activeCars">0</h3><p>Aktive biler i dag</p></div>
-    <div class="stat-card"><h3 id="loggedUsers">0</h3><p>Påloggede brukere</p></div>
+    <div class="stat-card"><h3 id="participantsCount">0</h3><p>Antall deltakere i Triflex</p></div>
   </div>
 
   <div class="filter-container">
@@ -85,7 +104,14 @@ h1,h2 { text-align:center; margin-bottom:20px; }
     <input type="text" id="editName" placeholder="Navn">
     <input type="text" id="editType" placeholder="Type">
     <input type="number" id="editPalleplasser" placeholder="Palleplasser">
-    <label><input type="checkbox" id="editIsParticipant"> Vis i admin</label>
+    <label style="display:flex;align-items:center;gap:10px;margin:10px 0;">
+      <span>Vis i Triflex</span>
+      <label class="switch">
+        <input type="checkbox" id="editIsParticipant">
+        <span class="slider"></span>
+      </label>
+    </label>
+
     <div class="custom-fields" id="customFieldsContainer"></div>
     <button id="addCustomFieldBtn">Legg til felt</button>
     <div style="margin-top:10px;">
@@ -139,7 +165,7 @@ async function loadVehicles() {
         palleplasser: car.palleplasser || 0,
         company: company,
         time: car.time || new Date().toISOString(),
-        isParticipant: car.isParticipant !== false, // default true
+        isParticipant: car.isParticipant !== false,
         isActiveToday: car.time ? new Date(car.time).toISOString().split('T')[0]===todayStr : false,
         customFields: car.customFields || {}
       });
@@ -164,7 +190,7 @@ function updateFilters() {
 function updateStats() {
   document.getElementById('totalCars').textContent = vehicleData.length;
   document.getElementById('activeCars').textContent = vehicleData.filter(v => v.isActiveToday).length;
-  document.getElementById('loggedUsers').textContent = 0;
+  document.getElementById('participantsCount').textContent = vehicleData.filter(v => v.isParticipant === true).length;
 }
 
 function renderCards() {
@@ -179,14 +205,14 @@ function renderCards() {
     (typeFilter === 'all' || v.type === typeFilter) &&
     (v.name.toLowerCase().includes(searchInput) || v.type.toLowerCase().includes(searchInput))
   ).forEach(v => {
-    if(!v.isParticipant) return;
     const card = document.createElement('div');
     card.className = "car-card";
 
     let innerHTML = `<h3>${v.name}</h3>
                      <p>Type: ${v.type}</p>
                      <p>Palleplasser: ${v.palleplasser}</p>
-                     <p>Selskap: ${v.company}</p>`;
+                     <p>Selskap: ${v.company}</p>
+                     <p>Deltaker: ${v.isParticipant ? "Ja" : "Nei"}</p>`;
 
     for (const key in v.customFields) {
       innerHTML += `<p>${key}: ${v.customFields[key]}</p>`;
@@ -224,7 +250,6 @@ function openEditForm(id) {
   editForm.style.display = 'block';
 }
 
-// Funksjon for å lage input-rad for custom field
 function createCustomFieldDiv(key='', value='') {
   const div = document.createElement('div');
   div.className = 'custom-field';
@@ -235,7 +260,6 @@ function createCustomFieldDiv(key='', value='') {
   return div;
 }
 
-// Legg til ny custom field
 document.getElementById('addCustomFieldBtn').addEventListener('click', () => {
   const div = createCustomFieldDiv();
   customFieldsContainer.appendChild(div);
@@ -260,7 +284,6 @@ document.getElementById('saveEditBtn').addEventListener('click', async () => {
     customFields: {}
   };
 
-  // Lagre customFields
   const fields = customFieldsContainer.querySelectorAll('.custom-field');
   fields.forEach(f => {
     const key = f.querySelector('.field-name').value.trim();
@@ -274,14 +297,11 @@ document.getElementById('saveEditBtn').addEventListener('click', async () => {
   loadVehicles();
 });
 
-// Event listeners
 document.getElementById('searchInput').addEventListener('input', renderCards);
 document.getElementById('companyFilter').addEventListener('change', renderCards);
 document.getElementById('typeFilter').addEventListener('change', renderCards);
 
-// Live update fra Firebase
 onValue(ref(db, 'cars'), () => loadVehicles());
-
 loadVehicles();
 </script>
 
