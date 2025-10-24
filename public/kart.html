@@ -19,41 +19,98 @@
       width: 100%;
     }
 
-    .filter-container {
+    /* Sidebar */
+    .sidebar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 280px;
+      background-color: rgba(2, 28, 60, 0.97);
+      color: white;
+      padding: 20px;
+      transform: translateX(-100%);
+      transition: transform 0.4s ease;
+      box-shadow: 3px 0 15px rgba(0,0,0,0.4);
+      z-index: 1001;
+      overflow-y: auto;
+    }
+
+    .sidebar.open {
+      transform: translateX(0);
+    }
+
+    .menu-toggle {
       position: absolute;
       top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 15px;
-      background-color: rgba(2, 28, 60, 0.95);
+      left: 20px;
+      background-color: #0074D9;
       color: white;
-      padding: 10px 25px;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-      z-index: 1000;
-      backdrop-filter: blur(5px);
-      opacity: 0;
-      animation: fadeIn 1s ease forwards;
-      transition: opacity 0.5s ease;
+      border: none;
+      padding: 10px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      z-index: 1100;
+      transition: background-color 0.3s ease;
+      font-weight: bold;
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translate(-50%, -10px); }
-      to { opacity: 1; transform: translate(-50%, 0); }
+    .menu-toggle:hover {
+      background-color: #005fa3;
     }
 
-    .filter-container.inactive { opacity: 0.4; }
-    .filter-container label { font-weight: bold; font-size: 14px; }
-    .filter-container select,
-    .filter-container input[type="checkbox"] { margin-left: 5px; padding: 6px; border-radius: 6px; border: none; outline: none; font-size: 14px; }
-    select { background-color: #fff; color: #000; }
-    #themeSwitch { cursor: pointer; font-weight: bold; border: none; padding: 8px 16px; border-radius: 8px; background-color: #0074D9; color: white; transition: background-color 0.3s ease; }
-    #themeSwitch:hover { background-color: #005fa3; }
-    .btn-secondary { cursor: pointer; font-weight: bold; border: none; padding: 6px 14px; border-radius: 8px; background-color: rgba(255,255,255,0.15); color: white; text-decoration: none; transition: all 0.3s ease; }
-    .btn-secondary:hover { background-color: rgba(255,255,255,0.25); }
+    .sidebar label {
+      font-weight: bold;
+      font-size: 14px;
+      display: block;
+      margin-top: 15px;
+    }
+
+    .sidebar select,
+    .sidebar input[type="checkbox"],
+    .sidebar input[type="text"] {
+      width: 100%;
+      margin-top: 5px;
+      padding: 8px;
+      border-radius: 6px;
+      border: none;
+      outline: none;
+      font-size: 14px;
+    }
+
+    .sidebar .btn-secondary {
+      display: block;
+      margin-top: 12px;
+      text-align: center;
+      background-color: rgba(255,255,255,0.15);
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      padding: 8px 0;
+      transition: all 0.3s ease;
+      font-weight: bold;
+    }
+
+    .sidebar .btn-secondary:hover {
+      background-color: rgba(255,255,255,0.25);
+    }
+
+    #themeSwitch {
+      width: 100%;
+      margin-top: 15px;
+      border: none;
+      padding: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      background-color: #0074D9;
+      color: white;
+      transition: background-color 0.3s ease;
+    }
+
+    #themeSwitch:hover {
+      background-color: #005fa3;
+    }
 
     .info-window {
       background-color: #012040;
@@ -64,12 +121,35 @@
       font-family: Poppins, sans-serif;
       box-shadow: 0 6px 20px rgba(0,0,0,0.4);
     }
+
     .info-window b { color: #FFD700; }
+
+    .suggestions {
+      background-color: white;
+      color: black;
+      border-radius: 8px;
+      margin-top: 5px;
+      max-height: 180px;
+      overflow-y: auto;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      display: none;
+    }
+
+    .suggestions div {
+      padding: 8px;
+      cursor: pointer;
+    }
+
+    .suggestions div:hover {
+      background-color: #e0e0e0;
+    }
   </style>
 </head>
 
 <body>
-  <div class="filter-container" id="menu">
+  <button class="menu-toggle" id="menuToggle">☰ Meny</button>
+
+  <div class="sidebar" id="sidebar">
     <label for="company-filter">Selskap:</label>
     <select id="company-filter">
       <option value="all">Alle</option>
@@ -83,6 +163,13 @@
       <input type="checkbox" id="activeToday" checked> Aktive i dag
     </label>
 
+    <label for="vehicleSearch">Søk kjøretøy:</label>
+    <input type="text" id="vehicleSearch" placeholder="Skriv kjøretøy-navn...">
+    <div id="vehicleSuggestions" class="suggestions"></div>
+
+    <label for="placeSearch">Søk sted/adresse:</label>
+    <input type="text" id="placeSearch" placeholder="Søk etter adresse...">
+
     <button id="themeSwitch">🌙 Mørk modus</button>
     <a class="btn-secondary" href="cars.html">Bilpark</a>
     <a class="btn-secondary" href="dashboard.html">Dashboard</a>
@@ -95,6 +182,7 @@
     let markers = {};
     let darkMode = true;
     let inactivityTimer;
+    let vehicleData = [];
 
     const darkStyle = [
       { elementType: "geometry", stylers: [{ color: "#1d2c4d" }] },
@@ -128,20 +216,26 @@
         document.getElementById("themeSwitch").textContent = darkMode ? "🌙 Mørk modus" : "☀️ Lys modus";
       });
 
-      const menu = document.getElementById("menu");
-      const resetInactivity = () => {
-        menu.classList.remove("inactive");
-        clearTimeout(inactivityTimer);
-        inactivityTimer = setTimeout(() => menu.classList.add("inactive"), 4000);
-      };
-      document.addEventListener("mousemove", resetInactivity);
-      document.addEventListener("click", resetInactivity);
-      resetInactivity();
+      document.getElementById("menuToggle").addEventListener("click", () => {
+        document.getElementById("sidebar").classList.toggle("open");
+      });
 
       loadPositions();
       document.getElementById("company-filter").addEventListener("change", loadPositions);
       document.getElementById("activeToday").addEventListener("change", loadPositions);
       setInterval(loadPositions, 10000);
+
+      const placeInput = document.getElementById("placeSearch");
+      const autocomplete = new google.maps.places.Autocomplete(placeInput);
+      autocomplete.addListener("place_changed", () => {
+        const place = autocomplete.getPlace();
+        if (place.geometry && place.geometry.location) {
+          map.panTo(place.geometry.location);
+          map.setZoom(14);
+        }
+      });
+
+      document.getElementById("vehicleSearch").addEventListener("input", showVehicleSuggestions);
     }
 
     function formatTimestamp(timestamp) {
@@ -158,6 +252,7 @@
 
         const color = companyColors[vehicle.company] || "#888";
 
+        // Pin base
         ctx.fillStyle = Array.isArray(color) ? color[0] : color;
         ctx.beginPath();
         ctx.moveTo(30, 70);
@@ -166,6 +261,7 @@
         ctx.closePath();
         ctx.fill();
 
+        // Gradient for MTF
         if (Array.isArray(color)) {
           const gradient = ctx.createLinearGradient(0, 0, 60, 0);
           gradient.addColorStop(0, color[0]);
@@ -178,6 +274,15 @@
         ctx.beginPath();
         ctx.arc(30, 30, 20, 0, Math.PI * 2);
         ctx.fill();
+
+        // Add red border for TS Oslo Budtjenester
+        if (vehicle.company === "TS Oslo Budtjenester") {
+          ctx.lineWidth = 4;
+          ctx.strokeStyle = "red";
+          ctx.beginPath();
+          ctx.arc(30, 30, 20, 0, Math.PI * 2);
+          ctx.stroke();
+        }
 
         const img = new Image();
         img.crossOrigin = "anonymous";
@@ -201,6 +306,7 @@
         const response = await fetch("/api/positions");
         if (!response.ok) throw new Error("Kunne ikke hente posisjoner fra API");
         const data = await response.json();
+        vehicleData = data;
 
         const activeToday = document.getElementById('activeToday').checked;
         const selectedCompany = document.getElementById('company-filter').value;
@@ -245,7 +351,6 @@
           }
         }
 
-        // Fjern kun de som faktisk ikke finnes i datasettet lenger
         for (const id in markers) {
           if (!idsInData.includes(id)) {
             markers[id].setMap(null);
@@ -257,10 +362,44 @@
         console.error('Error loading positions:', error);
       }
     }
+
+    function showVehicleSuggestions(e) {
+      const input = e.target.value.toLowerCase();
+      const suggestionBox = document.getElementById("vehicleSuggestions");
+      suggestionBox.innerHTML = "";
+
+      if (input.length < 2) {
+        suggestionBox.style.display = "none";
+        return;
+      }
+
+      const matches = vehicleData.filter(v => v.name.toLowerCase().includes(input));
+      if (matches.length === 0) {
+        suggestionBox.style.display = "none";
+        return;
+      }
+
+      matches.forEach(v => {
+        const div = document.createElement("div");
+        div.textContent = `${v.name} (${v.company})`;
+        div.onclick = () => {
+          suggestionBox.style.display = "none";
+          document.getElementById("vehicleSearch").value = v.name;
+          if (markers[v.id]) {
+            map.panTo(markers[v.id].getPosition());
+            map.setZoom(14);
+            google.maps.event.trigger(markers[v.id], 'click');
+          }
+        };
+        suggestionBox.appendChild(div);
+      });
+
+      suggestionBox.style.display = "block";
+    }
   </script>
 
   <script async
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBtSvAG_uN9QBI0Fi_GOJVIyAjd1JlMvNg&callback=initMap&v=beta">
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBtSvAG_uN9QBI0Fi_GOJVIyAjd1JlMvNg&callback=initMap&libraries=places&v=beta">
   </script>
 </body>
 </html>
