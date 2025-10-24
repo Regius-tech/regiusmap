@@ -19,7 +19,7 @@
       width: 100%;
     }
 
-    /* Sidebar */
+    /* Sidebar styling */
     .sidebar {
       position: absolute;
       top: 0;
@@ -28,7 +28,7 @@
       width: 280px;
       background-color: rgba(2, 28, 60, 0.97);
       color: white;
-      padding: 20px;
+      padding: 80px 20px 20px 20px;
       transform: translateX(-100%);
       transition: transform 0.4s ease;
       box-shadow: 3px 0 15px rgba(0,0,0,0.4);
@@ -36,9 +36,7 @@
       overflow-y: auto;
     }
 
-    .sidebar.open {
-      transform: translateX(0);
-    }
+    .sidebar.open { transform: translateX(0); }
 
     .menu-toggle {
       position: absolute;
@@ -51,13 +49,10 @@
       border-radius: 8px;
       cursor: pointer;
       z-index: 1100;
-      transition: background-color 0.3s ease;
       font-weight: bold;
+      transition: background-color 0.3s ease;
     }
-
-    .menu-toggle:hover {
-      background-color: #005fa3;
-    }
+    .menu-toggle:hover { background-color: #005fa3; }
 
     .sidebar label {
       font-weight: bold;
@@ -87,13 +82,10 @@
       text-decoration: none;
       border-radius: 8px;
       padding: 8px 0;
-      transition: all 0.3s ease;
       font-weight: bold;
+      transition: all 0.3s ease;
     }
-
-    .sidebar .btn-secondary:hover {
-      background-color: rgba(255,255,255,0.25);
-    }
+    .sidebar .btn-secondary:hover { background-color: rgba(255,255,255,0.25); }
 
     #themeSwitch {
       width: 100%;
@@ -107,10 +99,7 @@
       color: white;
       transition: background-color 0.3s ease;
     }
-
-    #themeSwitch:hover {
-      background-color: #005fa3;
-    }
+    #themeSwitch:hover { background-color: #005fa3; }
 
     .info-window {
       background-color: #012040;
@@ -121,7 +110,6 @@
       font-family: Poppins, sans-serif;
       box-shadow: 0 6px 20px rgba(0,0,0,0.4);
     }
-
     .info-window b { color: #FFD700; }
 
     .suggestions {
@@ -134,15 +122,8 @@
       box-shadow: 0 4px 10px rgba(0,0,0,0.2);
       display: none;
     }
-
-    .suggestions div {
-      padding: 8px;
-      cursor: pointer;
-    }
-
-    .suggestions div:hover {
-      background-color: #e0e0e0;
-    }
+    .suggestions div { padding: 8px; cursor: pointer; }
+    .suggestions div:hover { background-color: #e0e0e0; }
   </style>
 </head>
 
@@ -159,13 +140,15 @@
       <option value="TS Oslo Budtjenester">TS Oslo Budtjenester</option>
     </select>
 
-    <label>
-      <input type="checkbox" id="activeToday" checked> Aktive i dag
-    </label>
+    <label><input type="checkbox" id="activeToday" checked> Aktive i dag</label>
 
     <label for="vehicleSearch">Søk kjøretøy:</label>
     <input type="text" id="vehicleSearch" placeholder="Skriv kjøretøy-navn...">
     <div id="vehicleSuggestions" class="suggestions"></div>
+
+    <label for="typeSearch">Søk biltype:</label>
+    <input type="text" id="typeSearch" placeholder="Eks: varebil, lastebil...">
+    <div id="typeSuggestions" class="suggestions"></div>
 
     <label for="placeSearch">Søk sted/adresse:</label>
     <input type="text" id="placeSearch" placeholder="Søk etter adresse...">
@@ -178,11 +161,10 @@
   <div id="map"></div>
 
   <script>
-    let map;
+    let map, darkMode = true;
     let markers = {};
-    let darkMode = true;
-    let inactivityTimer;
     let vehicleData = [];
+    let activeInfoWindow = null; // <-- holder på åpen popup
 
     const darkStyle = [
       { elementType: "geometry", stylers: [{ color: "#1d2c4d" }] },
@@ -227,6 +209,7 @@
 
       const placeInput = document.getElementById("placeSearch");
       const autocomplete = new google.maps.places.Autocomplete(placeInput);
+      autocomplete.bindTo("bounds", map);
       autocomplete.addListener("place_changed", () => {
         const place = autocomplete.getPlace();
         if (place.geometry && place.geometry.location) {
@@ -235,7 +218,21 @@
         }
       });
 
+      placeInput.addEventListener("keydown", async (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          const geocoder = new google.maps.Geocoder();
+          geocoder.geocode({ address: placeInput.value }, (results, status) => {
+            if (status === "OK" && results[0]) {
+              map.panTo(results[0].geometry.location);
+              map.setZoom(14);
+            }
+          });
+        }
+      });
+
       document.getElementById("vehicleSearch").addEventListener("input", showVehicleSuggestions);
+      document.getElementById("typeSearch").addEventListener("input", showTypeSuggestions);
     }
 
     function formatTimestamp(timestamp) {
@@ -246,55 +243,34 @@
     function createPinDataURL(vehicle) {
       return new Promise((resolve) => {
         const canvas = document.createElement("canvas");
-        canvas.width = 60;
-        canvas.height = 70;
+        canvas.width = 60; canvas.height = 70;
         const ctx = canvas.getContext("2d");
-
         const color = companyColors[vehicle.company] || "#888";
 
-        // Pin base
         ctx.fillStyle = Array.isArray(color) ? color[0] : color;
         ctx.beginPath();
-        ctx.moveTo(30, 70);
-        ctx.lineTo(20, 50);
-        ctx.lineTo(40, 50);
-        ctx.closePath();
-        ctx.fill();
+        ctx.moveTo(30, 70); ctx.lineTo(20, 50); ctx.lineTo(40, 50); ctx.closePath(); ctx.fill();
 
-        // Gradient for MTF
         if (Array.isArray(color)) {
-          const gradient = ctx.createLinearGradient(0, 0, 60, 0);
-          gradient.addColorStop(0, color[0]);
-          gradient.addColorStop(1, color[1]);
-          ctx.fillStyle = gradient;
-        } else {
-          ctx.fillStyle = color;
-        }
+          const grad = ctx.createLinearGradient(0, 0, 60, 0);
+          grad.addColorStop(0, color[0]); grad.addColorStop(1, color[1]);
+          ctx.fillStyle = grad;
+        } else ctx.fillStyle = color;
 
-        ctx.beginPath();
-        ctx.arc(30, 30, 20, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.beginPath(); ctx.arc(30, 30, 20, 0, Math.PI * 2); ctx.fill();
 
-        // Add red border for TS Oslo Budtjenester
-        if (vehicle.company === "TS Oslo Budtjenester") {
-          ctx.lineWidth = 4;
-          ctx.strokeStyle = "red";
-          ctx.beginPath();
-          ctx.arc(30, 30, 20, 0, Math.PI * 2);
-          ctx.stroke();
+        // Rød kant for Transportsentralen Oslo
+        if (vehicle.company === "Transportsentralen Oslo") {
+          ctx.lineWidth = 4; ctx.strokeStyle = "red";
+          ctx.beginPath(); ctx.arc(30, 30, 20, 0, Math.PI * 2); ctx.stroke();
         }
 
         const img = new Image();
         img.crossOrigin = "anonymous";
         img.src = vehicle.logo;
         img.onload = () => {
-          ctx.save();
-          ctx.beginPath();
-          ctx.arc(30, 30, 18, 0, Math.PI * 2);
-          ctx.closePath();
-          ctx.clip();
-          ctx.drawImage(img, 12, 12, 36, 36);
-          ctx.restore();
+          ctx.save(); ctx.beginPath(); ctx.arc(30, 30, 18, 0, Math.PI * 2);
+          ctx.closePath(); ctx.clip(); ctx.drawImage(img, 12, 12, 36, 36); ctx.restore();
           resolve(canvas.toDataURL());
         };
         img.onerror = () => resolve(canvas.toDataURL());
@@ -311,79 +287,72 @@
         const activeToday = document.getElementById('activeToday').checked;
         const selectedCompany = document.getElementById('company-filter').value;
 
-        const filteredData = data.filter(vehicle => {
-          const matchesCompany = selectedCompany === 'all' || vehicle.company === selectedCompany;
-          const isActiveToday = !activeToday || vehicle.isActiveToday;
-          return matchesCompany && isActiveToday && vehicle.isParticipant;
+        const filtered = data.filter(v => {
+          const c = selectedCompany === 'all' || v.company === selectedCompany;
+          const a = !activeToday || v.isActiveToday;
+          return c && a && v.isParticipant;
         });
 
-        const idsInData = filteredData.map(v => String(v.id));
+        const ids = filtered.map(v => String(v.id));
 
-        for (const vehicle of filteredData) {
-          if (!vehicle.latitude || !vehicle.longitude) continue;
-          const id = String(vehicle.id);
-          const position = { lat: vehicle.latitude, lng: vehicle.longitude };
+        for (const v of filtered) {
+          if (!v.latitude || !v.longitude) continue;
+          const id = String(v.id);
+          const pos = { lat: v.latitude, lng: v.longitude };
 
-          if (markers[id]) {
-            markers[id].setPosition(position);
-          } else {
-            const iconUrl = await createPinDataURL(vehicle);
+          if (markers[id]) markers[id].setPosition(pos);
+          else {
+            const iconUrl = await createPinDataURL(v);
             const marker = new google.maps.Marker({
-              map,
-              position,
+              map, position: pos,
               icon: { url: iconUrl, scaledSize: new google.maps.Size(45, 55) },
-              title: vehicle.name
+              title: v.name
             });
 
             const infoWindow = new google.maps.InfoWindow({
-              content: `
-                <div class="info-window">
-                  <b>Navn:</b> ${vehicle.name}<br>
-                  <b>Type:</b> ${vehicle.type}<br>
-                  <b>Palleplasser:</b> ${vehicle.palleplasser}<br>
-                  <b>Klokkeslett:</b> ${formatTimestamp(vehicle.time)}<br>
-                  <b>Selskap:</b> ${vehicle.company}
-                </div>`
+              content: `<div class="info-window">
+                          <b>Navn:</b> ${v.name}<br>
+                          <b>Type:</b> ${v.type}<br>
+                          <b>Palleplasser:</b> ${v.palleplasser}<br>
+                          <b>Klokkeslett:</b> ${formatTimestamp(v.time)}<br>
+                          <b>Selskap:</b> ${v.company}
+                        </div>`
             });
 
-            marker.addListener('click', () => infoWindow.open(map, marker));
+            // Fjern hvit bakgrunn og hold kun ett vindu åpent
+            google.maps.event.addListener(infoWindow, 'domready', () => {
+              const iw = document.querySelector('.gm-style-iw');
+              if (iw) iw.parentNode.parentNode.style.background = 'none';
+            });
+
+            marker.addListener('click', () => {
+              if (activeInfoWindow) activeInfoWindow.close();
+              activeInfoWindow = infoWindow;
+              infoWindow.open(map, marker);
+            });
+
             markers[id] = marker;
           }
         }
 
-        for (const id in markers) {
-          if (!idsInData.includes(id)) {
-            markers[id].setMap(null);
-            delete markers[id];
-          }
-        }
+        for (const id in markers)
+          if (!ids.includes(id)) { markers[id].setMap(null); delete markers[id]; }
 
-      } catch (error) {
-        console.error('Error loading positions:', error);
-      }
+      } catch (err) { console.error('Error loading positions:', err); }
     }
 
     function showVehicleSuggestions(e) {
       const input = e.target.value.toLowerCase();
-      const suggestionBox = document.getElementById("vehicleSuggestions");
-      suggestionBox.innerHTML = "";
-
-      if (input.length < 2) {
-        suggestionBox.style.display = "none";
-        return;
-      }
-
-      const matches = vehicleData.filter(v => v.name.toLowerCase().includes(input));
-      if (matches.length === 0) {
-        suggestionBox.style.display = "none";
-        return;
-      }
-
+      const box = document.getElementById("vehicleSuggestions");
+      box.innerHTML = "";
+      if (input.length < 2) return box.style.display = "none";
+      const matches = vehicleData.filter(v => v.name && v.name.toLowerCase().includes(input));
+      if (!matches.length) return box.style.display = "none";
       matches.forEach(v => {
-        const div = document.createElement("div");
-        div.textContent = `${v.name} (${v.company})`;
-        div.onclick = () => {
-          suggestionBox.style.display = "none";
+        const d = document.createElement("div");
+        d.textContent = `${v.name} (${v.company})`;
+        d.onclick = () => {
+          box.style.display = "none";
           document.getElementById("vehicleSearch").value = v.name;
           if (markers[v.id]) {
             map.panTo(markers[v.id].getPosition());
@@ -391,10 +360,33 @@
             google.maps.event.trigger(markers[v.id], 'click');
           }
         };
-        suggestionBox.appendChild(div);
+        box.appendChild(d);
       });
+      box.style.display = "block";
+    }
 
-      suggestionBox.style.display = "block";
+    function showTypeSuggestions(e) {
+      const input = e.target.value.toLowerCase();
+      const box = document.getElementById("typeSuggestions");
+      box.innerHTML = "";
+      if (input.length < 2) return box.style.display = "none";
+      const matches = vehicleData.filter(v => v.type && v.type.toLowerCase().includes(input));
+      if (!matches.length) return box.style.display = "none";
+      matches.forEach(v => {
+        const d = document.createElement("div");
+        d.textContent = `${v.type} - ${v.name}`;
+        d.onclick = () => {
+          box.style.display = "none";
+          document.getElementById("typeSearch").value = v.type;
+          if (markers[v.id]) {
+            map.panTo(markers[v.id].getPosition());
+            map.setZoom(14);
+            google.maps.event.trigger(markers[v.id], 'click');
+          }
+        };
+        box.appendChild(d);
+      });
+      box.style.display = "block";
     }
   </script>
 
