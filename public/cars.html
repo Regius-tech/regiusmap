@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Biloversikt - Triflex</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 body { margin:0; font-family:'Poppins',sans-serif; background: linear-gradient(135deg, #001f3f 0%, #00122f 100%); color:#fff; }
 .container { max-width:1400px; margin:20px auto; padding:20px; position:relative; }
@@ -56,19 +55,11 @@ tr:hover { background-color: rgba(255,255,255,0.1); }
 </nav>
 
 <div class="container">
-
 <h1>Biloversikt - Triflex</h1>
 
 <div class="stats-grid" id="globalStats">
     <div class="stat-card"><h3 id="totalCars">0</h3><p>Totalt biler</p></div>
     <div class="stat-card"><h3 id="activeCars">0</h3><p>Aktive biler i dag</p></div>
-</div>
-
-<div class="chart-container" style="margin-bottom:30px;">
-    <canvas id="carsChart"></canvas>
-</div>
-<div class="chart-container" style="margin-bottom:30px;">
-    <canvas id="activeChart"></canvas>
 </div>
 
 <div class="search-container">
@@ -94,7 +85,6 @@ tr:hover { background-color: rgba(255,255,255,0.1); }
 </thead>
 <tbody id="vehicleTableBody"></tbody>
 </table>
-
 </div>
 
 <script type="module">
@@ -111,6 +101,7 @@ const firebaseConfig = {
   appId: "1:835381689765:web:e0be4b22e5f35ca1e0bc4c",
   databaseURL: "https://triflex-a08c7-default-rtdb.europe-west1.firebasedatabase.app"
 };
+
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const auth = getAuth(app);
@@ -123,6 +114,7 @@ onAuthStateChanged(auth, user => { if(!user) window.location.href = "login.html"
 // Logout
 document.getElementById('logoutTab').addEventListener('click', ()=>{ signOut(auth).then(()=>window.location.href='login.html'); });
 
+// Last inn biler
 function loadVehicles() {
     onValue(ref(db,'cars'), snapshot=>{
         if(!snapshot.exists()) return;
@@ -146,7 +138,6 @@ function loadVehicles() {
         }
         populateFilters();
         updateStats();
-        updateCharts();
         updateGrid();
         updateTable();
     });
@@ -156,70 +147,6 @@ function updateStats() {
     document.getElementById('totalCars').textContent = vehicleData.length;
     const todayStr = new Date().toISOString().split('T')[0];
     document.getElementById('activeCars').textContent = vehicleData.filter(v => v.time.split('T')[0]===todayStr).length;
-}
-
-// --- Nye grafer med linjer ---
-let carsChart, activeChart, capacityChart;
-function updateCharts() {
-  const ctx1 = document.getElementById('carsChart').getContext('2d');
-  const ctx2 = document.getElementById('activeChart').getContext('2d');
-
-  const companies = [...new Set(vehicleData.map(v => v.company))];
-  const colors = ['#0074D9','#FF4136','#2ECC40','#FFDC00','#B10DC9','#39CCCC','#85144b'];
-
-  const totals = companies.map(c => vehicleData.filter(v => v.company===c).length);
-  const active = companies.map(c => vehicleData.filter(v => v.company===c && v.time.split('T')[0]===new Date().toISOString().split('T')[0]).length);
-  const avgPalle = companies.map(c=>{
-    const cars=vehicleData.filter(v=>v.company===c);
-    return cars.length?cars.reduce((a,b)=>a+(b.palleplasser||0),0)/cars.length:0;
-  });
-
-  if(carsChart) carsChart.destroy();
-  if(activeChart) activeChart.destroy();
-  if(capacityChart) capacityChart.destroy();
-
-  carsChart = new Chart(ctx1,{
-    type:'line',
-    data:{labels:companies,datasets:companies.map((c,i)=>({
-      label:`${c} Totalt biler`,
-      data:[totals[i]],
-      borderColor:colors[i%colors.length],
-      backgroundColor:colors[i%colors.length]+'33',
-      tension:0.4,
-      fill:false,
-      pointRadius:5
-    }))},
-    options:{responsive:true,plugins:{legend:{display:true,position:'bottom',labels:{color:'#fff'}}},scales:{x:{ticks:{color:'#ccc'}},y:{ticks:{color:'#ccc'}}}}
-  });
-
-  activeChart = new Chart(ctx2,{
-    type:'line',
-    data:{labels:companies,datasets:companies.map((c,i)=>({
-      label:`${c} Aktive i dag`,
-      data:[active[i]],
-      borderColor:colors[i%colors.length],
-      backgroundColor:colors[i%colors.length]+'33',
-      tension:0.4,
-      fill:false,
-      pointRadius:5
-    }))},
-    options:{responsive:true,plugins:{legend:{display:true,position:'bottom',labels:{color:'#fff'}}},scales:{x:{ticks:{color:'#ccc'}},y:{ticks:{color:'#ccc'}}}}
-  });
-
-  // Ekstra liten graf for snitt pallekapasitet
-  const existing = document.getElementById('capacityChart');
-  if(existing) existing.remove();
-  const extraDiv = document.createElement('div');
-  extraDiv.className='chart-container';
-  extraDiv.innerHTML='<canvas id="capacityChart"></canvas>';
-  document.querySelector('.container').insertBefore(extraDiv, document.querySelector('.search-container'));
-
-  const ctx3=document.getElementById('capacityChart').getContext('2d');
-  capacityChart=new Chart(ctx3,{
-    type:'line',
-    data:{labels:companies,datasets:[{label:'Gj.snitt palleplasser per selskap',data:avgPalle,borderColor:'#AAAAFF',tension:0.3,pointRadius:4}]},
-    options:{responsive:true,plugins:{legend:{display:true,position:'bottom',labels:{color:'#fff'}}},scales:{x:{ticks:{color:'#ccc'}},y:{ticks:{color:'#ccc'}}}}
-  });
 }
 
 function populateFilters(){
