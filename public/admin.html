@@ -142,10 +142,10 @@ const auth = getAuth(app);
 let vehicleData = [];
 
 // Login + redirect
-onAuthStateChanged(auth, user => { if(!user) window.location.href = "login.html"; });
+onAuthStateChanged(auth, user => { if(!user) window.location.href = "index.html"; });
 
 // Logg ut
-document.getElementById('logoutTab').addEventListener('click', ()=>{ signOut(auth).then(()=>window.location.href='login.html'); });
+document.getElementById('logoutTab').addEventListener('click', ()=>{ signOut(auth).then(()=>window.location.href='index.html'); });
 
 // Load biler
 async function loadVehicles() {
