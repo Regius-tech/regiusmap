@@ -14,12 +14,9 @@
       overflow: hidden;
     }
 
-    #map {
-      height: 100vh;
-      width: 100%;
-    }
+    #map { height: 100vh; width: 100%; }
 
-    /* Sidebar styling */
+    /* Sidebar */
     .sidebar {
       position: absolute;
       top: 0;
@@ -35,7 +32,6 @@
       z-index: 1001;
       overflow-y: auto;
     }
-
     .sidebar.open { transform: translateX(0); }
 
     .menu-toggle {
@@ -101,35 +97,46 @@
     }
     #themeSwitch:hover { background-color: #005fa3; }
 
+    /* Info-window custom content */
     .info-window {
       background-color: #012040;
       color: #fff;
-      padding: 12px 15px;
-      border-radius: 12px;
+      padding: 10px 14px;
+      border-radius: 10px;
       font-size: 14px;
       font-family: Poppins, sans-serif;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+      box-shadow: none;
+      max-width: 220px;
     }
     .info-window b { color: #FFD700; }
 
-    .suggestions {
-      background-color: white;
-      color: black;
-      border-radius: 8px;
-      margin-top: 5px;
-      max-height: 180px;
-      overflow-y: auto;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-      display: none;
+    /* Remove default Google bubble look */
+    .gm-style-iw-t::after { background: transparent !important; }
+    .gm-style .gm-style-iw-c {
+      padding: 0 !important;
+      background-color: #012040 !important;
+      box-shadow: none !important;
+      border-radius: 10px !important;
+      overflow: hidden !important;
     }
-    .suggestions div { padding: 8px; cursor: pointer; }
-    .suggestions div:hover { background-color: #e0e0e0; }
+    .gm-style .gm-style-iw-d {
+      overflow: hidden !important;
+      padding: 0 !important;
+    }
+    .gm-ui-hover-effect {
+      background-color: rgba(255,255,255,0.15) !important;
+      border-radius: 8px !important;
+      right: 6px !important;
+      top: 6px !important;
+    }
+    .gm-ui-hover-effect span {
+      filter: invert(1);
+    }
   </style>
 </head>
 
 <body>
   <button class="menu-toggle" id="menuToggle">☰ Meny</button>
-
   <div class="sidebar" id="sidebar">
     <label for="company-filter">Selskap:</label>
     <select id="company-filter">
@@ -139,32 +146,23 @@
       <option value="Blå Kurér">Blå Kurér</option>
       <option value="TS Oslo Budtjenester">TS Oslo Budtjenester</option>
     </select>
-
     <label><input type="checkbox" id="activeToday" checked> Aktive i dag</label>
-
     <label for="vehicleSearch">Søk kjøretøy:</label>
     <input type="text" id="vehicleSearch" placeholder="Skriv kjøretøy-navn...">
     <div id="vehicleSuggestions" class="suggestions"></div>
-
     <label for="typeSearch">Søk biltype:</label>
     <input type="text" id="typeSearch" placeholder="Eks: varebil, lastebil...">
     <div id="typeSuggestions" class="suggestions"></div>
-
     <label for="placeSearch">Søk sted/adresse:</label>
     <input type="text" id="placeSearch" placeholder="Søk etter adresse...">
-
     <button id="themeSwitch">🌙 Mørk modus</button>
     <a class="btn-secondary" href="cars.html">Bilpark</a>
     <a class="btn-secondary" href="dashboard.html">Dashboard</a>
   </div>
-
   <div id="map"></div>
 
   <script>
-    let map, darkMode = true;
-    let markers = {};
-    let vehicleData = [];
-    let activeInfoWindow = null; // <-- holder på åpen popup
+    let map, darkMode = true, markers = {}, vehicleData = [], activeInfoWindow = null;
 
     const darkStyle = [
       { elementType: "geometry", stylers: [{ color: "#1d2c4d" }] },
@@ -217,181 +215,57 @@
           map.setZoom(14);
         }
       });
-
-      placeInput.addEventListener("keydown", async (e) => {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          const geocoder = new google.maps.Geocoder();
-          geocoder.geocode({ address: placeInput.value }, (results, status) => {
-            if (status === "OK" && results[0]) {
-              map.panTo(results[0].geometry.location);
-              map.setZoom(14);
-            }
-          });
-        }
-      });
-
-      document.getElementById("vehicleSearch").addEventListener("input", showVehicleSuggestions);
-      document.getElementById("typeSearch").addEventListener("input", showTypeSuggestions);
     }
 
-    function formatTimestamp(timestamp) {
-      if (!timestamp) return "Ukjent tid";
-      return new Date(timestamp).toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' });
-    }
+    function formatTimestamp(ts){return ts?new Date(ts).toLocaleTimeString('no-NO',{hour:'2-digit',minute:'2-digit'}):"Ukjent tid";}
 
-    function createPinDataURL(vehicle) {
-      return new Promise((resolve) => {
-        const canvas = document.createElement("canvas");
-        canvas.width = 60; canvas.height = 70;
-        const ctx = canvas.getContext("2d");
-        const color = companyColors[vehicle.company] || "#888";
-
-        ctx.fillStyle = Array.isArray(color) ? color[0] : color;
-        ctx.beginPath();
-        ctx.moveTo(30, 70); ctx.lineTo(20, 50); ctx.lineTo(40, 50); ctx.closePath(); ctx.fill();
-
-        if (Array.isArray(color)) {
-          const grad = ctx.createLinearGradient(0, 0, 60, 0);
-          grad.addColorStop(0, color[0]); grad.addColorStop(1, color[1]);
-          ctx.fillStyle = grad;
-        } else ctx.fillStyle = color;
-
-        ctx.beginPath(); ctx.arc(30, 30, 20, 0, Math.PI * 2); ctx.fill();
-
-        // Rød kant for Transportsentralen Oslo
-        if (vehicle.company === "Transportsentralen Oslo") {
-          ctx.lineWidth = 4; ctx.strokeStyle = "red";
-          ctx.beginPath(); ctx.arc(30, 30, 20, 0, Math.PI * 2); ctx.stroke();
-        }
-
-        const img = new Image();
-        img.crossOrigin = "anonymous";
-        img.src = vehicle.logo;
-        img.onload = () => {
-          ctx.save(); ctx.beginPath(); ctx.arc(30, 30, 18, 0, Math.PI * 2);
-          ctx.closePath(); ctx.clip(); ctx.drawImage(img, 12, 12, 36, 36); ctx.restore();
-          resolve(canvas.toDataURL());
-        };
-        img.onerror = () => resolve(canvas.toDataURL());
+    function createPinDataURL(v){
+      return new Promise(r=>{
+        const c=document.createElement("canvas");c.width=60;c.height=70;
+        const x=c.getContext("2d");const clr=companyColors[v.company]||"#888";
+        x.fillStyle=Array.isArray(clr)?clr[0]:clr;x.beginPath();x.moveTo(30,70);x.lineTo(20,50);x.lineTo(40,50);x.closePath();x.fill();
+        if(Array.isArray(clr)){const g=x.createLinearGradient(0,0,60,0);g.addColorStop(0,clr[0]);g.addColorStop(1,clr[1]);x.fillStyle=g;}
+        else x.fillStyle=clr;
+        x.beginPath();x.arc(30,30,20,0,Math.PI*2);x.fill();
+        if(v.company==="Transportsentralen Oslo"){x.lineWidth=4;x.strokeStyle="red";x.beginPath();x.arc(30,30,20,0,Math.PI*2);x.stroke();}
+        const i=new Image();i.crossOrigin="anonymous";i.src=v.logo;i.onload=()=>{x.save();x.beginPath();x.arc(30,30,18,0,Math.PI*2);x.clip();x.drawImage(i,12,12,36,36);x.restore();r(c.toDataURL());};i.onerror=()=>r(c.toDataURL());
       });
     }
 
-    async function loadPositions() {
-      try {
-        const response = await fetch("/api/positions");
-        if (!response.ok) throw new Error("Kunne ikke hente posisjoner fra API");
-        const data = await response.json();
-        vehicleData = data;
+    async function loadPositions(){
+      try{
+        const res=await fetch("/api/positions");
+        if(!res.ok)throw new Error("Kunne ikke hente posisjoner");
+        const data=await res.json();vehicleData=data;
+        const act=document.getElementById("activeToday").checked;
+        const comp=document.getElementById("company-filter").value;
+        const filt=data.filter(v=>(comp==="all"||v.company===comp)&&(!act||v.isActiveToday)&&v.isParticipant);
+        const ids=filt.map(v=>String(v.id));
 
-        const activeToday = document.getElementById('activeToday').checked;
-        const selectedCompany = document.getElementById('company-filter').value;
-
-        const filtered = data.filter(v => {
-          const c = selectedCompany === 'all' || v.company === selectedCompany;
-          const a = !activeToday || v.isActiveToday;
-          return c && a && v.isParticipant;
-        });
-
-        const ids = filtered.map(v => String(v.id));
-
-        for (const v of filtered) {
-          if (!v.latitude || !v.longitude) continue;
-          const id = String(v.id);
-          const pos = { lat: v.latitude, lng: v.longitude };
-
-          if (markers[id]) markers[id].setPosition(pos);
-          else {
-            const iconUrl = await createPinDataURL(v);
-            const marker = new google.maps.Marker({
-              map, position: pos,
-              icon: { url: iconUrl, scaledSize: new google.maps.Size(45, 55) },
-              title: v.name
+        for(const v of filt){
+          if(!v.latitude||!v.longitude)continue;
+          const id=String(v.id);const p={lat:v.latitude,lng:v.longitude};
+          if(markers[id])markers[id].setPosition(p);
+          else{
+            const iconUrl=await createPinDataURL(v);
+            const m=new google.maps.Marker({map,position:p,icon:{url:iconUrl,scaledSize:new google.maps.Size(45,55)},title:v.name});
+            const iw=new google.maps.InfoWindow({content:`<div class="info-window"><b>Navn:</b> ${v.name}<br><b>Type:</b> ${v.type}<br><b>Palleplasser:</b> ${v.palleplasser}<br><b>Klokkeslett:</b> ${formatTimestamp(v.time)}<br><b>Selskap:</b> ${v.company}</div>`});
+            google.maps.event.addListener(iw,"domready",()=>{
+              const iwc=document.querySelector(".gm-style-iw-c");
+              if(iwc){iwc.style.background="#012040";iwc.style.padding="0";iwc.style.boxShadow="none";}
+              const iwd=document.querySelector(".gm-style-iw-d");if(iwd)iwd.style.overflow="hidden";
             });
-
-            const infoWindow = new google.maps.InfoWindow({
-              content: `<div class="info-window">
-                          <b>Navn:</b> ${v.name}<br>
-                          <b>Type:</b> ${v.type}<br>
-                          <b>Palleplasser:</b> ${v.palleplasser}<br>
-                          <b>Klokkeslett:</b> ${formatTimestamp(v.time)}<br>
-                          <b>Selskap:</b> ${v.company}
-                        </div>`
-            });
-
-            // Fjern hvit bakgrunn og hold kun ett vindu åpent
-            google.maps.event.addListener(infoWindow, 'domready', () => {
-              const iw = document.querySelector('.gm-style-iw');
-              if (iw) iw.parentNode.parentNode.style.background = 'none';
-            });
-
-            marker.addListener('click', () => {
-              if (activeInfoWindow) activeInfoWindow.close();
-              activeInfoWindow = infoWindow;
-              infoWindow.open(map, marker);
-            });
-
-            markers[id] = marker;
+            m.addListener("click",()=>{if(activeInfoWindow)activeInfoWindow.close();activeInfoWindow=iw;iw.open(map,m);});
+            markers[id]=m;
           }
         }
-
-        for (const id in markers)
-          if (!ids.includes(id)) { markers[id].setMap(null); delete markers[id]; }
-
-      } catch (err) { console.error('Error loading positions:', err); }
-    }
-
-    function showVehicleSuggestions(e) {
-      const input = e.target.value.toLowerCase();
-      const box = document.getElementById("vehicleSuggestions");
-      box.innerHTML = "";
-      if (input.length < 2) return box.style.display = "none";
-      const matches = vehicleData.filter(v => v.name && v.name.toLowerCase().includes(input));
-      if (!matches.length) return box.style.display = "none";
-      matches.forEach(v => {
-        const d = document.createElement("div");
-        d.textContent = `${v.name} (${v.company})`;
-        d.onclick = () => {
-          box.style.display = "none";
-          document.getElementById("vehicleSearch").value = v.name;
-          if (markers[v.id]) {
-            map.panTo(markers[v.id].getPosition());
-            map.setZoom(14);
-            google.maps.event.trigger(markers[v.id], 'click');
-          }
-        };
-        box.appendChild(d);
-      });
-      box.style.display = "block";
-    }
-
-    function showTypeSuggestions(e) {
-      const input = e.target.value.toLowerCase();
-      const box = document.getElementById("typeSuggestions");
-      box.innerHTML = "";
-      if (input.length < 2) return box.style.display = "none";
-      const matches = vehicleData.filter(v => v.type && v.type.toLowerCase().includes(input));
-      if (!matches.length) return box.style.display = "none";
-      matches.forEach(v => {
-        const d = document.createElement("div");
-        d.textContent = `${v.type} - ${v.name}`;
-        d.onclick = () => {
-          box.style.display = "none";
-          document.getElementById("typeSearch").value = v.type;
-          if (markers[v.id]) {
-            map.panTo(markers[v.id].getPosition());
-            map.setZoom(14);
-            google.maps.event.trigger(markers[v.id], 'click');
-          }
-        };
-        box.appendChild(d);
-      });
-      box.style.display = "block";
+        for(const id in markers)if(!ids.includes(id)){markers[id].setMap(null);delete markers[id];}
+      }catch(e){console.error(e);}
     }
   </script>
 
   <script async
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBtSvAG_uN9QBI0Fi_GOJVIyAjd1JlMvNg&callback=initMap&libraries=places&v=beta">
+    src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap&libraries=places&v=beta">
   </script>
 </body>
 </html>
