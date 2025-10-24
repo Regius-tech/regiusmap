@@ -37,11 +37,14 @@ h1,h2 { text-align:center; margin-bottom:20px; }
 
 /* Modal */
 .overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:999; }
-.form-popup { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:rgba(2,28,60,0.95); padding:30px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.7); z-index:1000; max-width:400px; width:90%; }
+.form-popup { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:rgba(2,28,60,0.95); padding:30px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.7); z-index:1000; max-width:500px; width:90%; }
 .form-popup input, .form-popup select { width:100%; margin:10px 0; padding:10px; border-radius:8px; border:none; }
 .form-popup button { padding:12px; border:none; border-radius:8px; cursor:pointer; }
 .form-popup .save-btn { background:#0074D9; color:white; }
 .form-popup .cancel-btn { background:#FF4136; color:white; margin-left:10px; }
+.custom-fields { margin-top:10px; }
+.custom-field { display:flex; gap:10px; margin-bottom:5px; }
+.custom-field input[type=text] { flex:1; }
 </style>
 </head>
 <body>
@@ -82,8 +85,13 @@ h1,h2 { text-align:center; margin-bottom:20px; }
     <input type="text" id="editName" placeholder="Navn">
     <input type="text" id="editType" placeholder="Type">
     <input type="number" id="editPalleplasser" placeholder="Palleplasser">
-    <button class="save-btn" id="saveEditBtn">Lagre</button>
-    <button class="cancel-btn" id="cancelEditBtn">Avbryt</button>
+    <label><input type="checkbox" id="editIsParticipant"> Vis i admin</label>
+    <div class="custom-fields" id="customFieldsContainer"></div>
+    <button id="addCustomFieldBtn">Legg til felt</button>
+    <div style="margin-top:10px;">
+      <button class="save-btn" id="saveEditBtn">Lagre</button>
+      <button class="cancel-btn" id="cancelEditBtn">Avbryt</button>
+    </div>
   </div>
 </div>
 
@@ -123,7 +131,9 @@ async function loadVehicles() {
         palleplasser: car.palleplasser || 0,
         company: company,
         time: car.time || new Date().toISOString(),
-        isActiveToday: car.time ? new Date(car.time).toISOString().split('T')[0]===todayStr : false
+        isParticipant: car.isParticipant !== false, // default true
+        isActiveToday: car.time ? new Date(car.time).toISOString().split('T')[0]===todayStr : false,
+        customFields: car.customFields || {}
       });
     }
   }
@@ -161,9 +171,20 @@ function renderCards() {
     (typeFilter === 'all' || v.type === typeFilter) &&
     (v.name.toLowerCase().includes(searchInput) || v.type.toLowerCase().includes(searchInput))
   ).forEach(v => {
+    if(!v.isParticipant) return;
     const card = document.createElement('div');
     card.className = "car-card";
-    card.innerHTML = `<h3>${v.name}</h3><p>Type: ${v.type}</p><p>Palleplasser: ${v.palleplasser}</p><p>Selskap: ${v.company}</p>`;
+
+    let innerHTML = `<h3>${v.name}</h3>
+                     <p>Type: ${v.type}</p>
+                     <p>Palleplasser: ${v.palleplasser}</p>
+                     <p>Selskap: ${v.company}</p>`;
+
+    for (const key in v.customFields) {
+      innerHTML += `<p>${key}: ${v.customFields[key]}</p>`;
+    }
+
+    card.innerHTML = innerHTML;
     card.addEventListener('click', () => openEditForm(v.id));
     grid.appendChild(card);
   });
@@ -172,17 +193,45 @@ function renderCards() {
 // Redigeringsmodal
 const overlay = document.getElementById('overlay');
 const editForm = document.getElementById('editForm');
+const customFieldsContainer = document.getElementById('customFieldsContainer');
 
 function openEditForm(id) {
   const car = vehicleData.find(c => c.id === id);
   if (!car) return;
+
   document.getElementById('editCarId').value = id;
   document.getElementById('editName').value = car.name;
   document.getElementById('editType').value = car.type;
   document.getElementById('editPalleplasser').value = car.palleplasser;
+  document.getElementById('editIsParticipant').checked = car.isParticipant;
+
+  // Vis eksisterende customFields
+  customFieldsContainer.innerHTML = '';
+  for (const key in car.customFields) {
+    const div = createCustomFieldDiv(key, car.customFields[key]);
+    customFieldsContainer.appendChild(div);
+  }
+
   overlay.style.display = 'block';
   editForm.style.display = 'block';
 }
+
+// Funksjon for å lage input-rad for custom field
+function createCustomFieldDiv(key='', value='') {
+  const div = document.createElement('div');
+  div.className = 'custom-field';
+  div.innerHTML = `<input type="text" class="field-name" placeholder="Felt navn" value="${key}">
+                   <input type="text" class="field-value" placeholder="Verdi" value="${value}">
+                   <button type="button" class="remove-field-btn">X</button>`;
+  div.querySelector('.remove-field-btn').addEventListener('click', () => div.remove());
+  return div;
+}
+
+// Legg til ny custom field
+document.getElementById('addCustomFieldBtn').addEventListener('click', () => {
+  const div = createCustomFieldDiv();
+  customFieldsContainer.appendChild(div);
+});
 
 document.getElementById('cancelEditBtn').addEventListener('click', () => {
   overlay.style.display = 'none';
@@ -193,12 +242,24 @@ document.getElementById('saveEditBtn').addEventListener('click', async () => {
   const id = document.getElementById('editCarId').value;
   const car = vehicleData.find(c => c.id === id);
   if (!car) return;
+
   const updatedCar = {
     name: document.getElementById('editName').value,
     type: document.getElementById('editType').value,
     palleplasser: parseInt(document.getElementById('editPalleplasser').value),
-    time: car.time
+    isParticipant: document.getElementById('editIsParticipant').checked,
+    time: car.time,
+    customFields: {}
   };
+
+  // Lagre customFields
+  const fields = customFieldsContainer.querySelectorAll('.custom-field');
+  fields.forEach(f => {
+    const key = f.querySelector('.field-name').value.trim();
+    const value = f.querySelector('.field-value').value.trim();
+    if(key) updatedCar.customFields[key] = value;
+  });
+
   await set(ref(db, 'cars/' + car.company + '/' + id), updatedCar);
   overlay.style.display = 'none';
   editForm.style.display = 'none';
