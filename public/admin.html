@@ -113,7 +113,7 @@ input:checked + .slider:before { transform: translateX(24px); }
     </label>
 
     <div class="custom-fields" id="customFieldsContainer"></div>
-    <button id="addCustomFieldBtn">Legg til felt</button>
+    <button id="addCustomFieldBtn" style="display:none;">Legg til felt</button>
     <div style="margin-top:10px;">
       <button class="save-btn" id="saveEditBtn">Lagre</button>
       <button class="cancel-btn" id="cancelEditBtn">Avbryt</button>
@@ -123,7 +123,7 @@ input:checked + .slider:before { transform: translateX(24px); }
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+import { getDatabase, ref, update, get, onValue } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
 const firebaseConfig = {
@@ -159,13 +159,14 @@ async function loadVehicles() {
     for (const carId in data[company]) {
       const car = data[company][carId];
       vehicleData.push({
-        id: carId,
+        id: car.id || carId,
+        firebaseKey: carId,
         name: car.name || "",
         type: car.type || "Ukjent",
         palleplasser: car.palleplasser || 0,
         company: company,
         time: car.time || new Date().toISOString(),
-        isParticipant: car.isParticipant !== false,
+        isParticipant: car.isParticipant === true,
         isActiveToday: car.time ? new Date(car.time).toISOString().split('T')[0]===todayStr : false,
         customFields: car.customFields || {}
       });
@@ -181,10 +182,17 @@ function updateFilters() {
   const types = [...new Set(vehicleData.map(v => v.type))];
   const companySelect = document.getElementById('companyFilter');
   const typeSelect = document.getElementById('typeFilter');
+  const currentCompany = companySelect.value;
+  const currentType = typeSelect.value;
+
   companySelect.innerHTML = '<option value="all">Alle selskap</option>';
   typeSelect.innerHTML = '<option value="all">Alle typer</option>';
+
   companies.forEach(c => companySelect.appendChild(Object.assign(document.createElement('option'), { value: c, textContent: c })));
   types.forEach(t => typeSelect.appendChild(Object.assign(document.createElement('option'), { value: t, textContent: t })));
+
+  if (companies.includes(currentCompany)) companySelect.value = currentCompany;
+  if (types.includes(currentType)) typeSelect.value = currentType;
 }
 
 function updateStats() {
@@ -203,23 +211,24 @@ function renderCards() {
   vehicleData.filter(v =>
     (companyFilter === 'all' || v.company === companyFilter) &&
     (typeFilter === 'all' || v.type === typeFilter) &&
-    (v.name.toLowerCase().includes(searchInput) || v.type.toLowerCase().includes(searchInput))
+    (
+      v.name.toLowerCase().includes(searchInput) ||
+      v.type.toLowerCase().includes(searchInput) ||
+      String(v.id).toLowerCase().includes(searchInput)
+    )
   ).forEach(v => {
     const card = document.createElement('div');
     card.className = "car-card";
 
     let innerHTML = `<h3>${v.name}</h3>
+                     <p>ID: ${v.id}</p>
                      <p>Type: ${v.type}</p>
                      <p>Palleplasser: ${v.palleplasser}</p>
                      <p>Selskap: ${v.company}</p>
                      <p>Deltaker: ${v.isParticipant ? "Ja" : "Nei"}</p>`;
 
-    for (const key in v.customFields) {
-      innerHTML += `<p>${key}: ${v.customFields[key]}</p>`;
-    }
-
     card.innerHTML = innerHTML;
-    card.addEventListener('click', () => openEditForm(v.id));
+    card.addEventListener('click', () => openEditForm(v.firebaseKey, v.company));
     grid.appendChild(card);
   });
 }
@@ -229,41 +238,21 @@ const overlay = document.getElementById('overlay');
 const editForm = document.getElementById('editForm');
 const customFieldsContainer = document.getElementById('customFieldsContainer');
 
-function openEditForm(id) {
-  const car = vehicleData.find(c => c.id === id);
+function openEditForm(firebaseKey, company) {
+  const car = vehicleData.find(c => c.firebaseKey === firebaseKey && c.company === company);
   if (!car) return;
 
-  document.getElementById('editCarId').value = id;
+  document.getElementById('editCarId').value = car.firebaseKey;
   document.getElementById('editName').value = car.name;
   document.getElementById('editType').value = car.type;
   document.getElementById('editPalleplasser').value = car.palleplasser;
   document.getElementById('editIsParticipant').checked = car.isParticipant;
 
-  // Vis eksisterende customFields
   customFieldsContainer.innerHTML = '';
-  for (const key in car.customFields) {
-    const div = createCustomFieldDiv(key, car.customFields[key]);
-    customFieldsContainer.appendChild(div);
-  }
 
   overlay.style.display = 'block';
   editForm.style.display = 'block';
 }
-
-function createCustomFieldDiv(key='', value='') {
-  const div = document.createElement('div');
-  div.className = 'custom-field';
-  div.innerHTML = `<input type="text" class="field-name" placeholder="Felt navn" value="${key}">
-                   <input type="text" class="field-value" placeholder="Verdi" value="${value}">
-                   <button type="button" class="remove-field-btn">X</button>`;
-  div.querySelector('.remove-field-btn').addEventListener('click', () => div.remove());
-  return div;
-}
-
-document.getElementById('addCustomFieldBtn').addEventListener('click', () => {
-  const div = createCustomFieldDiv();
-  customFieldsContainer.appendChild(div);
-});
 
 document.getElementById('cancelEditBtn').addEventListener('click', () => {
   overlay.style.display = 'none';
@@ -271,27 +260,18 @@ document.getElementById('cancelEditBtn').addEventListener('click', () => {
 });
 
 document.getElementById('saveEditBtn').addEventListener('click', async () => {
-  const id = document.getElementById('editCarId').value;
-  const car = vehicleData.find(c => c.id === id);
+  const firebaseKey = document.getElementById('editCarId').value;
+  const car = vehicleData.find(c => c.firebaseKey === firebaseKey);
   if (!car) return;
 
-  const updatedCar = {
+  await update(ref(db, 'cars/' + car.company + '/' + firebaseKey), {
+    id: Number(car.id) || car.id,
     name: document.getElementById('editName').value,
     type: document.getElementById('editType').value,
-    palleplasser: parseInt(document.getElementById('editPalleplasser').value),
-    isParticipant: document.getElementById('editIsParticipant').checked,
-    time: car.time,
-    customFields: {}
-  };
-
-  const fields = customFieldsContainer.querySelectorAll('.custom-field');
-  fields.forEach(f => {
-    const key = f.querySelector('.field-name').value.trim();
-    const value = f.querySelector('.field-value').value.trim();
-    if(key) updatedCar.customFields[key] = value;
+    palleplasser: Number(document.getElementById('editPalleplasser').value) || 0,
+    isParticipant: document.getElementById('editIsParticipant').checked
   });
 
-  await set(ref(db, 'cars/' + car.company + '/' + id), updatedCar);
   overlay.style.display = 'none';
   editForm.style.display = 'none';
   loadVehicles();
@@ -307,3 +287,4 @@ loadVehicles();
 
 </body>
 </html>
+```
