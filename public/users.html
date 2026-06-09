@@ -47,7 +47,6 @@ tr:hover { background-color:rgba(255,255,255,0.1); }
 
 .badge.green { background:#2ECC40; color:white; }
 .badge.red { background:#FF4136; color:white; }
-.badge.blue { background:#0074D9; color:white; }
 .badge.gray { background:#555; color:white; }
 
 button {
@@ -62,7 +61,6 @@ button {
 
 .btn-blue { background:#0074D9; }
 .btn-red { background:#FF4136; }
-.btn-gray { background:#555; }
 
 select.role-select {
   background:#023060;
@@ -142,7 +140,7 @@ select.role-select {
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getDatabase, ref, get, update, onValue } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+import { getDatabase, ref, get, update, remove, onValue } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
 const firebaseConfig = {
@@ -255,7 +253,7 @@ function loadUsers() {
           company: normalizedCompany,
           companyName: getCompanyDisplayName(user),
           role: user.role || "user",
-          approved: user.approved !== false,
+          approved: user.approved === true,
           active: user.active !== false,
           createdAt: user.createdAt || "",
           lastLogin: user.lastLogin || ""
@@ -333,7 +331,14 @@ function renderUsers() {
       <td>${formatDate(user.lastLogin)}</td>
       <td>
         ${user.approved ? "" : `<button class="btn-blue approve-btn" data-uid="${user.uid}">Godkjenn</button>`}
-        ${user.active ? `<button class="btn-red deactivate-btn" data-uid="${user.uid}">Deaktiver</button>` : `<button class="btn-blue activate-btn" data-uid="${user.uid}">Aktiver</button>`}
+        ${
+          user.active
+            ? `<button class="btn-red deactivate-btn" data-uid="${user.uid}">Deaktiver</button>`
+            : `
+              <button class="btn-blue activate-btn" data-uid="${user.uid}">Aktiver</button>
+              <button class="btn-red delete-btn" data-uid="${user.uid}" data-email="${escapeHtml(user.email)}">Slett bruker</button>
+            `
+        }
       </td>
     `;
 
@@ -377,6 +382,21 @@ function renderUsers() {
         active: true,
         approved: true
       });
+    });
+  });
+
+  document.querySelectorAll(".delete-btn").forEach(btn => {
+    btn.addEventListener("click", async e => {
+      const uid = e.target.dataset.uid;
+      const email = e.target.dataset.email || "denne brukeren";
+
+      const confirmed = confirm(
+        `Er du sikker på at du vil slette ${email}?\n\nDette fjerner brukeren fra Triflex.`
+      );
+
+      if (!confirmed) return;
+
+      await remove(ref(db, "users/" + uid));
     });
   });
 }
