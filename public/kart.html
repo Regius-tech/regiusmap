@@ -19,7 +19,6 @@
       width: 100%;
     }
 
-    /* Sidebar styling */
     .sidebar {
       position: absolute;
       top: 0;
@@ -71,6 +70,7 @@
       border: none;
       outline: none;
       font-size: 14px;
+      box-sizing: border-box;
     }
 
     .active-row {
@@ -142,8 +142,65 @@
       padding: 8px 0;
       font-weight: bold;
       transition: all 0.3s ease;
+      border: none;
+      cursor: pointer;
+      width: 100%;
+      font-size: 14px;
+      box-sizing: border-box;
     }
     .sidebar .btn-secondary:hover { background-color: #012448; }
+
+    .visible-count {
+      margin-top: 15px;
+      background: rgba(255,255,255,0.08);
+      padding: 10px;
+      border-radius: 8px;
+      font-weight: bold;
+      text-align: center;
+      color: #cfcfcf;
+      font-size: 14px;
+    }
+
+    .company-legend {
+      margin-top: 15px;
+      background: rgba(255,255,255,0.08);
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 13px;
+    }
+
+    .legend-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 6px 0;
+      color: #cfcfcf;
+    }
+
+    .legend-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+
+    .legend-dot.tsoslo {
+      background: white;
+      border: 2px solid red;
+    }
+
+    .legend-dot.mtf {
+      background: linear-gradient(90deg, #00008b, #8b0000);
+    }
+
+    .legend-dot.blakurer {
+      background: #FFD700;
+    }
+
+    .legend-dot.tsbud {
+      background: #004080;
+    }
 
     .info-window {
       background-color: #012040;
@@ -169,7 +226,6 @@
     .suggestions div { padding: 8px; cursor: pointer; }
     .suggestions div:hover { background-color: #e0e0e0; }
 
-    /* Fjern hvit kant og stor ramme fra InfoWindow */
     .gm-style-iw {
       background-color: #012040 !important;
       box-shadow: none !important;
@@ -216,7 +272,7 @@
     </div>
 
     <label for="vehicleSearch">Søk kjøretøy:</label>
-    <input type="text" id="vehicleSearch" placeholder="Skriv kjøretøy-navn...">
+    <input type="text" id="vehicleSearch" placeholder="Søk navn eller nummer...">
     <div id="vehicleSuggestions" class="suggestions"></div>
 
     <label for="typeSearch">Søk biltype:</label>
@@ -234,6 +290,19 @@
       </label>
     </div>
 
+    <div class="visible-count" id="visibleCount">Synlige biler: 0</div>
+
+    <button class="btn-secondary" id="fitMarkersBtn">Vis alle synlige biler</button>
+    <button class="btn-secondary" id="resetFiltersBtn">Nullstill filter</button>
+
+    <div class="company-legend">
+      <strong>Farger:</strong>
+      <div class="legend-row"><span class="legend-dot tsoslo"></span>Transportsentralen Oslo</div>
+      <div class="legend-row"><span class="legend-dot mtf"></span>Moss Transportforum</div>
+      <div class="legend-row"><span class="legend-dot blakurer"></span>Blå Kurér</div>
+      <div class="legend-row"><span class="legend-dot tsbud"></span>TS Oslo Budtjenester</div>
+    </div>
+
     <a class="btn-secondary" href="admin.html">Administrer biler</a>
     <a class="btn-secondary" href="cars.html">Bilpark</a>
     <a class="btn-secondary" href="dashboard.html">Dashboard</a>
@@ -248,6 +317,7 @@
     let markers = {};
     let vehicleData = [];
     let activeInfoWindow = null;
+    let visibleMarkerIds = [];
 
     const darkStyle = [
       { elementType: "geometry", stylers: [{ color: "#1d2c4d" }] },
@@ -280,13 +350,37 @@
         map.setOptions({ styles: darkMode ? darkStyle : [] });
       });
 
-      document.getElementById("menuToggle").addEventListener("click", () => {
+      document.getElementById("menuToggle").addEventListener("click", (e) => {
+        e.stopPropagation();
         document.getElementById("sidebar").classList.toggle("open");
+      });
+
+      document.getElementById("sidebar").addEventListener("click", (e) => {
+        e.stopPropagation();
+      });
+
+      document.addEventListener("click", () => {
+        document.getElementById("sidebar").classList.remove("open");
+        hideSuggestions();
+      });
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          document.getElementById("sidebar").classList.remove("open");
+          hideSuggestions();
+
+          if (activeInfoWindow) {
+            activeInfoWindow.close();
+            activeInfoWindow = null;
+          }
+        }
       });
 
       loadPositions();
       document.getElementById("company-filter").addEventListener("change", loadPositions);
       document.getElementById("activeToday").addEventListener("change", loadPositions);
+      document.getElementById("fitMarkersBtn").addEventListener("click", fitVisibleMarkers);
+      document.getElementById("resetFiltersBtn").addEventListener("click", resetFilters);
       setInterval(loadPositions, 10000);
 
       const placeInput = document.getElementById("placeSearch");
@@ -315,6 +409,41 @@
 
       document.getElementById("vehicleSearch").addEventListener("input", showVehicleSuggestions);
       document.getElementById("typeSearch").addEventListener("input", showTypeSuggestions);
+    }
+
+    function hideSuggestions() {
+      document.getElementById("vehicleSuggestions").style.display = "none";
+      document.getElementById("typeSuggestions").style.display = "none";
+    }
+
+    function updateVisibleCount() {
+      document.getElementById("visibleCount").textContent = `Synlige biler: ${visibleMarkerIds.length}`;
+    }
+
+    function resetFilters() {
+      document.getElementById("company-filter").value = "all";
+      document.getElementById("activeToday").checked = true;
+      document.getElementById("vehicleSearch").value = "";
+      document.getElementById("typeSearch").value = "";
+      document.getElementById("placeSearch").value = "";
+      hideSuggestions();
+      loadPositions();
+    }
+
+    function fitVisibleMarkers() {
+      const bounds = new google.maps.LatLngBounds();
+      let hasMarkers = false;
+
+      visibleMarkerIds.forEach(id => {
+        if (markers[id]) {
+          bounds.extend(markers[id].getPosition());
+          hasMarkers = true;
+        }
+      });
+
+      if (hasMarkers) {
+        map.fitBounds(bounds);
+      }
     }
 
     function formatTimestamp(timestamp) {
@@ -374,7 +503,8 @@
           return c && a && v.isParticipant;
         });
 
-        const ids = filtered.map(v => String(v.id));
+        visibleMarkerIds = filtered.map(v => String(v.id));
+        updateVisibleCount();
 
         for (const v of filtered) {
           if (!v.latitude || !v.longitude) continue;
@@ -392,6 +522,8 @@
 
             const infoWindow = new google.maps.InfoWindow({
               content: `<div class="info-window">
+                          <b>ID:</b> ${v.id || "-"}<br>
+                          <b>Nummer:</b> ${v.number || "-"}<br>
                           <b>Navn:</b> ${v.name}<br>
                           <b>Type:</b> ${v.type}<br>
                           <b>Palleplasser:</b> ${v.palleplasser}<br>
@@ -411,7 +543,7 @@
         }
 
         for (const id in markers)
-          if (!ids.includes(id)) { markers[id].setMap(null); delete markers[id]; }
+          if (!visibleMarkerIds.includes(id)) { markers[id].setMap(null); delete markers[id]; }
 
       } catch (err) { console.error('Error loading positions:', err); }
     }
@@ -421,11 +553,18 @@
       const box = document.getElementById("vehicleSuggestions");
       box.innerHTML = "";
       if (input.length < 2) return box.style.display = "none";
-      const matches = vehicleData.filter(v => v.name && v.name.toLowerCase().includes(input));
+
+      const matches = vehicleData.filter(v =>
+        (v.name && v.name.toLowerCase().includes(input)) ||
+        (v.number && String(v.number).toLowerCase().includes(input)) ||
+        (v.id && String(v.id).toLowerCase().includes(input))
+      );
+
       if (!matches.length) return box.style.display = "none";
+
       matches.forEach(v => {
         const d = document.createElement("div");
-        d.textContent = `${v.name} (${v.company})`;
+        d.textContent = `${v.name} (${v.number || v.id || "-"}) - ${v.company}`;
         d.onclick = () => {
           box.style.display = "none";
           document.getElementById("vehicleSearch").value = v.name;
