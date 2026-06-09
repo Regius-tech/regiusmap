@@ -28,6 +28,17 @@ h1,h2 { text-align:center; margin-bottom:20px; }
 .filter-container { display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:20px; }
 .filter-container select, .filter-container input { padding:10px; border-radius:8px; border:none; background:#023060; color:white; }
 
+.participant-filter {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:10px;
+  border-radius:8px;
+  background:#023060;
+  font-weight:600;
+  font-size:14px;
+}
+
 /* Car grid */
 .grid-container { display:grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap:20px; }
 .car-card { background: rgba(2,28,60,0.95); border-radius:12px; padding:20px; box-shadow:0 4px 15px rgba(0,0,0,0.5); transition: transform 0.3s; cursor:pointer; position:relative; }
@@ -112,6 +123,14 @@ input:checked + .slider:before { transform: translateX(24px); }
     <input type="text" id="searchInput" placeholder="Søk bil...">
     <select id="companyFilter"><option value="all">Alle selskap</option></select>
     <select id="typeFilter"><option value="all">Alle typer</option></select>
+
+    <div class="participant-filter">
+      <span>Kun deltakere</span>
+      <label class="switch">
+        <input type="checkbox" id="participantOnly">
+        <span class="slider"></span>
+      </label>
+    </div>
   </div>
 
   <div class="grid-container" id="adminGrid"></div>
@@ -272,12 +291,14 @@ function renderCards() {
   const grid = document.getElementById('adminGrid');
   const companyFilter = document.getElementById('companyFilter').value;
   const typeFilter = document.getElementById('typeFilter').value;
+  const participantOnly = document.getElementById('participantOnly').checked;
   const searchInput = document.getElementById('searchInput').value.toLowerCase();
   grid.innerHTML = "";
 
   vehicleData.filter(v =>
     (companyFilter === 'all' || v.company === companyFilter) &&
     (typeFilter === 'all' || v.type === typeFilter) &&
+    (!participantOnly || v.isParticipant === true) &&
     (
       v.name.toLowerCase().includes(searchInput) ||
       v.type.toLowerCase().includes(searchInput) ||
@@ -348,6 +369,7 @@ document.getElementById('saveEditBtn').addEventListener('click', async () => {
 document.getElementById('searchInput').addEventListener('input', renderCards);
 document.getElementById('companyFilter').addEventListener('change', renderCards);
 document.getElementById('typeFilter').addEventListener('change', renderCards);
+document.getElementById('participantOnly').addEventListener('change', renderCards);
 
 onValue(ref(db, 'cars'), () => loadVehicles());
 
