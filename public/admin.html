@@ -9,14 +9,12 @@
 body { margin:0; font-family:Poppins,sans-serif; background:#001f3f; color:white; }
 .container { max-width:1400px; margin:20px auto; padding:20px; position:relative; }
 
-/* Fanemeny */
 .nav-tabs { width: 100%; background: #001f3f; text-align: center; margin-bottom: 20px; }
 .nav-tabs ul { list-style: none; padding: 0; margin: 0; display: inline-flex; flex-wrap:wrap; }
 .nav-tabs ul li { margin: 0 10px; }
 .nav-tabs ul li a { display: block; padding: 12px 20px; color: white; text-decoration: none; font-weight: 600; border-radius: 8px 8px 0 0; transition: 0.3s; }
 .nav-tabs ul li a:hover, .nav-tabs ul li.active a { background: #023060; }
 
-/* Stats */
 h1,h2 { text-align:center; margin-bottom:20px; }
 .stats-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:20px; margin-bottom:30px; }
 .stat-card { background: rgba(2,28,60,0.95); padding:20px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.5); text-align:center; transition: transform 0.3s; }
@@ -24,11 +22,9 @@ h1,h2 { text-align:center; margin-bottom:20px; }
 .stat-card h3 { font-size:2em; margin:10px 0; }
 .stat-card p { font-size:1em; color:#cfcfcf; }
 
-/* Filter */
 .filter-container { display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:20px; }
 .filter-container select, .filter-container input { padding:10px; border-radius:8px; border:none; background:#023060; color:white; }
 
-/* Car grid */
 .grid-container { display:grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap:20px; }
 .car-card { background: rgba(2,28,60,0.95); border-radius:12px; padding:20px; box-shadow:0 4px 15px rgba(0,0,0,0.5); transition: transform 0.3s; cursor:pointer; position:relative; }
 .car-card:hover { transform:translateY(-5px); }
@@ -47,24 +43,14 @@ h1,h2 { text-align:center; margin-bottom:20px; }
 .participant-dot.green { background:#2ECC40; }
 .participant-dot.red { background:#FF4136; }
 
-/* Modal */
 .overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:999; }
 .form-popup { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:rgba(2,28,60,0.95); padding:30px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.7); z-index:1000; max-width:500px; width:90%; }
 .form-popup input, .form-popup select { width:100%; margin:10px 0; padding:10px; border-radius:8px; border:none; box-sizing:border-box; }
 .form-popup button { padding:12px; border:none; border-radius:8px; cursor:pointer; }
 .form-popup .save-btn { background:#0074D9; color:white; }
 .form-popup .cancel-btn { background:#FF4136; color:white; margin-left:10px; }
-.custom-fields { margin-top:10px; }
-.custom-field { display:flex; gap:10px; margin-bottom:5px; }
-.custom-field input[type=text] { flex:1; }
 
-/* Switch style */
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 50px;
-  height: 26px;
-}
+.switch { position: relative; display: inline-block; width: 50px; height: 26px; }
 .switch input { opacity: 0; width: 0; height: 0; }
 .slider {
   position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
@@ -89,7 +75,6 @@ input:checked + .slider:before { transform: translateX(24px); }
 </head>
 <body>
 
-<!-- Fanemeny -->
 <nav class="nav-tabs">
   <ul>
     <li class="active"><a href="admin.html">Administrer biler</a></li>
@@ -146,8 +131,6 @@ input:checked + .slider:before { transform: translateX(24px); }
       </label>
     </label>
 
-    <div class="custom-fields" id="customFieldsContainer"></div>
-    <button id="addCustomFieldBtn" style="display:none;">Legg til felt</button>
     <div style="margin-top:10px;">
       <button class="save-btn" id="saveEditBtn">Lagre</button>
       <button class="cancel-btn" id="cancelEditBtn">Avbryt</button>
@@ -186,15 +169,41 @@ const companyKeyMap = {
 
 function normalizeCompany(company) {
   if (!company) return "";
-
   const value = String(company).toLowerCase().trim();
-
   if (value === "tsoslo" || value.includes("transportsentralen oslo")) return "tsoslo";
-  if (value === "tsoslobud" || value.includes("ts oslo budtjenester")) return "tsoslobud";
+  if (value === "tsoslobud" || value.includes("ts oslo budtjenester") || value.includes("tsbud")) return "tsoslobud";
   if (value === "mtf" || value.includes("moss transportforum")) return "mtf";
   if (value === "blakurer" || value.includes("blå kurér") || value.includes("bla-kurer") || value.includes("bla kur")) return "blakurer";
-
   return value;
+}
+
+function getAllowedCompanyKeys(userData) {
+  if ((userData.role || "user") === "superadmin") return ["all"];
+
+  if (Array.isArray(userData.companyKeys) && userData.companyKeys.length) {
+    return userData.companyKeys.map(normalizeCompany).filter(Boolean);
+  }
+
+  if (userData.companyKeys && typeof userData.companyKeys === "object") {
+    return Object.values(userData.companyKeys).map(normalizeCompany).filter(Boolean);
+  }
+
+  const single = normalizeCompany(userData.companyKey || userData.company || "");
+  return single ? [single] : [];
+}
+
+function hasCompanyAccess(companyKey) {
+  if (!currentUserProfile) return false;
+  if (currentUserProfile.role === "superadmin") return true;
+  return currentUserProfile.allowedCompanyKeys.includes(normalizeCompany(companyKey));
+}
+
+function companyLabel(key) {
+  if (key === "tsoslo") return "Transportsentralen Oslo";
+  if (key === "tsoslobud") return "TS Oslo Budtjenester";
+  if (key === "mtf") return "Moss Transportforum";
+  if (key === "blakurer") return "Blå Kurér";
+  return key;
 }
 
 onAuthStateChanged(auth, async user => {
@@ -219,30 +228,29 @@ onAuthStateChanged(auth, async user => {
     return;
   }
 
-  if (!["admin", "superadmin", "user"].includes(userData.role || "user")) {
-    window.location.href = "dashboard.html";
-    return;
-  }
-
   currentUserProfile = {
     uid: user.uid,
     email: userData.email || user.email || "",
     role: userData.role || "user",
     company: userData.company || "",
     companyKey: normalizeCompany(userData.companyKey || userData.company || ""),
-    companyName: userData.companyName || userData.company || ""
+    allowedCompanyKeys: getAllowedCompanyKeys(userData)
   };
 
-  if (currentUserProfile.role !== "superadmin") {
-    const companyFilter = document.getElementById("companyFilter");
-    companyFilter.disabled = true;
+  if (!currentUserProfile.allowedCompanyKeys.length && currentUserProfile.role !== "superadmin") {
+    alert("Brukeren mangler selskapstilgang.");
+    await signOut(auth);
+    window.location.href = "index.html";
+    return;
   }
 
   await syncMissingCarsFromApi();
   loadVehicles();
 });
 
-document.getElementById('logoutTab').addEventListener('click', ()=>{ signOut(auth).then(()=>window.location.href='index.html'); });
+document.getElementById('logoutTab').addEventListener('click', () => {
+  signOut(auth).then(() => window.location.href='index.html');
+});
 
 async function syncMissingCarsFromApi() {
   try {
@@ -259,14 +267,7 @@ async function syncMissingCarsFromApi() {
       }
 
       if (!vehicle.id) continue;
-
-      if (
-        currentUserProfile &&
-        currentUserProfile.role !== "superadmin" &&
-        companyKey !== currentUserProfile.companyKey
-      ) {
-        continue;
-      }
+      if (!hasCompanyAccess(companyKey)) continue;
 
       const carRef = ref(db, "cars/" + companyKey + "/" + vehicle.id);
       const snapshot = await get(carRef);
@@ -323,12 +324,7 @@ async function loadVehicles() {
   for (const company in data) {
     const normalizedCompany = normalizeCompany(company);
 
-    if (
-      currentUserProfile.role !== "superadmin" &&
-      normalizedCompany !== currentUserProfile.companyKey
-    ) {
-      continue;
-    }
+    if (!hasCompanyAccess(normalizedCompany)) continue;
 
     for (const carId in data[company]) {
       const car = data[company][carId];
@@ -347,8 +343,7 @@ async function loadVehicles() {
         normalizedCompany: normalizedCompany,
         time: positionMatch.time || car.time || "",
         isParticipant: car.isParticipant === true,
-        isActiveToday: positionMatch.isActiveToday === true,
-        customFields: car.customFields || {}
+        isActiveToday: positionMatch.isActiveToday === true
       });
     }
   }
@@ -370,25 +365,15 @@ function updateFilters() {
   typeSelect.innerHTML = '<option value="all">Alle typer</option>';
 
   companies.forEach(c => {
-    const label =
-      c === "tsoslo" ? "Transportsentralen Oslo" :
-      c === "tsoslobud" ? "TS Oslo Budtjenester" :
-      c === "mtf" ? "Moss Transportforum" :
-      c === "blakurer" ? "Blå Kurér" :
-      c;
-
-    companySelect.appendChild(Object.assign(document.createElement('option'), { value: c, textContent: label }));
+    companySelect.appendChild(Object.assign(document.createElement('option'), {
+      value: c,
+      textContent: companyLabel(c)
+    }));
   });
 
   types.forEach(t => typeSelect.appendChild(Object.assign(document.createElement('option'), { value: t, textContent: t })));
 
-  if (currentUserProfile.role !== "superadmin") {
-    companySelect.value = currentUserProfile.companyKey;
-    companySelect.disabled = true;
-  } else if (companies.includes(currentCompany)) {
-    companySelect.value = currentCompany;
-  }
-
+  if (companies.includes(currentCompany)) companySelect.value = currentCompany;
   if (types.includes(currentType)) typeSelect.value = currentType;
 }
 
@@ -427,16 +412,15 @@ function renderCards() {
     const card = document.createElement('div');
     card.className = "car-card";
 
-    let innerHTML = `<span class="participant-dot ${v.isParticipant ? "green" : "red"}"></span>
+    card.innerHTML = `<span class="participant-dot ${v.isParticipant ? "green" : "red"}"></span>
                      <h3>${v.name}</h3>
                      <p>ID: ${v.id}</p>
                      <p>Nummer: ${v.number}</p>
                      <p>Type: ${v.type}</p>
                      <p>Palleplasser: ${v.palleplasser}</p>
-                     <p>Selskap: ${v.company}</p>
+                     <p>Selskap: ${companyLabel(v.normalizedCompany)}</p>
                      <p>Deltaker: ${v.isParticipant ? "Ja" : "Nei"}</p>`;
 
-    card.innerHTML = innerHTML;
     card.addEventListener('click', () => openEditForm(v.firebaseKey, v.company));
     grid.appendChild(card);
   });
@@ -448,11 +432,15 @@ function renderCards() {
 
 const overlay = document.getElementById('overlay');
 const editForm = document.getElementById('editForm');
-const customFieldsContainer = document.getElementById('customFieldsContainer');
 
 function openEditForm(firebaseKey, company) {
   const car = vehicleData.find(c => c.firebaseKey === firebaseKey && c.company === company);
   if (!car) return;
+
+  if (!hasCompanyAccess(car.normalizedCompany)) {
+    alert("Du kan bare redigere biler i selskaper du har tilgang til.");
+    return;
+  }
 
   document.getElementById('editCarId').value = car.firebaseKey;
   document.getElementById('editCompany').value = car.company;
@@ -460,8 +448,6 @@ function openEditForm(firebaseKey, company) {
   document.getElementById('editType').value = car.type;
   document.getElementById('editPalleplasser').value = car.palleplasser;
   document.getElementById('editIsParticipant').checked = car.isParticipant;
-
-  customFieldsContainer.innerHTML = '';
 
   overlay.style.display = 'block';
   editForm.style.display = 'block';
@@ -477,11 +463,8 @@ document.getElementById('saveEditBtn').addEventListener('click', async () => {
   const company = document.getElementById('editCompany').value;
   const normalizedCompany = normalizeCompany(company);
 
-  if (
-    currentUserProfile.role !== "superadmin" &&
-    normalizedCompany !== currentUserProfile.companyKey
-  ) {
-    alert("Du kan bare redigere biler i eget selskap.");
+  if (!hasCompanyAccess(normalizedCompany)) {
+    alert("Du kan bare redigere biler i selskaper du har tilgang til.");
     return;
   }
 
