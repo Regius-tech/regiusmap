@@ -73,6 +73,64 @@
       font-size: 14px;
     }
 
+    .active-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 15px;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .active-row span {
+      line-height: 26px;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 26px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: .4s;
+      border-radius: 26px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: #0074D9;
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(24px);
+    }
+
     .sidebar .btn-secondary {
       display: block;
       margin-top: 12px;
@@ -163,7 +221,13 @@
       <option value="TS Oslo Budtjenester">TS Oslo Budtjenester</option>
     </select>
 
-    <label><input type="checkbox" id="activeToday" checked> Aktive i dag</label>
+    <div class="active-row">
+      <span>Aktive i dag</span>
+      <label class="switch">
+        <input type="checkbox" id="activeToday" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
 
     <label for="vehicleSearch">Søk kjøretøy:</label>
     <input type="text" id="vehicleSearch" placeholder="Skriv kjøretøy-navn...">
