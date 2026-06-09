@@ -45,8 +45,8 @@ tr:hover { background-color: rgba(255,255,255,0.1); }
 <nav class="nav-tabs">
   <ul>
     <li><a href="admin.html">Administrer biler</a></li>
-    <li><a href="cars.html">Konsernbilpark</a></li>
-    <li class="active"><a href="dashboard.html">Dashboard</a></li>
+    <li class="active"><a href="cars.html">Konsernbilpark</a></li>
+    <li><a href="dashboard.html">Dashboard</a></li>
     <li><a href="kart.html">Kart</a></li>
     <li><a href="users.html">Brukere</a></li>
     <li><a href="#" id="logoutTab">Logg ut</a></li>
@@ -178,12 +178,20 @@ function updateStats() {
 function populateFilters(){
     const companySelect = document.getElementById('companyFilter');
     const typeSelect = document.getElementById('typeFilter');
+    const currentCompany = companySelect.value;
+    const currentType = typeSelect.value;
+
     companySelect.innerHTML = '<option value="all">Alle selskap</option>';
     typeSelect.innerHTML = '<option value="all">Alle typer</option>';
+
     const companies = [...new Set(vehicleData.map(v=>v.company))];
     const types = [...new Set(vehicleData.map(v=>v.type))];
+
     companies.forEach(c=>companySelect.appendChild(Object.assign(document.createElement('option'),{value:c,textContent:c})));
     types.forEach(t=>typeSelect.appendChild(Object.assign(document.createElement('option'),{value:t,textContent:t})));
+
+    if (companies.includes(currentCompany)) companySelect.value = currentCompany;
+    if (types.includes(currentType)) typeSelect.value = currentType;
 }
 
 function updateGrid(){
