@@ -69,6 +69,11 @@ button:hover {
   background:#005fa3;
 }
 
+button:disabled {
+  opacity:0.6;
+  cursor:not-allowed;
+}
+
 .login-link {
   color:#cfcfcf;
   font-size:0.9rem;
@@ -127,7 +132,16 @@ footer {
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-import { firebaseConfig } from "./firebaseConfig.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCKqwpql2Yl0kbpUIPrQUYyVd7m1OeH-D8",
+  authDomain: "triflex-a08c7.firebaseapp.com",
+  projectId: "triflex-a08c7",
+  storageBucket: "triflex-a08c7.firebasestorage.app",
+  messagingSenderId: "835381689765",
+  appId: "1:835381689765:web:e0be4b22e5f35ca1e0bc4c",
+  databaseURL: "https://triflex-a08c7-default-rtdb.europe-west1.firebasedatabase.app"
+};
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
@@ -141,15 +155,18 @@ const message = document.getElementById("message");
 
 const domainMap = {
   "tsoslo.no": {
-    company: "tsoslo",
+    company: "Transportsentralen Oslo",
+    companyKey: "tsoslo",
     companyName: "Transportsentralen Oslo"
   },
   "mtf.no": {
-    company: "mtf",
+    company: "Moss Transportforum",
+    companyKey: "mtf",
     companyName: "Moss Transportforum"
   },
   "bla-kurer.no": {
-    company: "blakurer",
+    company: "Blå Kurér",
+    companyKey: "blakurer",
     companyName: "Blå Kurér"
   }
 };
@@ -159,67 +176,89 @@ function getDomain(email) {
   return email.split("@")[1].toLowerCase().trim();
 }
 
-registerBtn.addEventListener("click", async () => {
+function showMessage(text, color = "#FF4136") {
+  message.style.color = color;
+  message.textContent = text;
+}
+
+async function handleRegister() {
   const email = emailInput.value.trim().toLowerCase();
   const password = passwordInput.value.trim();
   const confirmPassword = confirmPasswordInput.value.trim();
   const domain = getDomain(email);
   const companyData = domainMap[domain];
 
-  message.textContent = "";
-  message.style.color = "#FF4136";
+  showMessage("");
 
   if (!email || !password || !confirmPassword) {
-    message.textContent = "Fyll inn alle feltene.";
+    showMessage("Fyll inn alle feltene.");
     return;
   }
 
   if (!companyData) {
-    message.textContent = "E-postdomenet er ikke godkjent for Triflex.";
+    showMessage("E-postdomenet er ikke godkjent for Triflex.");
     return;
   }
 
   if (password.length < 6) {
-    message.textContent = "Passord må være minst 6 tegn.";
+    showMessage("Passord må være minst 6 tegn.");
     return;
   }
 
   if (password !== confirmPassword) {
-    message.textContent = "Passordene er ikke like.";
+    showMessage("Passordene er ikke like.");
     return;
   }
+
+  registerBtn.disabled = true;
+  registerBtn.textContent = "Oppretter...";
 
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const uid = userCredential.user.uid;
 
     await set(ref(db, "users/" + uid), {
-      email,
+      email: email,
       company: companyData.company,
+      companyKey: companyData.companyKey,
       companyName: companyData.companyName,
       role: "user",
       approved: true,
       active: true,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      lastLogin: new Date().toISOString()
     });
 
-    message.style.color = "#2ECC40";
-    message.textContent = "Bruker opprettet. Sender deg videre...";
+    showMessage("Bruker opprettet. Sender deg videre...", "#2ECC40");
 
     setTimeout(() => {
       window.location.href = "dashboard.html";
     }, 1000);
 
   } catch (error) {
-    console.error(error);
-    message.style.color = "#FF4136";
+    console.error("Registreringsfeil:", error);
 
     if (error.code === "auth/email-already-in-use") {
-      message.textContent = "E-postadressen er allerede registrert.";
+      showMessage("E-postadressen er allerede registrert.");
+    } else if (error.code === "auth/invalid-email") {
+      showMessage("Ugyldig e-postadresse.");
+    } else if (error.code === "auth/weak-password") {
+      showMessage("Passordet er for svakt.");
+    } else if (error.code === "auth/operation-not-allowed") {
+      showMessage("Registrering med e-post/passord er ikke aktivert i Firebase.");
     } else {
-      message.textContent = "Kunne ikke opprette bruker.";
+      showMessage("Kunne ikke opprette bruker. Se Console for detaljer.");
     }
+
+    registerBtn.disabled = false;
+    registerBtn.textContent = "Opprett bruker";
   }
+}
+
+registerBtn.addEventListener("click", handleRegister);
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") handleRegister();
 });
 </script>
 
