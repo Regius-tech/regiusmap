@@ -22,6 +22,8 @@ let unsubscribeMessages = null;
 let allVisibleMessages = [];
 let isOpen = false;
 let unreadCount = 0;
+let seenMessageIds = new Set();
+let hasInitialLoad = false;
 let isDragging = false;
 let dragOffsetX = 0;
 let dragOffsetY = 0;
@@ -144,6 +146,7 @@ function injectStyles() {
       justify-content: center;
       padding: 0 5px;
       box-sizing: border-box;
+      line-height: 20px;
     }
 
     .triflex-chat-window {
@@ -424,6 +427,7 @@ function updateBadge() {
     badge.textContent = unreadCount > 99 ? "99+" : String(unreadCount);
   } else {
     badge.style.display = "none";
+    badge.textContent = "0";
   }
 }
 
@@ -453,8 +457,6 @@ function startMessageListener() {
   );
 
   unsubscribeMessages = onValue(messagesQuery, snapshot => {
-    const oldLastId = allVisibleMessages.length ? allVisibleMessages[allVisibleMessages.length - 1].id : null;
-
     const messages = [];
 
     if (snapshot.exists()) {
@@ -467,14 +469,23 @@ function startMessageListener() {
     }
 
     messages.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-    allVisibleMessages = messages;
 
-    const newLastId = allVisibleMessages.length ? allVisibleMessages[allVisibleMessages.length - 1].id : null;
+    const newUnreadMessages = messages.filter(message => {
+      if (!hasInitialLoad) return false;
+      if (seenMessageIds.has(message.id)) return false;
+      if (message.uid === currentUserProfile.uid) return false;
+      return true;
+    });
 
-    if (!isOpen && oldLastId && newLastId && oldLastId !== newLastId) {
-      unreadCount += 1;
+    if (!isOpen && newUnreadMessages.length > 0) {
+      unreadCount += newUnreadMessages.length;
       updateBadge();
     }
+
+    messages.forEach(message => seenMessageIds.add(message.id));
+
+    hasInitialLoad = true;
+    allVisibleMessages = messages;
 
     renderMessagesForCurrentChannel();
   }, error => {
