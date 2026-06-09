@@ -19,6 +19,12 @@ const auth = getAuth(app);
 let currentUserProfile = null;
 let currentChannel = "global";
 let unsubscribeMessages = null;
+let allVisibleMessages = [];
+let isOpen = false;
+let unreadCount = 0;
+let isDragging = false;
+let dragOffsetX = 0;
+let dragOffsetY = 0;
 
 const companyNames = {
   tsoslo: "Transportsentralen Oslo",
@@ -30,10 +36,12 @@ const companyNames = {
 function normalizeCompany(company) {
   if (!company) return "";
   const value = String(company).toLowerCase().trim();
+
   if (value === "tsoslo" || value.includes("transportsentralen oslo")) return "tsoslo";
   if (value === "tsoslobud" || value.includes("ts oslo budtjenester") || value.includes("tsbud")) return "tsoslobud";
   if (value === "mtf" || value.includes("moss transportforum")) return "mtf";
   if (value === "blakurer" || value.includes("blå kurér") || value.includes("bla-kurer") || value.includes("bla kur")) return "blakurer";
+
   return value;
 }
 
@@ -52,6 +60,10 @@ function getAllowedCompanyKeys(userData) {
   return single ? [single] : [];
 }
 
+function companyLabel(key) {
+  return companyNames[key] || key || "Ukjent";
+}
+
 function escapeHtml(str) {
   return String(str || "")
     .replace(/&/g, "&amp;")
@@ -65,7 +77,24 @@ function formatTime(value) {
   if (!value) return "";
   const date = new Date(value);
   if (isNaN(date.getTime())) return "";
-  return date.toLocaleTimeString("no-NO", { hour: "2-digit", minute: "2-digit" });
+  return date.toLocaleString("no-NO", {
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+}
+
+function canSeeMessage(message) {
+  if (!currentUserProfile) return false;
+  if (message.channel === "global") return true;
+  if (currentUserProfile.role === "superadmin") return true;
+
+  const keys = Array.isArray(message.companyKeys)
+    ? message.companyKeys.map(normalizeCompany)
+    : [normalizeCompany(message.companyKey || "")];
+
+  return keys.some(key => currentUserProfile.allowedCompanyKeys.includes(key));
 }
 
 function injectStyles() {
@@ -78,19 +107,20 @@ function injectStyles() {
       position: fixed !important;
       right: 22px !important;
       bottom: 22px !important;
-      width: 56px !important;
-      height: 56px !important;
+      width: 58px !important;
+      height: 58px !important;
       border-radius: 50% !important;
       background: #023060 !important;
       color: white !important;
       border: none !important;
-      cursor: pointer !important;
       font-size: 26px !important;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.45) !important;
+      cursor: pointer !important;
       z-index: 2147483647 !important;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.6) !important;
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;
+      transition: 0.25s !important;
     }
 
     .triflex-chat-bubble:hover {
@@ -98,18 +128,36 @@ function injectStyles() {
       transform: translateY(-3px);
     }
 
+    .triflex-chat-badge {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      min-width: 20px;
+      height: 20px;
+      border-radius: 999px;
+      background: #FF4136;
+      color: white;
+      font-size: 12px;
+      font-weight: 700;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 0 5px;
+      box-sizing: border-box;
+    }
+
     .triflex-chat-window {
       position: fixed !important;
       right: 22px !important;
-      bottom: 90px !important;
-      width: 360px !important;
-      height: 500px !important;
+      bottom: 92px !important;
+      width: 370px !important;
+      height: 510px !important;
       background: rgba(2,28,60,0.98) !important;
       color: white !important;
       border-radius: 14px !important;
-      box-shadow: 0 6px 22px rgba(0,0,0,0.55) !important;
       z-index: 2147483647 !important;
       display: none !important;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.65) !important;
       overflow: hidden !important;
       font-family: Poppins, sans-serif !important;
       border: 1px solid rgba(255,255,255,0.08) !important;
@@ -121,21 +169,29 @@ function injectStyles() {
     }
 
     .triflex-chat-header {
-      padding: 12px;
       background: #012448;
+      padding: 12px;
+      font-weight: 700;
       display: flex;
-      align-items: center;
       justify-content: space-between;
+      align-items: center;
       cursor: move;
       user-select: none;
     }
 
-    .triflex-chat-close {
+    .triflex-chat-header-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .triflex-chat-header button {
       background: transparent;
       border: none;
       color: white;
-      font-size: 20px;
+      font-size: 18px;
       cursor: pointer;
+      padding: 0 4px;
     }
 
     .triflex-chat-tabs {
@@ -156,8 +212,13 @@ function injectStyles() {
       background: #023060;
     }
 
-    .triflex-chat-tab.active.global { background: #0074D9; }
-    .triflex-chat-tab.active.internal { background: #2ECC40; }
+    .triflex-chat-tab.active.global {
+      background: #0074D9;
+    }
+
+    .triflex-chat-tab.active.internal {
+      background: #2ECC40;
+    }
 
     .triflex-chat-messages {
       flex: 1;
@@ -175,7 +236,9 @@ function injectStyles() {
       font-size: 13px;
     }
 
-    .triflex-chat-message.internal { border-left-color: #2ECC40; }
+    .triflex-chat-message.internal {
+      border-left-color: #2ECC40;
+    }
 
     .triflex-chat-meta {
       display: flex;
@@ -187,9 +250,20 @@ function injectStyles() {
       color: #cfcfcf;
     }
 
-    .triflex-chat-tag.global { color: #7FDBFF; font-weight: 800; }
-    .triflex-chat-tag.internal { color: #2ECC40; font-weight: 800; }
-    .triflex-chat-tag.admin { color: #FFDC00; font-weight: 800; }
+    .triflex-chat-tag.global {
+      color: #7FDBFF;
+      font-weight: 800;
+    }
+
+    .triflex-chat-tag.internal {
+      color: #2ECC40;
+      font-weight: 800;
+    }
+
+    .triflex-chat-tag.admin {
+      color: #FFDC00;
+      font-weight: 800;
+    }
 
     .triflex-chat-time {
       margin-left: auto;
@@ -221,6 +295,7 @@ function injectStyles() {
       color: white;
       font-family: Poppins, sans-serif;
       box-sizing: border-box;
+      outline: none;
     }
 
     .triflex-chat-send {
@@ -233,11 +308,27 @@ function injectStyles() {
       cursor: pointer;
     }
 
+    .triflex-chat-send:hover {
+      background: #005fa3;
+    }
+
     .triflex-chat-empty {
       color: #cfcfcf;
       text-align: center;
       margin-top: 30px;
       font-size: 13px;
+      line-height: 1.4;
+    }
+
+    @media (max-width: 520px) {
+      .triflex-chat-window {
+        width: calc(100vw - 24px) !important;
+        height: 70vh !important;
+        right: 12px !important;
+        bottom: 88px !important;
+        left: auto !important;
+        top: auto !important;
+      }
     }
   `;
   document.head.appendChild(style);
@@ -252,16 +343,19 @@ function injectWidget() {
   bubble.className = "triflex-chat-bubble";
   bubble.id = "triflexChatBubble";
   bubble.title = "Åpne chat";
-  bubble.textContent = "💬";
+  bubble.innerHTML = `💬<span class="triflex-chat-badge" id="triflexChatBadge">0</span>`;
 
-  const windowEl = document.createElement("div");
-  windowEl.className = "triflex-chat-window";
-  windowEl.id = "triflexChatWindow";
+  const chatWindow = document.createElement("div");
+  chatWindow.className = "triflex-chat-window";
+  chatWindow.id = "triflexChatWindow";
 
-  windowEl.innerHTML = `
+  chatWindow.innerHTML = `
     <div class="triflex-chat-header" id="triflexChatHeader">
       <strong>Triflex Chat</strong>
-      <button class="triflex-chat-close" id="triflexChatClose">×</button>
+      <div class="triflex-chat-header-actions">
+        <button id="triflexChatMinimize" title="Minimer">−</button>
+        <button id="triflexChatClose" title="Lukk">×</button>
+      </div>
     </div>
 
     <div class="triflex-chat-tabs">
@@ -270,7 +364,7 @@ function injectWidget() {
     </div>
 
     <div class="triflex-chat-messages" id="triflexChatMessages">
-      <div class="triflex-chat-empty">Åpner chat...</div>
+      <div class="triflex-chat-empty">Laster chat...</div>
     </div>
 
     <div class="triflex-chat-input-area">
@@ -280,17 +374,17 @@ function injectWidget() {
   `;
 
   document.body.appendChild(bubble);
-  document.body.appendChild(windowEl);
+  document.body.appendChild(chatWindow);
+
+  restoreWindowPosition(chatWindow);
 
   bubble.addEventListener("click", (e) => {
     e.stopPropagation();
-    windowEl.classList.toggle("open");
-    if (windowEl.classList.contains("open")) loadMessages();
+    openChat();
   });
 
-  document.getElementById("triflexChatClose").addEventListener("click", () => {
-    windowEl.classList.remove("open");
-  });
+  document.getElementById("triflexChatClose").addEventListener("click", () => closeChat());
+  document.getElementById("triflexChatMinimize").addEventListener("click", () => closeChat());
 
   document.getElementById("triflexGlobalTab").addEventListener("click", () => setChannel("global"));
   document.getElementById("triflexInternalTab").addEventListener("click", () => setChannel("internal"));
@@ -302,6 +396,35 @@ function injectWidget() {
       sendMessage();
     }
   });
+
+  makeDraggable(chatWindow, document.getElementById("triflexChatHeader"));
+}
+
+function openChat() {
+  const chatWindow = document.getElementById("triflexChatWindow");
+  chatWindow.classList.add("open");
+  isOpen = true;
+  unreadCount = 0;
+  updateBadge();
+  renderMessagesForCurrentChannel();
+}
+
+function closeChat() {
+  const chatWindow = document.getElementById("triflexChatWindow");
+  chatWindow.classList.remove("open");
+  isOpen = false;
+}
+
+function updateBadge() {
+  const badge = document.getElementById("triflexChatBadge");
+  if (!badge) return;
+
+  if (unreadCount > 0) {
+    badge.style.display = "flex";
+    badge.textContent = unreadCount > 99 ? "99+" : String(unreadCount);
+  } else {
+    badge.style.display = "none";
+  }
 }
 
 function setChannel(channel) {
@@ -310,47 +433,98 @@ function setChannel(channel) {
   document.getElementById("triflexGlobalTab").classList.toggle("active", channel === "global");
   document.getElementById("triflexInternalTab").classList.toggle("active", channel === "internal");
 
-  loadMessages();
+  document.getElementById("triflexChatInput").placeholder =
+    channel === "global"
+      ? "Skriv til alle i konsernet..."
+      : "Skriv intern melding...";
+
+  renderMessagesForCurrentChannel();
 }
 
-function canSeeMessage(message) {
-  if (!currentUserProfile) return false;
-  if (message.channel === "global") return true;
-  if (currentUserProfile.role === "superadmin") return true;
+function startMessageListener() {
+  if (!currentUserProfile) return;
 
-  const keys = Array.isArray(message.companyKeys)
-    ? message.companyKeys.map(normalizeCompany)
-    : [normalizeCompany(message.companyKey || "")];
+  if (unsubscribeMessages) unsubscribeMessages();
 
-  return keys.some(key => currentUserProfile.allowedCompanyKeys.includes(key));
+  const messagesQuery = query(
+    ref(db, "chatMessages"),
+    orderByChild("createdAt"),
+    limitToLast(500)
+  );
+
+  unsubscribeMessages = onValue(messagesQuery, snapshot => {
+    const oldLastId = allVisibleMessages.length ? allVisibleMessages[allVisibleMessages.length - 1].id : null;
+
+    const messages = [];
+
+    if (snapshot.exists()) {
+      const data = snapshot.val();
+
+      for (const id in data) {
+        const message = { id, ...data[id] };
+        if (canSeeMessage(message)) messages.push(message);
+      }
+    }
+
+    messages.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+    allVisibleMessages = messages;
+
+    const newLastId = allVisibleMessages.length ? allVisibleMessages[allVisibleMessages.length - 1].id : null;
+
+    if (!isOpen && oldLastId && newLastId && oldLastId !== newLastId) {
+      unreadCount += 1;
+      updateBadge();
+    }
+
+    renderMessagesForCurrentChannel();
+  }, error => {
+    console.error("Feil ved lasting av chat:", error);
+    const box = document.getElementById("triflexChatMessages");
+    if (box) box.innerHTML = `<div class="triflex-chat-empty">Kunne ikke laste chat.<br>${escapeHtml(error.message)}</div>`;
+  });
 }
 
-function renderMessages(messages) {
+function renderMessagesForCurrentChannel() {
   const box = document.getElementById("triflexChatMessages");
+  if (!box) return;
+
+  if (!currentUserProfile) {
+    box.innerHTML = `<div class="triflex-chat-empty">Logger inn chat...</div>`;
+    return;
+  }
+
+  const messages = allVisibleMessages.filter(message => message.channel === currentChannel);
+
   box.innerHTML = "";
 
-  const visible = messages.filter(canSeeMessage);
-
-  if (!visible.length) {
+  if (!messages.length) {
     box.innerHTML = `<div class="triflex-chat-empty">Ingen meldinger her enda.</div>`;
     return;
   }
 
-  visible.forEach(message => {
+  messages.forEach(message => {
     const div = document.createElement("div");
     div.className = `triflex-chat-message ${message.channel === "internal" ? "internal" : "global"}`;
 
     const tag = message.channel === "global" ? "KONSERN" : "INTERN";
     const tagClass = message.channel === "global" ? "global" : "internal";
+
     const roleTag = ["admin", "superadmin"].includes(message.role)
       ? `<span class="triflex-chat-tag admin">${message.role === "superadmin" ? "SUPERADMIN" : "ADMIN"}</span>`
       : "";
+
+    const companyText = message.channel === "internal"
+      ? (Array.isArray(message.companyKeys)
+          ? message.companyKeys.map(companyLabel).join(", ")
+          : companyLabel(message.companyKey))
+      : "Alle";
 
     div.innerHTML = `
       <div class="triflex-chat-meta">
         <span class="triflex-chat-tag ${tagClass}">[${tag}]</span>
         ${roleTag}
         <span>${escapeHtml(message.email || "Ukjent")}</span>
+        <span>${escapeHtml(companyText)}</span>
         <span class="triflex-chat-time">${formatTime(message.createdAt)}</span>
       </div>
       <div class="triflex-chat-text">${escapeHtml(message.text)}</div>
@@ -360,40 +534,6 @@ function renderMessages(messages) {
   });
 
   box.scrollTop = box.scrollHeight;
-}
-
-function loadMessages() {
-  const box = document.getElementById("triflexChatMessages");
-
-  if (!currentUserProfile) {
-    box.innerHTML = `<div class="triflex-chat-empty">Logger inn chat...</div>`;
-    return;
-  }
-
-  if (unsubscribeMessages) unsubscribeMessages();
-
-  const messagesQuery = query(
-    ref(db, "chatMessages"),
-    orderByChild("createdAt"),
-    limitToLast(150)
-  );
-
-  unsubscribeMessages = onValue(messagesQuery, snapshot => {
-    const messages = [];
-
-    if (snapshot.exists()) {
-      const data = snapshot.val();
-
-      for (const id in data) {
-        const message = data[id];
-        if (message.channel !== currentChannel) continue;
-        messages.push({ id, ...message });
-      }
-    }
-
-    messages.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-    renderMessages(messages);
-  });
 }
 
 async function sendMessage() {
@@ -421,13 +561,76 @@ async function sendMessage() {
       role: currentUserProfile.role,
       companyKey: currentUserProfile.primaryCompanyKey,
       companyKeys: currentUserProfile.allowedCompanyKeys,
+      companyName: currentUserProfile.companyName,
       createdAt: new Date().toISOString()
     });
 
     input.value = "";
+  } catch (error) {
+    console.error("Feil ved sending av chatmelding:", error);
+    alert("Kunne ikke sende melding.\n\n" + error.message);
   } finally {
     sendBtn.disabled = false;
   }
+}
+
+function makeDraggable(windowEl, handle) {
+  handle.addEventListener("mousedown", e => {
+    if (window.innerWidth <= 520) return;
+
+    isDragging = true;
+
+    const rect = windowEl.getBoundingClientRect();
+    dragOffsetX = e.clientX - rect.left;
+    dragOffsetY = e.clientY - rect.top;
+
+    windowEl.style.right = "auto";
+    windowEl.style.bottom = "auto";
+    windowEl.style.left = rect.left + "px";
+    windowEl.style.top = rect.top + "px";
+  });
+
+  document.addEventListener("mousemove", e => {
+    if (!isDragging) return;
+
+    const maxLeft = window.innerWidth - windowEl.offsetWidth;
+    const maxTop = window.innerHeight - windowEl.offsetHeight;
+
+    let left = e.clientX - dragOffsetX;
+    let top = e.clientY - dragOffsetY;
+
+    left = Math.max(0, Math.min(left, maxLeft));
+    top = Math.max(0, Math.min(top, maxTop));
+
+    windowEl.style.left = left + "px";
+    windowEl.style.top = top + "px";
+  });
+
+  document.addEventListener("mouseup", () => {
+    if (!isDragging) return;
+    isDragging = false;
+    saveWindowPosition(windowEl);
+  });
+}
+
+function saveWindowPosition(windowEl) {
+  const rect = windowEl.getBoundingClientRect();
+  localStorage.setItem("triflexChatPosition", JSON.stringify({
+    left: rect.left,
+    top: rect.top
+  }));
+}
+
+function restoreWindowPosition(windowEl) {
+  try {
+    const saved = JSON.parse(localStorage.getItem("triflexChatPosition"));
+    if (!saved || window.innerWidth <= 520) return;
+
+    windowEl.style.right = "auto";
+    windowEl.style.bottom = "auto";
+    windowEl.style.left = saved.left + "px";
+    windowEl.style.top = saved.top + "px";
+  } catch {}
 }
 
 injectWidget();
@@ -439,6 +642,7 @@ onAuthStateChanged(auth, async user => {
   if (!snapshot.exists()) return;
 
   const userData = snapshot.val();
+
   if (userData.active === false || userData.approved !== true) return;
 
   const allowedCompanyKeys = getAllowedCompanyKeys(userData);
@@ -449,8 +653,9 @@ onAuthStateChanged(auth, async user => {
     email: userData.email || user.email || "",
     role: userData.role || "user",
     primaryCompanyKey,
-    allowedCompanyKeys
+    allowedCompanyKeys,
+    companyName: userData.companyName || companyLabel(primaryCompanyKey)
   };
 
-  loadMessages();
+  startMessageListener();
 });
