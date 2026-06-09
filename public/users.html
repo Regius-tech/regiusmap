@@ -132,6 +132,7 @@ select.role-select {
         <th>Rolle</th>
         <th>Status</th>
         <th>Opprettet</th>
+        <th>Sist innlogget</th>
         <th>Handlinger</th>
       </tr>
     </thead>
@@ -143,7 +144,16 @@ select.role-select {
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { getDatabase, ref, get, update, onValue } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-import { firebaseConfig } from "./firebaseConfig.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCKqwpql2Yl0kbpUIPrQUYyVd7m1OeH-D8",
+  authDomain: "triflex-a08c7.firebaseapp.com",
+  projectId: "triflex-a08c7",
+  storageBucket: "triflex-a08c7.firebasestorage.app",
+  messagingSenderId: "835381689765",
+  appId: "1:835381689765:web:e0be4b22e5f35ca1e0bc4c",
+  databaseURL: "https://triflex-a08c7-default-rtdb.europe-west1.firebasedatabase.app"
+};
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
@@ -175,6 +185,13 @@ function normalizeCompany(company) {
 function getCompanyDisplayName(user) {
   const normalized = normalizeCompany(user.companyKey || user.company || "");
   return user.companyName || companyNames[normalized] || user.company || "";
+}
+
+function formatDate(value) {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (isNaN(date.getTime())) return "-";
+  return date.toLocaleString("no-NO");
 }
 
 onAuthStateChanged(auth, async user => {
@@ -222,7 +239,7 @@ function loadUsers() {
       const data = snapshot.val();
 
       for (const uid in data) {
-        const user = data[uid];
+        const user = data[uid] || {};
         const normalizedCompany = normalizeCompany(user.companyKey || user.company || "");
 
         if (
@@ -238,9 +255,10 @@ function loadUsers() {
           company: normalizedCompany,
           companyName: getCompanyDisplayName(user),
           role: user.role || "user",
-          approved: user.approved === true,
+          approved: user.approved !== false,
           active: user.active !== false,
-          createdAt: user.createdAt || ""
+          createdAt: user.createdAt || "",
+          lastLogin: user.lastLogin || ""
         });
       }
     }
@@ -311,7 +329,8 @@ function renderUsers() {
         </select>
       </td>
       <td>${statusBadge}</td>
-      <td>${user.createdAt ? new Date(user.createdAt).toLocaleString("no-NO") : "-"}</td>
+      <td>${formatDate(user.createdAt)}</td>
+      <td>${formatDate(user.lastLogin)}</td>
       <td>
         ${user.approved ? "" : `<button class="btn-blue approve-btn" data-uid="${user.uid}">Godkjenn</button>`}
         ${user.active ? `<button class="btn-red deactivate-btn" data-uid="${user.uid}">Deaktiver</button>` : `<button class="btn-blue activate-btn" data-uid="${user.uid}">Aktiver</button>`}
@@ -323,7 +342,7 @@ function renderUsers() {
 
   if (!tbody.children.length) {
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td colspan="6" class="small">Ingen brukere funnet</td>`;
+    tr.innerHTML = `<td colspan="7" class="small">Ingen brukere funnet</td>`;
     tbody.appendChild(tr);
   }
 
