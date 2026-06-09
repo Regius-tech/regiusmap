@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brukere - Triflex</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<style>
+body { margin:0; font-family:Poppins,sans-serif; background:#001f3f; color:white; }
+.container { max-width:1400px; margin:20px auto; padding:20px; position:relative; }
+
+.nav-tabs { width:100%; background:#001f3f; text-align:center; margin-bottom:20px; }
+.nav-tabs ul { list-style:none; padding:0; margin:0; display:inline-flex; flex-wrap:wrap; }
+.nav-tabs ul li { margin:0 10px; }
+.nav-tabs ul li a { display:block; padding:12px 20px; color:white; text-decoration:none; font-weight:600; border-radius:8px 8px 0 0; transition:0.3s; }
+.nav-tabs ul li a:hover, .nav-tabs ul li.active a { background:#023060; }
+
+h1 { text-align:center; margin-bottom:20px; }
+
+.stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:20px; margin-bottom:30px; }
+.stat-card { background:rgba(2,28,60,0.95); padding:20px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.5); text-align:center; }
+.stat-card h3 { font-size:2em; margin:10px 0; }
+.stat-card p { color:#cfcfcf; margin:0; }
+
+.filter-container { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:20px; }
+.filter-container input, .filter-container select {
+  padding:10px;
+  border-radius:8px;
+  border:none;
+  background:#023060;
+  color:white;
+}
+
+table { width:100%; border-collapse:collapse; margin-bottom:40px; }
+th, td { border:1px solid #072D60; padding:10px; text-align:left; }
+th { background:#072D60; }
+tr:nth-child(even) { background-color:rgba(255,255,255,0.05); }
+tr:hover { background-color:rgba(255,255,255,0.1); }
+
+.badge {
+  display:inline-block;
+  padding:4px 9px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:600;
+}
+
+.badge.green { background:#2ECC40; color:white; }
+.badge.red { background:#FF4136; color:white; }
+.badge.blue { background:#0074D9; color:white; }
+.badge.gray { background:#555; color:white; }
+
+button {
+  border:none;
+  border-radius:6px;
+  padding:7px 10px;
+  cursor:pointer;
+  color:white;
+  font-weight:600;
+  margin:2px;
+}
+
+.btn-blue { background:#0074D9; }
+.btn-red { background:#FF4136; }
+.btn-gray { background:#555; }
+
+select.role-select {
+  background:#023060;
+  color:white;
+  border:none;
+  border-radius:6px;
+  padding:7px;
+}
+
+.small {
+  color:#cfcfcf;
+  font-size:13px;
+}
+</style>
+</head>
+<body>
+
+<nav class="nav-tabs">
+  <ul>
+    <li><a href="admin.html">Administrer biler</a></li>
+    <li><a href="cars.html">Konsernbilpark</a></li>
+    <li><a href="dashboard.html">Dashboard</a></li>
+    <li><a href="kart.html">Kart</a></li>
+    <li class="active"><a href="users.html">Brukere</a></li>
+    <li><a href="#" id="logoutTab">Logg ut</a></li>
+  </ul>
+</nav>
+
+<div class="container">
+  <h1>Brukeradministrasjon</h1>
+
+  <div class="stats-grid">
+    <div class="stat-card"><h3 id="totalUsers">0</h3><p>Totalt brukere</p></div>
+    <div class="stat-card"><h3 id="activeUsers">0</h3><p>Aktive brukere</p></div>
+    <div class="stat-card"><h3 id="adminUsers">0</h3><p>Administratorer</p></div>
+    <div class="stat-card"><h3 id="inactiveUsers">0</h3><p>Deaktiverte</p></div>
+  </div>
+
+  <div class="filter-container">
+    <input type="text" id="searchInput" placeholder="Søk bruker...">
+    <select id="companyFilter">
+      <option value="all">Alle selskap</option>
+      <option value="tsoslo">Transportsentralen Oslo</option>
+      <option value="mtf">Moss Transportforum</option>
+      <option value="blakurer">Blå Kurér</option>
+    </select>
+    <select id="roleFilter">
+      <option value="all">Alle roller</option>
+      <option value="superadmin">Superadmin</option>
+      <option value="admin">Admin</option>
+      <option value="user">Bruker</option>
+    </select>
+    <select id="statusFilter">
+      <option value="all">Alle statuser</option>
+      <option value="active">Aktive</option>
+      <option value="inactive">Deaktiverte</option>
+      <option value="pending">Ikke godkjent</option>
+    </select>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>E-post</th>
+        <th>Selskap</th>
+        <th>Rolle</th>
+        <th>Status</th>
+        <th>Opprettet</th>
+        <th>Handlinger</th>
+      </tr>
+    </thead>
+    <tbody id="usersTableBody"></tbody>
+  </table>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getDatabase, ref, get, update, onValue } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { firebaseConfig } from "./firebaseConfig.js";
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const auth = getAuth(app);
+
+let currentUserProfile = null;
+let usersData = [];
+
+const companyNames = {
+  tsoslo: "Transportsentralen Oslo",
+  mtf: "Moss Transportforum",
+  blakurer: "Blå Kurér"
+};
+
+onAuthStateChanged(auth, async user => {
+  if (!user) {
+    window.location.href = "index.html";
+    return;
+  }
+
+  const profileSnapshot = await get(ref(db, "users/" + user.uid));
+  if (!profileSnapshot.exists()) {
+    window.location.href = "index.html";
+    return;
+  }
+
+  currentUserProfile = {
+    uid: user.uid,
+    ...profileSnapshot.val()
+  };
+
+  if (
+    currentUserProfile.approved !== true ||
+    currentUserProfile.active === false ||
+    !["admin", "superadmin"].includes(currentUserProfile.role)
+  ) {
+    alert("Du har ikke tilgang til brukeradministrasjon.");
+    window.location.href = "dashboard.html";
+    return;
+  }
+
+  loadUsers();
+});
+
+document.getElementById("logoutTab").addEventListener("click", () => {
+  signOut(auth).then(() => window.location.href = "index.html");
+});
+
+function loadUsers() {
+  onValue(ref(db, "users"), snapshot => {
+    usersData = [];
+
+    if (snapshot.exists()) {
+      const data = snapshot.val();
+
+      for (const uid in data) {
+        const user = data[uid];
+
+        if (
+          currentUserProfile.role !== "superadmin" &&
+          user.company !== currentUserProfile.company
+        ) {
+          continue;
+        }
+
+        usersData.push({
+          uid,
+          email: user.email || "",
+          company: user.company || "",
+          companyName: user.companyName || companyNames[user.company] || user.company || "",
+          role: user.role || "user",
+          approved: user.approved === true,
+          active: user.active !== false,
+          createdAt: user.createdAt || ""
+        });
+      }
+    }
+
+    updateStats();
+    renderUsers();
+  });
+}
+
+function updateStats() {
+  document.getElementById("totalUsers").textContent = usersData.length;
+  document.getElementById("activeUsers").textContent = usersData.filter(u => u.active && u.approved).length;
+  document.getElementById("adminUsers").textContent = usersData.filter(u => ["admin", "superadmin"].includes(u.role)).length;
+  document.getElementById("inactiveUsers").textContent = usersData.filter(u => u.active === false).length;
+}
+
+function renderUsers() {
+  const tbody = document.getElementById("usersTableBody");
+  const search = document.getElementById("searchInput").value.toLowerCase();
+  const companyFilter = document.getElementById("companyFilter").value;
+  const roleFilter = document.getElementById("roleFilter").value;
+  const statusFilter = document.getElementById("statusFilter").value;
+
+  tbody.innerHTML = "";
+
+  usersData.filter(user => {
+    const matchSearch =
+      user.email.toLowerCase().includes(search) ||
+      user.companyName.toLowerCase().includes(search) ||
+      user.role.toLowerCase().includes(search);
+
+    const matchCompany = companyFilter === "all" || user.company === companyFilter;
+    const matchRole = roleFilter === "all" || user.role === roleFilter;
+
+    const matchStatus =
+      statusFilter === "all" ||
+      (statusFilter === "active" && user.active && user.approved) ||
+      (statusFilter === "inactive" && user.active === false) ||
+      (statusFilter === "pending" && user.approved !== true);
+
+    return matchSearch && matchCompany && matchRole && matchStatus;
+  }).forEach(user => {
+    const tr = document.createElement("tr");
+
+    const statusBadge = user.active === false
+      ? `<span class="badge red">Deaktivert</span>`
+      : user.approved
+        ? `<span class="badge green">Aktiv</span>`
+        : `<span class="badge gray">Venter</span>`;
+
+    const roleOptions = currentUserProfile.role === "superadmin"
+      ? `
+        <option value="user" ${user.role === "user" ? "selected" : ""}>Bruker</option>
+        <option value="admin" ${user.role === "admin" ? "selected" : ""}>Admin</option>
+        <option value="superadmin" ${user.role === "superadmin" ? "selected" : ""}>Superadmin</option>
+      `
+      : `
+        <option value="user" ${user.role === "user" ? "selected" : ""}>Bruker</option>
+        <option value="admin" ${user.role === "admin" ? "selected" : ""}>Admin</option>
+      `;
+
+    tr.innerHTML = `
+      <td>${escapeHtml(user.email)}</td>
+      <td>${escapeHtml(user.companyName)}</td>
+      <td>
+        <select class="role-select" data-uid="${user.uid}">
+          ${roleOptions}
+        </select>
+      </td>
+      <td>${statusBadge}</td>
+      <td>${user.createdAt ? new Date(user.createdAt).toLocaleString("no-NO") : "-"}</td>
+      <td>
+        ${user.approved ? "" : `<button class="btn-blue approve-btn" data-uid="${user.uid}">Godkjenn</button>`}
+        ${user.active ? `<button class="btn-red deactivate-btn" data-uid="${user.uid}">Deaktiver</button>` : `<button class="btn-blue activate-btn" data-uid="${user.uid}">Aktiver</button>`}
+      </td>
+    `;
+
+    tbody.appendChild(tr);
+  });
+
+  if (!tbody.children.length) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td colspan="6" class="small">Ingen brukere funnet</td>`;
+    tbody.appendChild(tr);
+  }
+
+  document.querySelectorAll(".role-select").forEach(select => {
+    select.addEventListener("change", async e => {
+      const uid = e.target.dataset.uid;
+      const role = e.target.value;
+      await update(ref(db, "users/" + uid), { role });
+    });
+  });
+
+  document.querySelectorAll(".approve-btn").forEach(btn => {
+    btn.addEventListener("click", async e => {
+      await update(ref(db, "users/" + e.target.dataset.uid), {
+        approved: true,
+        active: true
+      });
+    });
+  });
+
+  document.querySelectorAll(".deactivate-btn").forEach(btn => {
+    btn.addEventListener("click", async e => {
+      await update(ref(db, "users/" + e.target.dataset.uid), {
+        active: false
+      });
+    });
+  });
+
+  document.querySelectorAll(".activate-btn").forEach(btn => {
+    btn.addEventListener("click", async e => {
+      await update(ref(db, "users/" + e.target.dataset.uid), {
+        active: true,
+        approved: true
+      });
+    });
+  });
+}
+
+function escapeHtml(str) {
+  return String(str || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+document.getElementById("searchInput").addEventListener("input", renderUsers);
+document.getElementById("companyFilter").addEventListener("change", renderUsers);
+document.getElementById("roleFilter").addEventListener("change", renderUsers);
+document.getElementById("statusFilter").addEventListener("change", renderUsers);
+</script>
+
+</body>
+</html>
