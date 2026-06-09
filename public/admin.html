@@ -68,7 +68,6 @@ input:checked + .slider:before { transform: translateX(24px); }
 </head>
 <body>
 
-<!-- Fanemeny -->
 <nav class="nav-tabs">
   <ul>
     <li class="active"><a href="admin.html">Administrer biler</a></li>
@@ -96,7 +95,6 @@ input:checked + .slider:before { transform: translateX(24px); }
 
   <div class="grid-container" id="adminGrid"></div>
 
-  <!-- Redigeringsmodal -->
   <div class="overlay" id="overlay"></div>
   <div class="form-popup" id="editForm">
     <h2>Rediger bil</h2>
@@ -142,15 +140,13 @@ const auth = getAuth(app);
 
 let vehicleData = [];
 
-// Login + redirect
 onAuthStateChanged(auth, user => { if(!user) window.location.href = "index.html"; });
 
-// Logg ut
 document.getElementById('logoutTab').addEventListener('click', ()=>{ signOut(auth).then(()=>window.location.href='index.html'); });
 
 async function syncMissingCarsFromApi() {
   try {
-    const response = await fetch("https://tskonsern.no/api/positions");
+    const response = await fetch("/api/positions");
     if (!response.ok) throw new Error("Kunne ikke hente /api/positions");
     const positions = await response.json();
 
@@ -191,7 +187,6 @@ async function syncMissingCarsFromApi() {
   }
 }
 
-// Load biler
 async function loadVehicles() {
   const snapshot = await get(ref(db, "cars"));
   if (!snapshot.exists()) return;
@@ -279,7 +274,6 @@ function renderCards() {
   });
 }
 
-// Redigeringsmodal
 const overlay = document.getElementById('overlay');
 const editForm = document.getElementById('editForm');
 const customFieldsContainer = document.getElementById('customFieldsContainer');
