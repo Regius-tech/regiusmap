@@ -11,7 +11,7 @@ body { margin:0; font-family:Poppins,sans-serif; background:#001f3f; color:white
 
 /* Fanemeny */
 .nav-tabs { width: 100%; background: #001f3f; text-align: center; margin-bottom: 20px; }
-.nav-tabs ul { list-style: none; padding: 0; margin: 0; display: inline-flex; }
+.nav-tabs ul { list-style: none; padding: 0; margin: 0; display: inline-flex; flex-wrap:wrap; }
 .nav-tabs ul li { margin: 0 10px; }
 .nav-tabs ul li a { display: block; padding: 12px 20px; color: white; text-decoration: none; font-weight: 600; border-radius: 8px 8px 0 0; transition: 0.3s; }
 .nav-tabs ul li a:hover, .nav-tabs ul li.active a { background: #023060; }
@@ -92,9 +92,9 @@ input:checked + .slider:before { transform: translateX(24px); }
 <!-- Fanemeny -->
 <nav class="nav-tabs">
   <ul>
-    <li><a href="admin.html">Administrer biler</a></li>
+    <li class="active"><a href="admin.html">Administrer biler</a></li>
     <li><a href="cars.html">Konsernbilpark</a></li>
-    <li class="active"><a href="dashboard.html">Dashboard</a></li>
+    <li><a href="dashboard.html">Dashboard</a></li>
     <li><a href="kart.html">Kart</a></li>
     <li><a href="users.html">Brukere</a></li>
     <li><a href="#" id="logoutTab">Logg ut</a></li>
@@ -169,13 +169,78 @@ const firebaseConfig = {
   appId: "1:835381689765:web:e0be4b22e5f35ca1e0bc4c",
   databaseURL: "https://triflex-a08c7-default-rtdb.europe-west1.firebasedatabase.app"
 };
+
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const auth = getAuth(app);
 
 let vehicleData = [];
+let currentUserProfile = null;
 
-onAuthStateChanged(auth, user => { if(!user) window.location.href = "index.html"; });
+const companyKeyMap = {
+  "Transportsentralen Oslo": "tsoslo",
+  "TS Oslo Budtjenester": "tsoslobud",
+  "Moss Transportforum": "mtf",
+  "Blå Kurér": "blakurer"
+};
+
+function normalizeCompany(company) {
+  if (!company) return "";
+
+  const value = String(company).toLowerCase().trim();
+
+  if (value === "tsoslo" || value.includes("transportsentralen oslo")) return "tsoslo";
+  if (value === "tsoslobud" || value.includes("ts oslo budtjenester")) return "tsoslobud";
+  if (value === "mtf" || value.includes("moss transportforum")) return "mtf";
+  if (value === "blakurer" || value.includes("blå kurér") || value.includes("bla-kurer") || value.includes("bla kur")) return "blakurer";
+
+  return value;
+}
+
+onAuthStateChanged(auth, async user => {
+  if (!user) {
+    window.location.href = "index.html";
+    return;
+  }
+
+  const userSnapshot = await get(ref(db, "users/" + user.uid));
+
+  if (!userSnapshot.exists()) {
+    await signOut(auth);
+    window.location.href = "index.html";
+    return;
+  }
+
+  const userData = userSnapshot.val();
+
+  if (userData.active === false || userData.approved === false) {
+    await signOut(auth);
+    window.location.href = "index.html";
+    return;
+  }
+
+  if (!["admin", "superadmin", "user"].includes(userData.role || "user")) {
+    window.location.href = "dashboard.html";
+    return;
+  }
+
+  currentUserProfile = {
+    uid: user.uid,
+    email: userData.email || user.email || "",
+    role: userData.role || "user",
+    company: userData.company || "",
+    companyKey: normalizeCompany(userData.companyKey || userData.company || ""),
+    companyName: userData.companyName || userData.company || ""
+  };
+
+  if (currentUserProfile.role !== "superadmin") {
+    const companyFilter = document.getElementById("companyFilter");
+    companyFilter.disabled = true;
+  }
+
+  await syncMissingCarsFromApi();
+  loadVehicles();
+});
 
 document.getElementById('logoutTab').addEventListener('click', ()=>{ signOut(auth).then(()=>window.location.href='index.html'); });
 
@@ -184,13 +249,6 @@ async function syncMissingCarsFromApi() {
     const response = await fetch("/api/positions");
     if (!response.ok) throw new Error("Kunne ikke hente /api/positions");
     const positions = await response.json();
-
-    const companyKeyMap = {
-      "Transportsentralen Oslo": "tsoslo",
-      "TS Oslo Budtjenester": "tsoslobud",
-      "Moss Transportforum": "mtf",
-      "Blå Kurér": "blakurer"
-    };
 
     for (const vehicle of positions) {
       const companyKey = companyKeyMap[vehicle.company];
@@ -201,6 +259,14 @@ async function syncMissingCarsFromApi() {
       }
 
       if (!vehicle.id) continue;
+
+      if (
+        currentUserProfile &&
+        currentUserProfile.role !== "superadmin" &&
+        companyKey !== currentUserProfile.companyKey
+      ) {
+        continue;
+      }
 
       const carRef = ref(db, "cars/" + companyKey + "/" + vehicle.id);
       const snapshot = await get(carRef);
@@ -222,16 +288,54 @@ async function syncMissingCarsFromApi() {
   }
 }
 
+async function getPositionStatusMap() {
+  try {
+    const response = await fetch("/api/positions");
+    if (!response.ok) throw new Error("Kunne ikke hente /api/positions");
+    const positions = await response.json();
+
+    const byId = {};
+    const byNumber = {};
+
+    positions.forEach(v => {
+      if (v.id !== undefined && v.id !== null) byId[String(v.id)] = v;
+      if (v.number !== undefined && v.number !== null) byNumber[String(v.number)] = v;
+    });
+
+    return { byId, byNumber };
+  } catch (error) {
+    console.error("Feil ved henting av aktive statuser:", error);
+    return { byId: {}, byNumber: {} };
+  }
+}
+
 async function loadVehicles() {
+  if (!currentUserProfile) return;
+
   const snapshot = await get(ref(db, "cars"));
   if (!snapshot.exists()) return;
+
+  const positionStatusMap = await getPositionStatusMap();
+
   const data = snapshot.val();
   vehicleData = [];
-  const todayStr = new Date().toISOString().split('T')[0];
 
   for (const company in data) {
+    const normalizedCompany = normalizeCompany(company);
+
+    if (
+      currentUserProfile.role !== "superadmin" &&
+      normalizedCompany !== currentUserProfile.companyKey
+    ) {
+      continue;
+    }
+
     for (const carId in data[company]) {
       const car = data[company][carId];
+      const firebaseId = car.id || carId;
+      const firebaseNumber = car.number || "";
+      const positionMatch = positionStatusMap.byId[String(firebaseId)] || positionStatusMap.byNumber[String(firebaseNumber)] || {};
+
       vehicleData.push({
         id: car.id || carId,
         number: car.number || "",
@@ -240,20 +344,22 @@ async function loadVehicles() {
         type: car.type || "Ukjent",
         palleplasser: car.palleplasser || 0,
         company: company,
-        time: car.time || new Date().toISOString(),
+        normalizedCompany: normalizedCompany,
+        time: positionMatch.time || car.time || "",
         isParticipant: car.isParticipant === true,
-        isActiveToday: car.time ? new Date(car.time).toISOString().split('T')[0]===todayStr : false,
+        isActiveToday: positionMatch.isActiveToday === true,
         customFields: car.customFields || {}
       });
     }
   }
+
   updateFilters();
   updateStats();
   renderCards();
 }
 
 function updateFilters() {
-  const companies = [...new Set(vehicleData.map(v => v.company))];
+  const companies = [...new Set(vehicleData.map(v => v.normalizedCompany))];
   const types = [...new Set(vehicleData.map(v => v.type))];
   const companySelect = document.getElementById('companyFilter');
   const typeSelect = document.getElementById('typeFilter');
@@ -262,16 +368,33 @@ function updateFilters() {
 
   companySelect.innerHTML = '<option value="all">Alle selskap</option>';
   typeSelect.innerHTML = '<option value="all">Alle typer</option>';
-  companies.forEach(c => companySelect.appendChild(Object.assign(document.createElement('option'), { value: c, textContent: c })));
+
+  companies.forEach(c => {
+    const label =
+      c === "tsoslo" ? "Transportsentralen Oslo" :
+      c === "tsoslobud" ? "TS Oslo Budtjenester" :
+      c === "mtf" ? "Moss Transportforum" :
+      c === "blakurer" ? "Blå Kurér" :
+      c;
+
+    companySelect.appendChild(Object.assign(document.createElement('option'), { value: c, textContent: label }));
+  });
+
   types.forEach(t => typeSelect.appendChild(Object.assign(document.createElement('option'), { value: t, textContent: t })));
 
-  if (companies.includes(currentCompany)) companySelect.value = currentCompany;
+  if (currentUserProfile.role !== "superadmin") {
+    companySelect.value = currentUserProfile.companyKey;
+    companySelect.disabled = true;
+  } else if (companies.includes(currentCompany)) {
+    companySelect.value = currentCompany;
+  }
+
   if (types.includes(currentType)) typeSelect.value = currentType;
 }
 
 function updateStats() {
   document.getElementById('totalCars').textContent = vehicleData.length;
-  document.getElementById('activeCars').textContent = vehicleData.filter(v => v.isActiveToday).length;
+  document.getElementById('activeCars').textContent = vehicleData.filter(v => v.isActiveToday === true).length;
   document.getElementById('participantsCount').textContent = vehicleData.filter(v => v.isParticipant === true).length;
 }
 
@@ -290,7 +413,7 @@ function renderCards() {
       (participantFilter === 'nonparticipants' && v.isParticipant !== true);
 
     return (
-      (companyFilter === 'all' || v.company === companyFilter) &&
+      (companyFilter === 'all' || v.normalizedCompany === companyFilter) &&
       (typeFilter === 'all' || v.type === typeFilter) &&
       participantMatch &&
       (
@@ -317,6 +440,10 @@ function renderCards() {
     card.addEventListener('click', () => openEditForm(v.firebaseKey, v.company));
     grid.appendChild(card);
   });
+
+  if (!grid.children.length) {
+    grid.innerHTML = `<div class="car-card"><h3>Ingen biler funnet</h3><p>Endre filter eller søk.</p></div>`;
+  }
 }
 
 const overlay = document.getElementById('overlay');
@@ -348,6 +475,15 @@ document.getElementById('cancelEditBtn').addEventListener('click', () => {
 document.getElementById('saveEditBtn').addEventListener('click', async () => {
   const firebaseKey = document.getElementById('editCarId').value;
   const company = document.getElementById('editCompany').value;
+  const normalizedCompany = normalizeCompany(company);
+
+  if (
+    currentUserProfile.role !== "superadmin" &&
+    normalizedCompany !== currentUserProfile.companyKey
+  ) {
+    alert("Du kan bare redigere biler i eget selskap.");
+    return;
+  }
 
   await update(ref(db, 'cars/' + company + '/' + firebaseKey), {
     name: document.getElementById('editName').value,
@@ -366,9 +502,9 @@ document.getElementById('companyFilter').addEventListener('change', renderCards)
 document.getElementById('typeFilter').addEventListener('change', renderCards);
 document.getElementById('participantFilter').addEventListener('change', renderCards);
 
-onValue(ref(db, 'cars'), () => loadVehicles());
-
-syncMissingCarsFromApi().then(() => loadVehicles());
+onValue(ref(db, 'cars'), () => {
+  if (currentUserProfile) loadVehicles();
+});
 </script>
 
 </body>
