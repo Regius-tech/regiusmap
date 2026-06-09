@@ -61,7 +61,13 @@
     }
     button:hover { background: #005fa3; }
 
-    .forgot { font-size: 0.9em; color: #cfcfcf; cursor: pointer; text-decoration: underline; }
+    .forgot,
+    .register-link {
+      font-size: 0.9em;
+      color: #cfcfcf;
+      cursor: pointer;
+      text-decoration: underline;
+    }
 
     .error { min-height: 20px; font-weight: bold; margin-top: 5px; }
 
@@ -174,6 +180,7 @@
 
     <button id="loginBtn">Logg inn</button>
     <div class="forgot" id="forgotPass">Glemt passord?</div>
+    <div class="register-link" onclick="window.location.href='register.html'">Opprett bruker</div>
     <div class="error" id="errorMsg"></div>
 
     <footer>© Regius Tech</footer>
@@ -181,8 +188,8 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
-    import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged, setPersistence, browserLocalPersistence, browserSessionPersistence } 
+    import { getDatabase, ref, get, update, set } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+    import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged, setPersistence, browserLocalPersistence, browserSessionPersistence, signOut } 
       from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
     const firebaseConfig = {
@@ -209,7 +216,53 @@
     const companyDetected = document.getElementById('companyDetected');
     const rememberMe = document.getElementById('rememberMe');
 
-    onAuthStateChanged(auth, user => { if (user) window.location.href = "/dashboard"; });
+    const domainMap = {
+      "tsoslo.no": {
+        company: "Transportsentralen Oslo",
+        companyKey: "tsoslo",
+        companyName: "Transportsentralen Oslo"
+      },
+      "mtf.no": {
+        company: "Moss Transportforum",
+        companyKey: "mtf",
+        companyName: "Moss Transportforum"
+      },
+      "bla-kurer.no": {
+        company: "Blå Kurér",
+        companyKey: "blakurer",
+        companyName: "Blå Kurér"
+      }
+    };
+
+    let hasHandledAuthRedirect = false;
+
+    onAuthStateChanged(auth, async user => {
+      if (!user || hasHandledAuthRedirect) return;
+
+      hasHandledAuthRedirect = true;
+
+      try {
+        const snapshot = await get(ref(db, `users/${user.uid}`));
+
+        if (!snapshot.exists()) {
+          await signOut(auth);
+          return;
+        }
+
+        const userData = snapshot.val();
+
+        if (userData.active === false || userData.approved === false) {
+          await signOut(auth);
+          errorMsg.style.color = "#FF4136";
+          errorMsg.textContent = "Brukeren din er ikke aktivert.";
+          return;
+        }
+
+        window.location.href = "/dashboard";
+      } catch (e) {
+        console.error(e);
+      }
+    });
 
     togglePassword.addEventListener('click', () => {
       const type = passwordInput.type === 'password' ? 'text' : 'password';
@@ -233,20 +286,47 @@
     }
     loadCompanies();
 
-    async function detectCompanyFromEmail(email) {
+    function getDomain(email) {
       if (!email.includes("@")) return "";
-      const domain = email.split("@")[1].toLowerCase();
+      return email.split("@")[1].toLowerCase().trim();
+    }
+
+    async function detectCompanyFromEmail(email) {
+      const domain = getDomain(email);
+
+      if (domainMap[domain]) {
+        return domainMap[domain].company;
+      }
+
+      if (!email.includes("@")) return "";
+
       try {
         const snapshot = await get(ref(db, 'companies'));
         if (snapshot.exists()) {
           const companies = snapshot.val();
           for (let key in companies) {
-            if (companies[key].domain && domain.includes(companies[key].domain.toLowerCase()))
+            if (companies[key].domain && domain.includes(companies[key].domain.toLowerCase())) {
               return companies[key].name;
+            }
           }
         }
       } catch (e) { console.error(e); }
+
       return "";
+    }
+
+    function getCompanyDataFromEmail(email, fallbackCompany) {
+      const domain = getDomain(email);
+
+      if (domainMap[domain]) {
+        return domainMap[domain];
+      }
+
+      return {
+        company: fallbackCompany,
+        companyKey: fallbackCompany,
+        companyName: fallbackCompany
+      };
     }
 
     emailInput.addEventListener('input', async () => {
@@ -258,7 +338,7 @@
     });
 
     async function handleLogin() {
-      const email = emailInput.value.trim();
+      const email = emailInput.value.trim().toLowerCase();
       const password = passwordInput.value.trim();
       const company = companySelect.value || await detectCompanyFromEmail(email);
 
@@ -272,10 +352,50 @@
 
       try {
         await setPersistence(auth, persistenceType);
+
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const uid = userCredential.user.uid;
-        await update(ref(db, `users/${uid}`), { email, company });
+        const userRef = ref(db, `users/${uid}`);
+        const userSnapshot = await get(userRef);
+        const companyData = getCompanyDataFromEmail(email, company);
+
+        if (userSnapshot.exists()) {
+          const existingUser = userSnapshot.val();
+
+          if (existingUser.active === false || existingUser.approved === false) {
+            await signOut(auth);
+            errorMsg.style.color = "#FF4136";
+            errorMsg.textContent = "Brukeren din er ikke aktivert.";
+            return;
+          }
+
+          await update(userRef, {
+            email,
+            company: existingUser.company || companyData.company,
+            companyKey: existingUser.companyKey || companyData.companyKey,
+            companyName: existingUser.companyName || companyData.companyName,
+            approved: existingUser.approved !== false,
+            active: existingUser.active !== false,
+            role: existingUser.role || "user",
+            lastLogin: new Date().toISOString()
+          });
+
+        } else {
+          await set(userRef, {
+            email,
+            company: companyData.company,
+            companyKey: companyData.companyKey,
+            companyName: companyData.companyName,
+            role: "user",
+            approved: true,
+            active: true,
+            createdAt: new Date().toISOString(),
+            lastLogin: new Date().toISOString()
+          });
+        }
+
         window.location.href = "/dashboard";
+
       } catch (e) {
         console.error("Innloggingsfeil:", e);
         errorMsg.style.color = "#FF4136";
