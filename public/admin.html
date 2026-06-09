@@ -148,6 +148,49 @@ onAuthStateChanged(auth, user => { if(!user) window.location.href = "index.html"
 // Logg ut
 document.getElementById('logoutTab').addEventListener('click', ()=>{ signOut(auth).then(()=>window.location.href='index.html'); });
 
+async function syncMissingCarsFromApi() {
+  try {
+    const response = await fetch("https://tskonsern.no/api/positions");
+    if (!response.ok) throw new Error("Kunne ikke hente /api/positions");
+    const positions = await response.json();
+
+    const companyKeyMap = {
+      "Transportsentralen Oslo": "tsoslo",
+      "TS Oslo Budtjenester": "tsoslobud",
+      "Moss Transportforum": "mtf",
+      "Blå Kurér": "blakurer"
+    };
+
+    for (const vehicle of positions) {
+      const companyKey = companyKeyMap[vehicle.company];
+
+      if (!companyKey) {
+        console.warn("Fant ukjent selskap:", vehicle.company, "for bil", vehicle.id);
+        continue;
+      }
+
+      if (!vehicle.id) continue;
+
+      const carRef = ref(db, "cars/" + companyKey + "/" + vehicle.id);
+      const snapshot = await get(carRef);
+
+      if (!snapshot.exists()) {
+        await update(carRef, {
+          id: vehicle.id,
+          number: String(vehicle.number || ""),
+          name: vehicle.name || "",
+          type: vehicle.type || "Ukjent",
+          palleplasser: vehicle.palleplasser && vehicle.palleplasser !== "Ukjent" ? Number(vehicle.palleplasser) || 0 : 0,
+          isParticipant: false,
+          time: vehicle.time || new Date().toISOString()
+        });
+      }
+    }
+  } catch (error) {
+    console.error("Feil ved synkronisering av nye biler:", error);
+  }
+}
+
 // Load biler
 async function loadVehicles() {
   const snapshot = await get(ref(db, "cars"));
@@ -284,7 +327,8 @@ document.getElementById('companyFilter').addEventListener('change', renderCards)
 document.getElementById('typeFilter').addEventListener('change', renderCards);
 
 onValue(ref(db, 'cars'), () => loadVehicles());
-loadVehicles();
+
+syncMissingCarsFromApi().then(() => loadVehicles());
 </script>
 
 </body>
