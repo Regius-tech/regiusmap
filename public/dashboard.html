@@ -6,7 +6,6 @@
 <title>Triflex Admin Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script type="module" src="chat-widget.js"></script>
 <style>
   body { margin:0; font-family:Poppins,sans-serif; background:#001f3f; color:white; }
   .container { max-width:1400px; margin:20px auto; padding:20px; position:relative; }
@@ -80,7 +79,6 @@
     <li class="active"><a href="dashboard.html">Dashboard</a></li>
     <li><a href="kart.html">Kart</a></li>
     <li><a href="users.html">Brukere</a></li>
-    <li><a href="chat.html">Chat</a></li>
     <li><a href="#" id="logoutTab">Logg ut</a></li>
   </ul>
 </nav>
@@ -384,6 +382,6 @@ document.getElementById('dateFilter').addEventListener('change', updateTable);
 // Init
 loadVehicles();
 </script>
-
+<script type="module" src="chat-widget.js"></script>
 </body>
 </html>
