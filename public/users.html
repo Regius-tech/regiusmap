@@ -57,10 +57,24 @@ button {
   color:white;
   font-weight:600;
   margin:2px;
+  min-width:110px;
+  height:36px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  box-sizing:border-box;
 }
 
 .btn-blue { background:#0074D9; }
+.btn-green { background:#2ECC40; }
 .btn-red { background:#FF4136; }
+
+.actions-cell {
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+  align-items:center;
+}
 
 select.role-select {
   background:#023060;
@@ -329,13 +343,13 @@ function renderUsers() {
       <td>${statusBadge}</td>
       <td>${formatDate(user.createdAt)}</td>
       <td>${formatDate(user.lastLogin)}</td>
-      <td>
+      <td class="actions-cell">
         ${user.approved ? "" : `<button class="btn-blue approve-btn" data-uid="${user.uid}">Godkjenn</button>`}
         ${
           user.active
             ? `<button class="btn-red deactivate-btn" data-uid="${user.uid}">Deaktiver</button>`
             : `
-              <button class="btn-blue activate-btn" data-uid="${user.uid}">Aktiver</button>
+              <button class="btn-green activate-btn" data-uid="${user.uid}">Aktiver</button>
               <button class="btn-red delete-btn" data-uid="${user.uid}" data-email="${escapeHtml(user.email)}">Slett bruker</button>
             `
         }
