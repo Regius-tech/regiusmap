@@ -84,6 +84,7 @@ button:disabled {
 .message {
   min-height:22px;
   font-weight:600;
+  line-height:1.4;
 }
 
 .info-box {
@@ -131,7 +132,7 @@ footer {
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
-import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCKqwpql2Yl0kbpUIPrQUYyVd7m1OeH-D8",
@@ -223,17 +224,22 @@ async function handleRegister() {
       companyKey: companyData.companyKey,
       companyName: companyData.companyName,
       role: "user",
-      approved: true,
+      approved: false,
       active: true,
       createdAt: new Date().toISOString(),
-      lastLogin: new Date().toISOString()
+      lastLogin: ""
     });
 
-    showMessage("Bruker opprettet. Sender deg videre...", "#2ECC40");
+    await signOut(auth);
+
+    showMessage(
+      "Kontoen er opprettet og sendt til godkjenning. Du får tilgang så snart en administrator har godkjent kontoen.",
+      "#2ECC40"
+    );
 
     setTimeout(() => {
-      window.location.href = "dashboard.html";
-    }, 1000);
+      window.location.href = "index.html";
+    }, 4000);
 
   } catch (error) {
     console.error("Registreringsfeil:", error);
