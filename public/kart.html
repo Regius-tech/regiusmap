@@ -42,7 +42,7 @@
       position: absolute;
       top: 20px;
       left: 20px;
-      background-color: #0074D9;
+      background-color: #023060;
       color: white;
       border: none;
       padding: 10px 14px;
@@ -52,7 +52,7 @@
       font-weight: bold;
       transition: background-color 0.3s ease;
     }
-    .menu-toggle:hover { background-color: #005fa3; }
+    .menu-toggle:hover { background-color: #012448; }
 
     .sidebar label {
       font-weight: bold;
@@ -135,7 +135,7 @@
       display: block;
       margin-top: 12px;
       text-align: center;
-      background-color: rgba(255,255,255,0.15);
+      background-color: #023060;
       color: white;
       text-decoration: none;
       border-radius: 8px;
@@ -143,21 +143,7 @@
       font-weight: bold;
       transition: all 0.3s ease;
     }
-    .sidebar .btn-secondary:hover { background-color: rgba(255,255,255,0.25); }
-
-    #themeSwitch {
-      width: 100%;
-      margin-top: 15px;
-      border: none;
-      padding: 10px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: bold;
-      background-color: #0074D9;
-      color: white;
-      transition: background-color 0.3s ease;
-    }
-    #themeSwitch:hover { background-color: #005fa3; }
+    .sidebar .btn-secondary:hover { background-color: #012448; }
 
     .info-window {
       background-color: #012040;
@@ -240,9 +226,19 @@
     <label for="placeSearch">Søk sted/adresse:</label>
     <input type="text" id="placeSearch" placeholder="Søk etter adresse...">
 
-    <button id="themeSwitch">🌙 Mørk modus</button>
+    <div class="active-row">
+      <span>Mørk modus</span>
+      <label class="switch">
+        <input type="checkbox" id="themeSwitch" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <a class="btn-secondary" href="admin.html">Administrer biler</a>
     <a class="btn-secondary" href="cars.html">Bilpark</a>
     <a class="btn-secondary" href="dashboard.html">Dashboard</a>
+    <a class="btn-secondary" href="users.html">Brukere</a>
+    <a class="btn-secondary" href="chat.html">Chat</a>
   </div>
 
   <div id="map"></div>
@@ -279,10 +275,9 @@
         fullscreenControl: true
       });
 
-      document.getElementById("themeSwitch").addEventListener("click", () => {
-        darkMode = !darkMode;
+      document.getElementById("themeSwitch").addEventListener("change", () => {
+        darkMode = document.getElementById("themeSwitch").checked;
         map.setOptions({ styles: darkMode ? darkStyle : [] });
-        document.getElementById("themeSwitch").textContent = darkMode ? "🌙 Mørk modus" : "☀️ Lys modus";
       });
 
       document.getElementById("menuToggle").addEventListener("click", () => {
