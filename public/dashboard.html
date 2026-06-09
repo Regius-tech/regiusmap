@@ -168,33 +168,59 @@ document.getElementById('logoutTab').addEventListener('click', ()=> {
   signOut(auth).then(()=>window.location.href='index.html');
 });
 
+async function getPositionStatusMap() {
+  try {
+    const response = await fetch("/api/positions");
+    if (!response.ok) throw new Error("Kunne ikke hente /api/positions");
+    const positions = await response.json();
+
+    const byId = {};
+    const byNumber = {};
+
+    positions.forEach(v => {
+      if (v.id !== undefined && v.id !== null) byId[String(v.id)] = v;
+      if (v.number !== undefined && v.number !== null) byNumber[String(v.number)] = v;
+    });
+
+    return { byId, byNumber };
+  } catch (error) {
+    console.error("Feil ved henting av aktive statuser:", error);
+    return { byId: {}, byNumber: {} };
+  }
+}
+
 // Hent biler og live update
 function loadVehicles() {
-  onValue(ref(db, 'cars'), snapshot => {
+  onValue(ref(db, 'cars'), async snapshot => {
     if (!snapshot.exists()) {
       vehicleData = [];
       renderAll();
       return;
     }
 
+    const positionStatusMap = await getPositionStatusMap();
+
     const data = snapshot.val();
     vehicleData = [];
-
-    const todayStr = new Date().toISOString().split('T')[0];
 
     // Struktur: cars -> COMPANY -> CARID -> carObject
     for (const company in data) {
       const companyNode = data[company] || {};
       for (const carId in companyNode) {
         const car = companyNode[carId] || {};
+        const firebaseId = car.id || carId;
+        const firebaseNumber = car.number || "";
+        const positionMatch = positionStatusMap.byId[String(firebaseId)] || positionStatusMap.byNumber[String(firebaseNumber)] || {};
+
         vehicleData.push({
           id: carId,
           name: car.name || "",
           type: car.type || "Ukjent",
           palleplasser: car.palleplasser != null ? Number(car.palleplasser) : 0,
           company: company,
-          time: car.time || new Date().toISOString(),
+          time: positionMatch.time || car.time || "",
           isParticipant: car.isParticipant !== false, // default true hvis ikke satt
+          isActiveToday: positionMatch.isActiveToday === true,
           customFields: car.customFields || {}
         });
       }
@@ -236,8 +262,7 @@ function updateFilters() {
 function updateGlobalStats() {
   const total = vehicleData.length;
   const totalParticipants = vehicleData.filter(v => v.isParticipant).length;
-  const todayStr = new Date().toISOString().split('T')[0];
-  const activeToday = vehicleData.filter(v => (v.time||"").split('T')[0] === todayStr).length;
+  const activeToday = vehicleData.filter(v => v.isActiveToday === true).length;
   const avgPalle = total ? (vehicleData.reduce((s,v)=>s + (v.palleplasser||0),0) / total) : 0;
 
   document.getElementById('totalCars').textContent = total;
@@ -252,13 +277,12 @@ function renderScoreboard() {
   tbody.innerHTML = '';
 
   const companies = [...new Set(vehicleData.map(v => v.company))].sort();
-  const todayStr = new Date().toISOString().split('T')[0];
 
   companies.forEach(company => {
     const cars = vehicleData.filter(v => v.company === company);
     const total = cars.length;
     const participants = cars.filter(v => v.isParticipant).length;
-    const active = cars.filter(v => (v.time||"").split('T')[0] === todayStr).length;
+    const active = cars.filter(v => v.isActiveToday === true).length;
     const avgPalle = total ? (cars.reduce((s,v)=>s + (v.palleplasser||0),0) / total) : 0;
     // prosent som ikke har "Ukjent" som type
     const filledCount = cars.filter(v => (v.type || '').toLowerCase() !== 'ukjent' && (v.type || '').toLowerCase() !== 'unknown').length;
@@ -303,7 +327,7 @@ function updateTable() {
                     <td>${escapeHtml(v.type || '')}</td>
                     <td>${v.palleplasser != null ? v.palleplasser : ''}</td>
                     <td>${escapeHtml(v.company || '')}</td>
-                    <td>${new Date(v.time).toLocaleString('no-NO')}</td>`;
+                    <td>${v.time ? new Date(v.time).toLocaleString('no-NO') : '-'}</td>`;
     tbody.appendChild(tr);
   });
 
