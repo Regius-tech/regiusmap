@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Triflex Kart</title>
 
-  <script type="module" src="chat-widget.js"></script>
   <style>
     body {
       font-family: Poppins, sans-serif;
@@ -162,47 +161,6 @@
       font-size: 14px;
     }
 
-    .company-legend {
-      margin-top: 15px;
-      background: rgba(255,255,255,0.08);
-      padding: 10px;
-      border-radius: 8px;
-      font-size: 13px;
-    }
-
-    .legend-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin: 6px 0;
-      color: #cfcfcf;
-    }
-
-    .legend-dot {
-      width: 11px;
-      height: 11px;
-      border-radius: 50%;
-      display: inline-block;
-      flex-shrink: 0;
-    }
-
-    .legend-dot.tsoslo {
-      background: white;
-      border: 2px solid red;
-    }
-
-    .legend-dot.mtf {
-      background: linear-gradient(90deg, #00008b, #8b0000);
-    }
-
-    .legend-dot.blakurer {
-      background: #FFD700;
-    }
-
-    .legend-dot.tsbud {
-      background: #004080;
-    }
-
     .info-window {
       background-color: #012040;
       color: #fff;
@@ -226,6 +184,11 @@
     }
     .suggestions div { padding: 8px; cursor: pointer; }
     .suggestions div:hover { background-color: #e0e0e0; }
+
+    .triflex-chat-bubble,
+    .triflex-chat-window {
+      z-index: 999999 !important;
+    }
 
     .gm-style-iw {
       background-color: #012040 !important;
@@ -295,14 +258,6 @@
 
     <button class="btn-secondary" id="fitMarkersBtn">Vis alle synlige biler</button>
     <button class="btn-secondary" id="resetFiltersBtn">Nullstill filter</button>
-
-    <div class="company-legend">
-      <strong>Farger:</strong>
-      <div class="legend-row"><span class="legend-dot tsoslo"></span>Transportsentralen Oslo</div>
-      <div class="legend-row"><span class="legend-dot mtf"></span>Moss Transportforum</div>
-      <div class="legend-row"><span class="legend-dot blakurer"></span>Blå Kurér</div>
-      <div class="legend-row"><span class="legend-dot tsbud"></span>TS Oslo Budtjenester</div>
-    </div>
 
     <a class="btn-secondary" href="admin.html">Administrer biler</a>
     <a class="btn-secondary" href="cars.html">Bilpark</a>
@@ -608,5 +563,7 @@
   <script async
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBtSvAG_uN9QBI0Fi_GOJVIyAjd1JlMvNg&callback=initMap&libraries=places&v=beta">
   </script>
+
+  <script type="module" src="/chat-widget.js"></script>
 </body>
 </html>
