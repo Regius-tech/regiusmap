@@ -84,9 +84,9 @@ function getEmailName(email) {
 
 function getDisplayNameFromUserData(userData, fallbackEmail) {
   return (
+    userData.displayName ||
     userData.name ||
     userData.fullName ||
-    userData.displayName ||
     userData.contactName ||
     getEmailName(userData.email || fallbackEmail)
   );
