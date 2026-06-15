@@ -8,7 +8,7 @@
 
 <style>
 body { margin:0; font-family:Poppins,sans-serif; background:#001f3f; color:white; }
-.container { max-width:1500px; margin:20px auto; padding:20px; position:relative; }
+.container { max-width:1550px; margin:20px auto; padding:20px; position:relative; }
 
 .nav-tabs { width:100%; background:#001f3f; text-align:center; margin-bottom:20px; }
 .nav-tabs ul { list-style:none; padding:0; margin:0; display:inline-flex; flex-wrap:wrap; }
@@ -35,11 +35,36 @@ h1 { text-align:center; margin-bottom:20px; }
   box-sizing:border-box;
 }
 
-table { width:100%; border-collapse:collapse; margin-bottom:40px; }
-th, td { border:1px solid #072D60; padding:10px; text-align:left; vertical-align:middle; }
-th { background:#072D60; }
-tr:nth-child(even) { background-color:rgba(255,255,255,0.05); }
-tr:hover { background-color:rgba(255,255,255,0.1); }
+.table-wrap {
+  background:rgba(2,28,60,0.72);
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:14px;
+  overflow-x:auto;
+  box-shadow:0 4px 15px rgba(0,0,0,0.35);
+}
+
+table { width:100%; border-collapse:collapse; }
+th, td {
+  border-bottom:1px solid rgba(255,255,255,0.06);
+  padding:11px 10px;
+  text-align:left;
+  vertical-align:middle;
+}
+th {
+  background:#072D60;
+  color:white;
+  font-weight:600;
+  white-space:nowrap;
+}
+tbody tr {
+  transition:background 0.18s, outline 0.18s;
+}
+tbody tr:nth-child(even) { background-color:rgba(255,255,255,0.025); }
+tbody tr:hover,
+tbody tr.row-selected {
+  background-color:rgba(255,255,255,0.105);
+  outline:1px solid rgba(255,255,255,0.08);
+}
 
 .badge {
   display:inline-block;
@@ -47,33 +72,62 @@ tr:hover { background-color:rgba(255,255,255,0.1); }
   border-radius:999px;
   font-size:12px;
   font-weight:600;
+  background:rgba(255,255,255,0.10);
+  color:#e6eef6;
+  white-space:nowrap;
 }
-
-.badge.green { background:#2ECC40; color:white; }
-.badge.red { background:#FF4136; color:white; }
-.badge.gray { background:#555; color:white; }
-.badge.blue { background:#0074D9; color:white; }
+.badge.active { background:rgba(46,204,64,0.16); color:#a8ffb0; }
+.badge.inactive { background:rgba(255,65,54,0.14); color:#ffb1ad; }
+.badge.pending { background:rgba(255,255,255,0.10); color:#cfcfcf; }
+.badge.role { background:rgba(127,219,255,0.12); color:#b9ecff; }
 
 button {
-  border:none;
-  border-radius:6px;
+  border:1px solid rgba(255,255,255,0.09);
+  border-radius:7px;
   padding:7px 10px;
   cursor:pointer;
-  color:white;
+  color:#eaf2ff;
   font-weight:600;
-  margin:2px;
-  min-width:110px;
-  height:36px;
+  margin:0;
+  min-width:105px;
+  height:34px;
   display:inline-flex;
   align-items:center;
   justify-content:center;
   box-sizing:border-box;
+  background:rgba(255,255,255,0.055);
+  transition:background 0.18s, border-color 0.18s, transform 0.18s;
 }
 
-.btn-blue { background:#0074D9; }
-.btn-green { background:#2ECC40; }
-.btn-red { background:#FF4136; }
-.btn-gray { background:#555; }
+button:hover {
+  background:rgba(255,255,255,0.13);
+  border-color:rgba(255,255,255,0.18);
+  transform:translateY(-1px);
+}
+
+button:active {
+  transform:translateY(0);
+}
+
+button:disabled {
+  opacity:0.5;
+  cursor:not-allowed;
+  transform:none;
+}
+
+.btn-primary,
+.btn-blue,
+.btn-green,
+.btn-red,
+.btn-gray {
+  background:rgba(255,255,255,0.055);
+  color:#eaf2ff;
+}
+
+.btn-danger:hover {
+  background:rgba(255,65,54,0.16);
+  border-color:rgba(255,65,54,0.35);
+}
 
 .actions-cell {
   display:flex;
@@ -85,17 +139,25 @@ button {
 .small {
   color:#cfcfcf;
   font-size:13px;
+  line-height:1.4;
 }
 
-.company-list {
-  display:flex;
-  flex-direction:column;
-  gap:3px;
+.date-cell {
+  white-space:nowrap;
+  line-height:1.45;
+}
+
+.date-label {
+  display:block;
+  color:#9fb3c8;
+  font-size:11px;
+  margin-bottom:2px;
 }
 
 .company-pill {
   display:inline-block;
-  background:rgba(255,255,255,0.1);
+  background:rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.06);
   border-radius:999px;
   padding:4px 8px;
   font-size:12px;
@@ -133,10 +195,7 @@ button {
   margin-top:0;
 }
 
-.form-row {
-  margin-bottom:12px;
-}
-
+.form-row { margin-bottom:12px; }
 .form-row label {
   display:block;
   margin-bottom:5px;
@@ -144,11 +203,8 @@ button {
   font-weight:600;
   font-size:14px;
 }
-
 .form-popup input,
-.form-popup select {
-  width:100%;
-}
+.form-popup select { width:100%; }
 
 .checkbox-grid {
   display:grid;
@@ -156,7 +212,6 @@ button {
   gap:8px;
   margin-top:6px;
 }
-
 .checkbox-item {
   background:#023060;
   padding:9px;
@@ -166,10 +221,7 @@ button {
   gap:8px;
   font-size:14px;
 }
-
-.checkbox-item input {
-  width:auto;
-}
+.checkbox-item input { width:auto; }
 
 .modal-actions {
   display:flex;
@@ -244,24 +296,27 @@ button {
       </select>
     </div>
 
-    <button class="btn-green" id="openCreateUserBtn">Opprett bruker</button>
+    <button class="btn-primary" id="openCreateUserBtn">Opprett bruker</button>
   </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Navn</th>
-        <th>E-post</th>
-        <th>Selskap</th>
-        <th>Rolle</th>
-        <th>Status</th>
-        <th>Opprettet</th>
-        <th>Sist innlogget</th>
-        <th>Handlinger</th>
-      </tr>
-    </thead>
-    <tbody id="usersTableBody"></tbody>
-  </table>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Navn</th>
+          <th>E-post</th>
+          <th>Selskap</th>
+          <th>Rolle</th>
+          <th>Status</th>
+          <th>Opprettet</th>
+          <th>Sist endret</th>
+          <th>Sist innlogget</th>
+          <th>Handlinger</th>
+        </tr>
+      </thead>
+      <tbody id="usersTableBody"></tbody>
+    </table>
+  </div>
 </div>
 
 <div class="overlay" id="overlay"></div>
@@ -297,7 +352,7 @@ button {
   <div class="message" id="createMessage"></div>
 
   <div class="modal-actions">
-    <button class="btn-green" id="createUserBtn">Opprett</button>
+    <button class="btn-primary" id="createUserBtn">Opprett</button>
     <button class="btn-gray" id="cancelCreateBtn">Avbryt</button>
   </div>
 </div>
@@ -331,7 +386,7 @@ button {
   <div class="message" id="editMessage"></div>
 
   <div class="modal-actions">
-    <button class="btn-blue" id="saveEditBtn">Lagre</button>
+    <button class="btn-primary" id="saveEditBtn">Lagre</button>
     <button class="btn-gray" id="cancelEditBtn">Avbryt</button>
   </div>
 </div>
@@ -370,6 +425,7 @@ const secondaryAuth = getAuth(secondaryApp);
 let currentUserProfile = null;
 let usersData = [];
 let unsubscribeUsers = null;
+let selectedUid = null;
 
 const companyNames = {
   tsoslo: "Transportsentralen Oslo",
@@ -382,14 +438,11 @@ const companyOrder = ["tsoslo", "tsoslobud", "mtf", "blakurer"];
 
 function normalizeCompany(company) {
   if (!company) return "";
-
   const value = String(company).toLowerCase().trim();
-
   if (value === "tsoslo" || value.includes("transportsentralen oslo")) return "tsoslo";
   if (value === "tsoslobud" || value.includes("ts oslo budtjenester") || value.includes("tsbud")) return "tsoslobud";
   if (value === "mtf" || value.includes("moss transportforum")) return "mtf";
   if (value === "blakurer" || value.includes("blå kurér") || value.includes("bla-kurer") || value.includes("bla kur")) return "blakurer";
-
   return value;
 }
 
@@ -445,11 +498,7 @@ function getAvailableCompanyKeys() {
 
 function getAvailableRoles() {
   if (!currentUserProfile) return ["user"];
-
-  if (currentUserProfile.role === "superadmin") {
-    return ["user", "admin", "superadmin"];
-  }
-
+  if (currentUserProfile.role === "superadmin") return ["user", "admin", "superadmin"];
   return ["user", "admin"];
 }
 
@@ -460,9 +509,9 @@ function roleLabel(role) {
 }
 
 function statusHtml(user) {
-  if (user.active === false) return `<span class="badge red">Deaktivert</span>`;
-  if (user.approved === true) return `<span class="badge green">Aktiv</span>`;
-  return `<span class="badge gray">Venter</span>`;
+  if (user.active === false) return `<span class="badge inactive">Deaktivert</span>`;
+  if (user.approved === true) return `<span class="badge active">Aktiv</span>`;
+  return `<span class="badge pending">Venter</span>`;
 }
 
 onAuthStateChanged(auth, async user => {
@@ -540,12 +589,13 @@ function loadUsers() {
           approved: rawUser.approved === true,
           active: rawUser.active !== false,
           createdAt: rawUser.createdAt || "",
+          updatedAt: rawUser.updatedAt || "",
+          createdBy: rawUser.createdBy || "",
+          updatedBy: rawUser.updatedBy || "",
           lastLogin: rawUser.lastLogin || ""
         };
 
-        if (currentUserProfile.role !== "superadmin" && !canManageUser(userObject)) {
-          continue;
-        }
+        if (currentUserProfile.role !== "superadmin" && !canManageUser(userObject)) continue;
 
         usersData.push(userObject);
       }
@@ -596,37 +646,46 @@ function renderUsers() {
     const isSelf = user.uid === currentUserProfile.uid;
     const name = user.displayName || getFallbackName(user.email) || "-";
 
+    if (selectedUid === user.uid) tr.classList.add("row-selected");
+
     tr.innerHTML = `
       <td>${escapeHtml(name)}</td>
       <td>${escapeHtml(user.email)}</td>
       <td>${renderCompanyPills(user.companyKeys)}</td>
-      <td><span class="badge blue">${escapeHtml(roleLabel(user.role))}</span></td>
+      <td><span class="badge role">${escapeHtml(roleLabel(user.role))}</span></td>
       <td>${statusHtml(user)}</td>
-      <td>${formatDate(user.createdAt)}</td>
-      <td>${formatDate(user.lastLogin)}</td>
+      <td class="date-cell"><span class="date-label">Opprettet</span>${formatDate(user.createdAt)}</td>
+      <td class="date-cell"><span class="date-label">Sist endret</span>${formatDate(user.updatedAt)}</td>
+      <td class="date-cell"><span class="date-label">Sist innlogget</span>${formatDate(user.lastLogin)}</td>
       <td class="actions-cell">
-        <button class="btn-blue edit-btn" data-uid="${user.uid}">Rediger</button>
-        <button class="btn-gray reset-btn" data-uid="${user.uid}">Reset passord</button>
-        ${user.approved ? "" : `<button class="btn-blue approve-btn" data-uid="${user.uid}">Godkjenn</button>`}
+        <button class="edit-btn" data-uid="${user.uid}">Rediger</button>
+        <button class="reset-btn" data-uid="${user.uid}">Reset passord</button>
+        ${user.approved ? "" : `<button class="approve-btn" data-uid="${user.uid}">Godkjenn</button>`}
         ${
           isSelf
             ? `<span class="small">Egen bruker</span>`
             : user.active
-              ? `<button class="btn-red deactivate-btn" data-uid="${user.uid}">Deaktiver</button>`
+              ? `<button class="deactivate-btn btn-danger" data-uid="${user.uid}">Deaktiver</button>`
               : `
-                <button class="btn-green activate-btn" data-uid="${user.uid}">Aktiver</button>
-                <button class="btn-red delete-btn" data-uid="${user.uid}">Slett bruker</button>
+                <button class="activate-btn" data-uid="${user.uid}">Aktiver</button>
+                <button class="delete-btn btn-danger" data-uid="${user.uid}">Slett bruker</button>
               `
         }
       </td>
     `;
+
+    tr.addEventListener("click", () => {
+      selectedUid = user.uid;
+      document.querySelectorAll("tbody tr").forEach(row => row.classList.remove("row-selected"));
+      tr.classList.add("row-selected");
+    });
 
     tbody.appendChild(tr);
   });
 
   if (!tbody.children.length) {
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td colspan="8" class="small">Ingen brukere funnet</td>`;
+    tr.innerHTML = `<td colspan="9" class="small">Ingen brukere funnet</td>`;
     tbody.appendChild(tr);
   }
 
@@ -643,46 +702,72 @@ function renderCompanyPills(companyKeys) {
 
 function attachRowListeners() {
   document.querySelectorAll(".edit-btn").forEach(btn => {
-    btn.addEventListener("click", () => openEditModal(btn.dataset.uid));
+    btn.addEventListener("click", e => {
+      e.stopPropagation();
+      selectedUid = btn.dataset.uid;
+      openEditModal(btn.dataset.uid);
+    });
   });
 
   document.querySelectorAll(".reset-btn").forEach(btn => {
-    btn.addEventListener("click", () => sendPasswordReset(btn.dataset.uid));
+    btn.addEventListener("click", e => {
+      e.stopPropagation();
+      selectedUid = btn.dataset.uid;
+      sendPasswordReset(btn.dataset.uid);
+    });
   });
 
   document.querySelectorAll(".approve-btn").forEach(btn => {
-    btn.addEventListener("click", async () => {
+    btn.addEventListener("click", async e => {
+      e.stopPropagation();
+      selectedUid = btn.dataset.uid;
+
       await update(ref(db, "users/" + btn.dataset.uid), {
         approved: true,
-        active: true
+        active: true,
+        updatedAt: new Date().toISOString(),
+        updatedBy: currentUserProfile.uid
       });
     });
   });
 
   document.querySelectorAll(".deactivate-btn").forEach(btn => {
-    btn.addEventListener("click", async () => {
+    btn.addEventListener("click", async e => {
+      e.stopPropagation();
+      selectedUid = btn.dataset.uid;
+
       if (btn.dataset.uid === currentUserProfile.uid) {
         alert("Du kan ikke deaktivere din egen bruker.");
         return;
       }
 
       await update(ref(db, "users/" + btn.dataset.uid), {
-        active: false
+        active: false,
+        updatedAt: new Date().toISOString(),
+        updatedBy: currentUserProfile.uid
       });
     });
   });
 
   document.querySelectorAll(".activate-btn").forEach(btn => {
-    btn.addEventListener("click", async () => {
+    btn.addEventListener("click", async e => {
+      e.stopPropagation();
+      selectedUid = btn.dataset.uid;
+
       await update(ref(db, "users/" + btn.dataset.uid), {
         active: true,
-        approved: true
+        approved: true,
+        updatedAt: new Date().toISOString(),
+        updatedBy: currentUserProfile.uid
       });
     });
   });
 
   document.querySelectorAll(".delete-btn").forEach(btn => {
-    btn.addEventListener("click", async () => {
+    btn.addEventListener("click", async e => {
+      e.stopPropagation();
+      selectedUid = btn.dataset.uid;
+
       const user = usersData.find(u => u.uid === btn.dataset.uid);
       if (!user) return;
 
@@ -811,6 +896,7 @@ document.getElementById("createUserBtn").addEventListener("click", async () => {
   }
 
   try {
+    const now = new Date().toISOString();
     const userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, password);
     const uid = userCredential.user.uid;
     const primaryCompanyData = getPrimaryCompanyData(companyKeys);
@@ -823,8 +909,10 @@ document.getElementById("createUserBtn").addEventListener("click", async () => {
       ...primaryCompanyData,
       approved: true,
       active: true,
-      createdAt: new Date().toISOString(),
-      createdBy: currentUserProfile.uid
+      createdAt: now,
+      updatedAt: now,
+      createdBy: currentUserProfile.uid,
+      updatedBy: currentUserProfile.uid
     });
 
     await signOut(secondaryAuth);
@@ -903,7 +991,7 @@ document.getElementById("saveEditBtn").addEventListener("click", async () => {
 
   const primaryCompanyData = getPrimaryCompanyData(companyKeys);
 
-  await update(ref(db, "users/" + uid), {
+  const updateData = {
     displayName,
     email,
     role,
@@ -911,7 +999,13 @@ document.getElementById("saveEditBtn").addEventListener("click", async () => {
     ...primaryCompanyData,
     updatedAt: new Date().toISOString(),
     updatedBy: currentUserProfile.uid
-  });
+  };
+
+  if (!targetUser.createdAt) {
+    updateData.createdAt = new Date().toISOString();
+  }
+
+  await update(ref(db, "users/" + uid), updateData);
 
   message.style.color = "#2ECC40";
   message.textContent = "Bruker oppdatert.";
@@ -928,6 +1022,12 @@ async function sendPasswordReset(uid) {
 
   try {
     await sendPasswordResetEmail(auth, user.email);
+
+    await update(ref(db, "users/" + uid), {
+      updatedAt: new Date().toISOString(),
+      updatedBy: currentUserProfile.uid
+    });
+
     alert("Passordtilbakestilling sendt.");
   } catch (error) {
     console.error(error);
