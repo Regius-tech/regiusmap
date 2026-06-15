@@ -5,9 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Brukere - Triflex</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
 <style>
 body { margin:0; font-family:Poppins,sans-serif; background:#001f3f; color:white; }
-.container { max-width:1400px; margin:20px auto; padding:20px; position:relative; }
+.container { max-width:1500px; margin:20px auto; padding:20px; position:relative; }
 
 .nav-tabs { width:100%; background:#001f3f; text-align:center; margin-bottom:20px; }
 .nav-tabs ul { list-style:none; padding:0; margin:0; display:inline-flex; flex-wrap:wrap; }
@@ -22,17 +23,20 @@ h1 { text-align:center; margin-bottom:20px; }
 .stat-card h3 { font-size:2em; margin:10px 0; }
 .stat-card p { color:#cfcfcf; margin:0; }
 
-.filter-container { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:20px; }
-.filter-container input, .filter-container select {
+.toolbar { display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:20px; }
+.filter-container { display:flex; flex-wrap:wrap; gap:10px; }
+.filter-container input, .filter-container select,
+.form-popup input, .form-popup select {
   padding:10px;
   border-radius:8px;
   border:none;
   background:#023060;
   color:white;
+  box-sizing:border-box;
 }
 
 table { width:100%; border-collapse:collapse; margin-bottom:40px; }
-th, td { border:1px solid #072D60; padding:10px; text-align:left; }
+th, td { border:1px solid #072D60; padding:10px; text-align:left; vertical-align:middle; }
 th { background:#072D60; }
 tr:nth-child(even) { background-color:rgba(255,255,255,0.05); }
 tr:hover { background-color:rgba(255,255,255,0.1); }
@@ -48,6 +52,7 @@ tr:hover { background-color:rgba(255,255,255,0.1); }
 .badge.green { background:#2ECC40; color:white; }
 .badge.red { background:#FF4136; color:white; }
 .badge.gray { background:#555; color:white; }
+.badge.blue { background:#0074D9; color:white; }
 
 button {
   border:none;
@@ -68,6 +73,7 @@ button {
 .btn-blue { background:#0074D9; }
 .btn-green { background:#2ECC40; }
 .btn-red { background:#FF4136; }
+.btn-gray { background:#555; }
 
 .actions-cell {
   display:flex;
@@ -76,20 +82,118 @@ button {
   align-items:center;
 }
 
-select.role-select {
-  background:#023060;
-  color:white;
-  border:none;
-  border-radius:6px;
-  padding:7px;
-}
-
 .small {
   color:#cfcfcf;
   font-size:13px;
 }
+
+.company-list {
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+}
+
+.company-pill {
+  display:inline-block;
+  background:rgba(255,255,255,0.1);
+  border-radius:999px;
+  padding:4px 8px;
+  font-size:12px;
+  margin:2px 2px 2px 0;
+  color:#e6eef6;
+}
+
+.overlay {
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.55);
+  z-index:999;
+}
+
+.form-popup {
+  display:none;
+  position:fixed;
+  top:50%;
+  left:50%;
+  transform:translate(-50%, -50%);
+  background:rgba(2,28,60,0.98);
+  padding:28px;
+  border-radius:14px;
+  box-shadow:0 6px 25px rgba(0,0,0,0.75);
+  z-index:1000;
+  width:92%;
+  max-width:560px;
+  max-height:88vh;
+  overflow-y:auto;
+}
+
+.form-popup h2 {
+  text-align:center;
+  margin-top:0;
+}
+
+.form-row {
+  margin-bottom:12px;
+}
+
+.form-row label {
+  display:block;
+  margin-bottom:5px;
+  color:#cfcfcf;
+  font-weight:600;
+  font-size:14px;
+}
+
+.form-popup input,
+.form-popup select {
+  width:100%;
+}
+
+.checkbox-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+  gap:8px;
+  margin-top:6px;
+}
+
+.checkbox-item {
+  background:#023060;
+  padding:9px;
+  border-radius:8px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:14px;
+}
+
+.checkbox-item input {
+  width:auto;
+}
+
+.modal-actions {
+  display:flex;
+  justify-content:flex-end;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:18px;
+}
+
+.message {
+  margin-top:10px;
+  min-height:20px;
+  font-weight:600;
+  text-align:center;
+}
+
+@media (max-width:900px) {
+  table { font-size:13px; }
+  th, td { padding:8px; }
+  .toolbar { flex-direction:column; }
+}
 </style>
 </head>
+
 <body>
 
 <nav class="nav-tabs">
@@ -113,32 +217,40 @@ select.role-select {
     <div class="stat-card"><h3 id="inactiveUsers">0</h3><p>Deaktiverte</p></div>
   </div>
 
-  <div class="filter-container">
-    <input type="text" id="searchInput" placeholder="Søk bruker...">
-    <select id="companyFilter">
-      <option value="all">Alle selskap</option>
-      <option value="tsoslo">Transportsentralen Oslo</option>
-      <option value="tsoslobud">TS Oslo Budtjenester</option>
-      <option value="mtf">Moss Transportforum</option>
-      <option value="blakurer">Blå Kurér</option>
-    </select>
-    <select id="roleFilter">
-      <option value="all">Alle roller</option>
-      <option value="superadmin">Superadmin</option>
-      <option value="admin">Admin</option>
-      <option value="user">Bruker</option>
-    </select>
-    <select id="statusFilter">
-      <option value="all">Alle statuser</option>
-      <option value="active">Aktive</option>
-      <option value="inactive">Deaktiverte</option>
-      <option value="pending">Ikke godkjent</option>
-    </select>
+  <div class="toolbar">
+    <div class="filter-container">
+      <input type="text" id="searchInput" placeholder="Søk bruker...">
+
+      <select id="companyFilter">
+        <option value="all">Alle selskap</option>
+        <option value="tsoslo">Transportsentralen Oslo</option>
+        <option value="tsoslobud">TS Oslo Budtjenester</option>
+        <option value="mtf">Moss Transportforum</option>
+        <option value="blakurer">Blå Kurér</option>
+      </select>
+
+      <select id="roleFilter">
+        <option value="all">Alle roller</option>
+        <option value="superadmin">Superadmin</option>
+        <option value="admin">Admin</option>
+        <option value="user">Bruker</option>
+      </select>
+
+      <select id="statusFilter">
+        <option value="all">Alle statuser</option>
+        <option value="active">Aktive</option>
+        <option value="inactive">Deaktiverte</option>
+        <option value="pending">Ikke godkjent</option>
+      </select>
+    </div>
+
+    <button class="btn-green" id="openCreateUserBtn">Opprett bruker</button>
   </div>
 
   <table>
     <thead>
       <tr>
+        <th>Navn</th>
         <th>E-post</th>
         <th>Selskap</th>
         <th>Rolle</th>
@@ -152,10 +264,88 @@ select.role-select {
   </table>
 </div>
 
+<div class="overlay" id="overlay"></div>
+
+<div class="form-popup" id="createUserModal">
+  <h2>Opprett bruker</h2>
+
+  <div class="form-row">
+    <label for="createDisplayName">Navn</label>
+    <input type="text" id="createDisplayName" placeholder="F.eks. Mikael Nilsen">
+  </div>
+
+  <div class="form-row">
+    <label for="createEmail">E-post</label>
+    <input type="email" id="createEmail" placeholder="bruker@firma.no">
+  </div>
+
+  <div class="form-row">
+    <label for="createPassword">Midlertidig passord</label>
+    <input type="password" id="createPassword" placeholder="Minst 6 tegn">
+  </div>
+
+  <div class="form-row">
+    <label for="createRole">Rolle</label>
+    <select id="createRole"></select>
+  </div>
+
+  <div class="form-row">
+    <label>Selskapstilgang</label>
+    <div class="checkbox-grid" id="createCompanyKeys"></div>
+  </div>
+
+  <div class="message" id="createMessage"></div>
+
+  <div class="modal-actions">
+    <button class="btn-green" id="createUserBtn">Opprett</button>
+    <button class="btn-gray" id="cancelCreateBtn">Avbryt</button>
+  </div>
+</div>
+
+<div class="form-popup" id="editUserModal">
+  <h2>Rediger bruker</h2>
+
+  <input type="hidden" id="editUid">
+
+  <div class="form-row">
+    <label for="editDisplayName">Navn</label>
+    <input type="text" id="editDisplayName" placeholder="Navn">
+  </div>
+
+  <div class="form-row">
+    <label for="editEmail">E-post</label>
+    <input type="email" id="editEmail" placeholder="E-post">
+    <div class="small">Merk: Dette endrer e-post i Triflex-profilen. Innloggings-e-post i Firebase Authentication endres ikke her.</div>
+  </div>
+
+  <div class="form-row">
+    <label for="editRole">Rolle</label>
+    <select id="editRole"></select>
+  </div>
+
+  <div class="form-row">
+    <label>Selskapstilgang</label>
+    <div class="checkbox-grid" id="editCompanyKeys"></div>
+  </div>
+
+  <div class="message" id="editMessage"></div>
+
+  <div class="modal-actions">
+    <button class="btn-blue" id="saveEditBtn">Lagre</button>
+    <button class="btn-gray" id="cancelEditBtn">Avbryt</button>
+  </div>
+</div>
+
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getDatabase, ref, get, update, remove, onValue } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getDatabase, ref, get, set, update, remove, onValue } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+import {
+  getAuth,
+  onAuthStateChanged,
+  signOut,
+  createUserWithEmailAndPassword,
+  sendPasswordResetEmail
+} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCKqwpql2Yl0kbpUIPrQUYyVd7m1OeH-D8",
@@ -171,8 +361,15 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const auth = getAuth(app);
 
+const secondaryApp =
+  getApps().find(firebaseApp => firebaseApp.name === "SecondaryUserCreateApp") ||
+  initializeApp(firebaseConfig, "SecondaryUserCreateApp");
+
+const secondaryAuth = getAuth(secondaryApp);
+
 let currentUserProfile = null;
 let usersData = [];
+let unsubscribeUsers = null;
 
 const companyNames = {
   tsoslo: "Transportsentralen Oslo",
@@ -181,22 +378,45 @@ const companyNames = {
   blakurer: "Blå Kurér"
 };
 
+const companyOrder = ["tsoslo", "tsoslobud", "mtf", "blakurer"];
+
 function normalizeCompany(company) {
   if (!company) return "";
 
   const value = String(company).toLowerCase().trim();
 
   if (value === "tsoslo" || value.includes("transportsentralen oslo")) return "tsoslo";
-  if (value === "tsoslobud" || value.includes("ts oslo budtjenester")) return "tsoslobud";
+  if (value === "tsoslobud" || value.includes("ts oslo budtjenester") || value.includes("tsbud")) return "tsoslobud";
   if (value === "mtf" || value.includes("moss transportforum")) return "mtf";
   if (value === "blakurer" || value.includes("blå kurér") || value.includes("bla-kurer") || value.includes("bla kur")) return "blakurer";
 
   return value;
 }
 
-function getCompanyDisplayName(user) {
-  const normalized = normalizeCompany(user.companyKey || user.company || "");
-  return user.companyName || companyNames[normalized] || user.company || "";
+function getCompanyKeysFromUser(user) {
+  if (Array.isArray(user.companyKeys) && user.companyKeys.length) {
+    return user.companyKeys.map(normalizeCompany).filter(Boolean);
+  }
+
+  if (user.companyKeys && typeof user.companyKeys === "object") {
+    return Object.values(user.companyKeys).map(normalizeCompany).filter(Boolean);
+  }
+
+  const single = normalizeCompany(user.companyKey || user.company || "");
+  return single ? [single] : [];
+}
+
+function getDisplayName(user) {
+  return user.displayName || user.name || user.fullName || user.contactName || "";
+}
+
+function getFallbackName(email) {
+  return String(email || "").split("@")[0] || "";
+}
+
+function getCompanyDisplay(companyKeys) {
+  if (!companyKeys || !companyKeys.length) return "-";
+  return companyKeys.map(key => companyNames[key] || key).join(", ");
 }
 
 function formatDate(value) {
@@ -206,6 +426,45 @@ function formatDate(value) {
   return date.toLocaleString("no-NO");
 }
 
+function canManageUser(targetUser) {
+  if (!currentUserProfile) return false;
+  if (currentUserProfile.role === "superadmin") return true;
+  return targetUser.companyKeys.some(key => currentUserProfile.allowedCompanyKeys.includes(key));
+}
+
+function canAssignCompanyKeys(keys) {
+  if (currentUserProfile.role === "superadmin") return true;
+  return keys.every(key => currentUserProfile.allowedCompanyKeys.includes(key));
+}
+
+function getAvailableCompanyKeys() {
+  if (!currentUserProfile) return [];
+  if (currentUserProfile.role === "superadmin") return companyOrder;
+  return companyOrder.filter(key => currentUserProfile.allowedCompanyKeys.includes(key));
+}
+
+function getAvailableRoles() {
+  if (!currentUserProfile) return ["user"];
+
+  if (currentUserProfile.role === "superadmin") {
+    return ["user", "admin", "superadmin"];
+  }
+
+  return ["user", "admin"];
+}
+
+function roleLabel(role) {
+  if (role === "superadmin") return "Superadmin";
+  if (role === "admin") return "Admin";
+  return "Bruker";
+}
+
+function statusHtml(user) {
+  if (user.active === false) return `<span class="badge red">Deaktivert</span>`;
+  if (user.approved === true) return `<span class="badge green">Aktiv</span>`;
+  return `<span class="badge gray">Venter</span>`;
+}
+
 onAuthStateChanged(auth, async user => {
   if (!user) {
     window.location.href = "index.html";
@@ -213,17 +472,21 @@ onAuthStateChanged(auth, async user => {
   }
 
   const profileSnapshot = await get(ref(db, "users/" + user.uid));
+
   if (!profileSnapshot.exists()) {
     window.location.href = "index.html";
     return;
   }
 
   const rawProfile = profileSnapshot.val();
+  const allowedCompanyKeys = getCompanyKeysFromUser(rawProfile);
+  const normalizedCompany = normalizeCompany(rawProfile.companyKey || rawProfile.company || allowedCompanyKeys[0] || "");
 
   currentUserProfile = {
     uid: user.uid,
     ...rawProfile,
-    normalizedCompany: normalizeCompany(rawProfile.companyKey || rawProfile.company || "")
+    normalizedCompany,
+    allowedCompanyKeys: allowedCompanyKeys.length ? allowedCompanyKeys : (normalizedCompany ? [normalizedCompany] : [])
   };
 
   if (
@@ -236,6 +499,7 @@ onAuthStateChanged(auth, async user => {
     return;
   }
 
+  setupCompanyFilterAccess();
   loadUsers();
 });
 
@@ -243,35 +507,47 @@ document.getElementById("logoutTab").addEventListener("click", () => {
   signOut(auth).then(() => window.location.href = "index.html");
 });
 
+function setupCompanyFilterAccess() {
+  const companyFilter = document.getElementById("companyFilter");
+
+  if (currentUserProfile.role !== "superadmin") {
+    companyFilter.value = currentUserProfile.allowedCompanyKeys[0] || "all";
+    companyFilter.disabled = currentUserProfile.allowedCompanyKeys.length <= 1;
+  }
+}
+
 function loadUsers() {
-  onValue(ref(db, "users"), snapshot => {
+  if (unsubscribeUsers) unsubscribeUsers();
+
+  unsubscribeUsers = onValue(ref(db, "users"), snapshot => {
     usersData = [];
 
     if (snapshot.exists()) {
       const data = snapshot.val();
 
       for (const uid in data) {
-        const user = data[uid] || {};
-        const normalizedCompany = normalizeCompany(user.companyKey || user.company || "");
+        const rawUser = data[uid] || {};
+        const companyKeys = getCompanyKeysFromUser(rawUser);
 
-        if (
-          currentUserProfile.role !== "superadmin" &&
-          normalizedCompany !== currentUserProfile.normalizedCompany
-        ) {
+        const userObject = {
+          uid,
+          displayName: getDisplayName(rawUser),
+          email: rawUser.email || "",
+          companyKeys,
+          company: companyKeys[0] || "",
+          companyName: getCompanyDisplay(companyKeys),
+          role: rawUser.role || "user",
+          approved: rawUser.approved === true,
+          active: rawUser.active !== false,
+          createdAt: rawUser.createdAt || "",
+          lastLogin: rawUser.lastLogin || ""
+        };
+
+        if (currentUserProfile.role !== "superadmin" && !canManageUser(userObject)) {
           continue;
         }
 
-        usersData.push({
-          uid,
-          email: user.email || "",
-          company: normalizedCompany,
-          companyName: getCompanyDisplayName(user),
-          role: user.role || "user",
-          approved: user.approved === true,
-          active: user.active !== false,
-          createdAt: user.createdAt || "",
-          lastLogin: user.lastLogin || ""
-        });
+        usersData.push(userObject);
       }
     }
 
@@ -297,12 +573,15 @@ function renderUsers() {
   tbody.innerHTML = "";
 
   usersData.filter(user => {
+    const name = user.displayName || getFallbackName(user.email);
+
     const matchSearch =
+      name.toLowerCase().includes(search) ||
       user.email.toLowerCase().includes(search) ||
       user.companyName.toLowerCase().includes(search) ||
       user.role.toLowerCase().includes(search);
 
-    const matchCompany = companyFilter === "all" || user.company === companyFilter;
+    const matchCompany = companyFilter === "all" || user.companyKeys.includes(companyFilter);
     const matchRole = roleFilter === "all" || user.role === roleFilter;
 
     const matchStatus =
@@ -314,44 +593,30 @@ function renderUsers() {
     return matchSearch && matchCompany && matchRole && matchStatus;
   }).forEach(user => {
     const tr = document.createElement("tr");
-
-    const statusBadge = user.active === false
-      ? `<span class="badge red">Deaktivert</span>`
-      : user.approved
-        ? `<span class="badge green">Aktiv</span>`
-        : `<span class="badge gray">Venter</span>`;
-
-    const roleOptions = currentUserProfile.role === "superadmin"
-      ? `
-        <option value="user" ${user.role === "user" ? "selected" : ""}>Bruker</option>
-        <option value="admin" ${user.role === "admin" ? "selected" : ""}>Admin</option>
-        <option value="superadmin" ${user.role === "superadmin" ? "selected" : ""}>Superadmin</option>
-      `
-      : `
-        <option value="user" ${user.role === "user" ? "selected" : ""}>Bruker</option>
-        <option value="admin" ${user.role === "admin" ? "selected" : ""}>Admin</option>
-      `;
+    const isSelf = user.uid === currentUserProfile.uid;
+    const name = user.displayName || getFallbackName(user.email) || "-";
 
     tr.innerHTML = `
+      <td>${escapeHtml(name)}</td>
       <td>${escapeHtml(user.email)}</td>
-      <td>${escapeHtml(user.companyName)}</td>
-      <td>
-        <select class="role-select" data-uid="${user.uid}">
-          ${roleOptions}
-        </select>
-      </td>
-      <td>${statusBadge}</td>
+      <td>${renderCompanyPills(user.companyKeys)}</td>
+      <td><span class="badge blue">${escapeHtml(roleLabel(user.role))}</span></td>
+      <td>${statusHtml(user)}</td>
       <td>${formatDate(user.createdAt)}</td>
       <td>${formatDate(user.lastLogin)}</td>
       <td class="actions-cell">
+        <button class="btn-blue edit-btn" data-uid="${user.uid}">Rediger</button>
+        <button class="btn-gray reset-btn" data-uid="${user.uid}">Reset passord</button>
         ${user.approved ? "" : `<button class="btn-blue approve-btn" data-uid="${user.uid}">Godkjenn</button>`}
         ${
-          user.active
-            ? `<button class="btn-red deactivate-btn" data-uid="${user.uid}">Deaktiver</button>`
-            : `
-              <button class="btn-green activate-btn" data-uid="${user.uid}">Aktiver</button>
-              <button class="btn-red delete-btn" data-uid="${user.uid}" data-email="${escapeHtml(user.email)}">Slett bruker</button>
-            `
+          isSelf
+            ? `<span class="small">Egen bruker</span>`
+            : user.active
+              ? `<button class="btn-red deactivate-btn" data-uid="${user.uid}">Deaktiver</button>`
+              : `
+                <button class="btn-green activate-btn" data-uid="${user.uid}">Aktiver</button>
+                <button class="btn-red delete-btn" data-uid="${user.uid}">Slett bruker</button>
+              `
         }
       </td>
     `;
@@ -361,21 +626,33 @@ function renderUsers() {
 
   if (!tbody.children.length) {
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td colspan="7" class="small">Ingen brukere funnet</td>`;
+    tr.innerHTML = `<td colspan="8" class="small">Ingen brukere funnet</td>`;
     tbody.appendChild(tr);
   }
 
-  document.querySelectorAll(".role-select").forEach(select => {
-    select.addEventListener("change", async e => {
-      const uid = e.target.dataset.uid;
-      const role = e.target.value;
-      await update(ref(db, "users/" + uid), { role });
-    });
+  attachRowListeners();
+}
+
+function renderCompanyPills(companyKeys) {
+  if (!companyKeys || !companyKeys.length) return "-";
+
+  return companyKeys.map(key => {
+    return `<span class="company-pill">${escapeHtml(companyNames[key] || key)}</span>`;
+  }).join("");
+}
+
+function attachRowListeners() {
+  document.querySelectorAll(".edit-btn").forEach(btn => {
+    btn.addEventListener("click", () => openEditModal(btn.dataset.uid));
+  });
+
+  document.querySelectorAll(".reset-btn").forEach(btn => {
+    btn.addEventListener("click", () => sendPasswordReset(btn.dataset.uid));
   });
 
   document.querySelectorAll(".approve-btn").forEach(btn => {
-    btn.addEventListener("click", async e => {
-      await update(ref(db, "users/" + e.target.dataset.uid), {
+    btn.addEventListener("click", async () => {
+      await update(ref(db, "users/" + btn.dataset.uid), {
         approved: true,
         active: true
       });
@@ -383,16 +660,21 @@ function renderUsers() {
   });
 
   document.querySelectorAll(".deactivate-btn").forEach(btn => {
-    btn.addEventListener("click", async e => {
-      await update(ref(db, "users/" + e.target.dataset.uid), {
+    btn.addEventListener("click", async () => {
+      if (btn.dataset.uid === currentUserProfile.uid) {
+        alert("Du kan ikke deaktivere din egen bruker.");
+        return;
+      }
+
+      await update(ref(db, "users/" + btn.dataset.uid), {
         active: false
       });
     });
   });
 
   document.querySelectorAll(".activate-btn").forEach(btn => {
-    btn.addEventListener("click", async e => {
-      await update(ref(db, "users/" + e.target.dataset.uid), {
+    btn.addEventListener("click", async () => {
+      await update(ref(db, "users/" + btn.dataset.uid), {
         active: true,
         approved: true
       });
@@ -400,19 +682,257 @@ function renderUsers() {
   });
 
   document.querySelectorAll(".delete-btn").forEach(btn => {
-    btn.addEventListener("click", async e => {
-      const uid = e.target.dataset.uid;
-      const email = e.target.dataset.email || "denne brukeren";
+    btn.addEventListener("click", async () => {
+      const user = usersData.find(u => u.uid === btn.dataset.uid);
+      if (!user) return;
+
+      if (user.uid === currentUserProfile.uid) {
+        alert("Du kan ikke slette din egen bruker.");
+        return;
+      }
 
       const confirmed = confirm(
-        `Er du sikker på at du vil slette ${email}?\n\nDette fjerner brukeren fra Triflex.`
+        `Er du sikker på at du vil slette ${user.displayName || user.email}?\n\nDette fjerner brukeren fra Triflex-databasen.`
       );
 
       if (!confirmed) return;
 
-      await remove(ref(db, "users/" + uid));
+      await remove(ref(db, "users/" + user.uid));
     });
   });
+}
+
+function openModal(id) {
+  document.getElementById("overlay").style.display = "block";
+  document.getElementById(id).style.display = "block";
+}
+
+function closeModals() {
+  document.getElementById("overlay").style.display = "none";
+  document.getElementById("createUserModal").style.display = "none";
+  document.getElementById("editUserModal").style.display = "none";
+  document.getElementById("createMessage").textContent = "";
+  document.getElementById("editMessage").textContent = "";
+}
+
+document.getElementById("overlay").addEventListener("click", closeModals);
+document.getElementById("cancelCreateBtn").addEventListener("click", closeModals);
+document.getElementById("cancelEditBtn").addEventListener("click", closeModals);
+
+document.getElementById("openCreateUserBtn").addEventListener("click", () => {
+  resetCreateForm();
+  renderRoleOptions("createRole", "user");
+  renderCompanyCheckboxes("createCompanyKeys", getAvailableCompanyKeys(), getDefaultCreateCompanyKeys());
+  openModal("createUserModal");
+});
+
+function resetCreateForm() {
+  document.getElementById("createDisplayName").value = "";
+  document.getElementById("createEmail").value = "";
+  document.getElementById("createPassword").value = "";
+  document.getElementById("createMessage").textContent = "";
+}
+
+function getDefaultCreateCompanyKeys() {
+  const available = getAvailableCompanyKeys();
+  return available.length ? [available[0]] : [];
+}
+
+function renderRoleOptions(selectId, selectedRole) {
+  const select = document.getElementById(selectId);
+  const roles = getAvailableRoles();
+
+  select.innerHTML = roles.map(role => {
+    return `<option value="${role}" ${role === selectedRole ? "selected" : ""}>${roleLabel(role)}</option>`;
+  }).join("");
+}
+
+function renderCompanyCheckboxes(containerId, availableKeys, selectedKeys) {
+  const container = document.getElementById(containerId);
+
+  container.innerHTML = availableKeys.map(key => {
+    return `
+      <label class="checkbox-item">
+        <input type="checkbox" value="${key}" ${selectedKeys.includes(key) ? "checked" : ""}>
+        <span>${escapeHtml(companyNames[key] || key)}</span>
+      </label>
+    `;
+  }).join("");
+}
+
+function getCheckedCompanyKeys(containerId) {
+  return Array.from(document.querySelectorAll(`#${containerId} input[type="checkbox"]:checked`))
+    .map(input => input.value);
+}
+
+function getPrimaryCompanyData(companyKeys) {
+  const primaryKey = companyKeys[0] || "";
+  return {
+    companyKey: primaryKey,
+    company: companyNames[primaryKey] || primaryKey,
+    companyName: companyNames[primaryKey] || primaryKey
+  };
+}
+
+document.getElementById("createUserBtn").addEventListener("click", async () => {
+  const message = document.getElementById("createMessage");
+  const displayName = document.getElementById("createDisplayName").value.trim();
+  const email = document.getElementById("createEmail").value.trim().toLowerCase();
+  const password = document.getElementById("createPassword").value.trim();
+  const role = document.getElementById("createRole").value;
+  const companyKeys = getCheckedCompanyKeys("createCompanyKeys");
+
+  message.style.color = "#FF4136";
+  message.textContent = "";
+
+  if (!displayName || !email || !password) {
+    message.textContent = "Fyll inn navn, e-post og passord.";
+    return;
+  }
+
+  if (password.length < 6) {
+    message.textContent = "Passord må være minst 6 tegn.";
+    return;
+  }
+
+  if (!companyKeys.length) {
+    message.textContent = "Velg minst ett selskap.";
+    return;
+  }
+
+  if (!canAssignCompanyKeys(companyKeys)) {
+    message.textContent = "Du kan bare opprette brukere for selskaper du har tilgang til.";
+    return;
+  }
+
+  if (role === "superadmin" && currentUserProfile.role !== "superadmin") {
+    message.textContent = "Kun superadmin kan opprette superadmin.";
+    return;
+  }
+
+  try {
+    const userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, password);
+    const uid = userCredential.user.uid;
+    const primaryCompanyData = getPrimaryCompanyData(companyKeys);
+
+    await set(ref(db, "users/" + uid), {
+      displayName,
+      email,
+      role,
+      companyKeys,
+      ...primaryCompanyData,
+      approved: true,
+      active: true,
+      createdAt: new Date().toISOString(),
+      createdBy: currentUserProfile.uid
+    });
+
+    await signOut(secondaryAuth);
+
+    message.style.color = "#2ECC40";
+    message.textContent = "Bruker opprettet.";
+
+    setTimeout(closeModals, 700);
+  } catch (error) {
+    console.error(error);
+
+    if (error.code === "auth/email-already-in-use") {
+      message.textContent = "E-postadressen er allerede registrert.";
+    } else {
+      message.textContent = "Kunne ikke opprette bruker: " + error.message;
+    }
+  }
+});
+
+function openEditModal(uid) {
+  const user = usersData.find(u => u.uid === uid);
+  if (!user) return;
+
+  document.getElementById("editUid").value = user.uid;
+  document.getElementById("editDisplayName").value = user.displayName || "";
+  document.getElementById("editEmail").value = user.email || "";
+  document.getElementById("editMessage").textContent = "";
+
+  renderRoleOptions("editRole", user.role);
+  renderCompanyCheckboxes("editCompanyKeys", getAvailableCompanyKeys(), user.companyKeys);
+
+  openModal("editUserModal");
+}
+
+document.getElementById("saveEditBtn").addEventListener("click", async () => {
+  const message = document.getElementById("editMessage");
+  const uid = document.getElementById("editUid").value;
+  const displayName = document.getElementById("editDisplayName").value.trim();
+  const email = document.getElementById("editEmail").value.trim().toLowerCase();
+  const role = document.getElementById("editRole").value;
+  const companyKeys = getCheckedCompanyKeys("editCompanyKeys");
+
+  message.style.color = "#FF4136";
+  message.textContent = "";
+
+  const targetUser = usersData.find(u => u.uid === uid);
+  if (!targetUser) {
+    message.textContent = "Fant ikke bruker.";
+    return;
+  }
+
+  if (!displayName || !email) {
+    message.textContent = "Navn og e-post må fylles ut.";
+    return;
+  }
+
+  if (!companyKeys.length) {
+    message.textContent = "Velg minst ett selskap.";
+    return;
+  }
+
+  if (!canAssignCompanyKeys(companyKeys)) {
+    message.textContent = "Du kan bare gi tilgang til selskaper du selv har tilgang til.";
+    return;
+  }
+
+  if (role === "superadmin" && currentUserProfile.role !== "superadmin") {
+    message.textContent = "Kun superadmin kan gi superadmin-rolle.";
+    return;
+  }
+
+  if (uid === currentUserProfile.uid && role !== currentUserProfile.role) {
+    const confirmed = confirm("Du endrer rollen på din egen bruker. Er du sikker?");
+    if (!confirmed) return;
+  }
+
+  const primaryCompanyData = getPrimaryCompanyData(companyKeys);
+
+  await update(ref(db, "users/" + uid), {
+    displayName,
+    email,
+    role,
+    companyKeys,
+    ...primaryCompanyData,
+    updatedAt: new Date().toISOString(),
+    updatedBy: currentUserProfile.uid
+  });
+
+  message.style.color = "#2ECC40";
+  message.textContent = "Bruker oppdatert.";
+
+  setTimeout(closeModals, 500);
+});
+
+async function sendPasswordReset(uid) {
+  const user = usersData.find(u => u.uid === uid);
+  if (!user || !user.email) return;
+
+  const confirmed = confirm(`Send passordtilbakestilling til ${user.email}?`);
+  if (!confirmed) return;
+
+  try {
+    await sendPasswordResetEmail(auth, user.email);
+    alert("Passordtilbakestilling sendt.");
+  } catch (error) {
+    console.error(error);
+    alert("Kunne ikke sende passordtilbakestilling: " + error.message);
+  }
 }
 
 function escapeHtml(str) {
@@ -430,5 +950,6 @@ document.getElementById("roleFilter").addEventListener("change", renderUsers);
 document.getElementById("statusFilter").addEventListener("change", renderUsers);
 </script>
 
+<script type="module" src="/public/chat-widget.js"></script>
 </body>
 </html>
