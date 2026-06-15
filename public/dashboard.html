@@ -101,12 +101,12 @@
   <h1>Triflex Dashboard</h1>
 
   <div class="dashboard-meta">
-    <div><strong>Driftsstatus:</strong> Posisjoner klassifiseres etter siste registrerte tidspunkt</div>
+    <div><strong>Driftsstatus:</strong> Viser kun biler som er markert som deltakere i Triflex</div>
     <div id="lastUpdated">Sist oppdatert: -</div>
   </div>
 
   <div class="stats-grid">
-    <div class="stat-card"><p>Totalt biler</p><h3 id="totalCars">0</h3></div>
+    <div class="stat-card"><p>Totalt Triflex-biler</p><h3 id="totalCars">0</h3></div>
     <div class="stat-card"><p>Deltakere i Triflex</p><h3 id="totalParticipants">0</h3></div>
     <div class="stat-card"><p>Aktive biler i dag</p><h3 id="activeCars">0</h3></div>
     <div class="stat-card"><p>Gj.snitt palleplasser</p><h3 id="avgPalle">0</h3></div>
@@ -199,6 +199,33 @@ document.getElementById("logoutTab").addEventListener("click", () => {
   signOut(auth).then(() => window.location.href = "index.html");
 });
 
+function normalizeKey(value) {
+  return String(value || "").trim();
+}
+
+function isValidNumber(value) {
+  const normalized = normalizeKey(value).toLowerCase();
+  return normalized !== "" && normalized !== "unknown" && normalized !== "undefined" && normalized !== "null" && normalized !== "nan";
+}
+
+function cleanValue(value, fallback = "") {
+  if (value === undefined || value === null) return fallback;
+  const str = String(value).trim();
+  if (!str || str.toLowerCase() === "unknown" || str.toLowerCase() === "nan") return fallback;
+  return value;
+}
+
+function cleanNumber(value) {
+  const cleaned = cleanValue(value, "");
+  if (cleaned === "") return "";
+  return String(cleaned);
+}
+
+function cleanPalleplasser(value) {
+  const num = Number(value);
+  return Number.isFinite(num) ? num : 0;
+}
+
 async function getPositionStatusMap() {
   try {
     const response = await fetch("/api/positions");
@@ -212,8 +239,14 @@ async function getPositionStatusMap() {
     const byNumber = {};
 
     positions.forEach(v => {
-      if (v.id !== undefined && v.id !== null) byId[String(v.id)] = v;
-      if (v.number !== undefined && v.number !== null) byNumber[String(v.number)] = v;
+      const id = normalizeKey(v.id);
+      const number = normalizeKey(v.number);
+
+      if (id) byId[id] = v;
+
+      if (isValidNumber(number)) {
+        byNumber[number] = v;
+      }
     });
 
     return { byId, byNumber };
@@ -241,26 +274,39 @@ function loadVehicles() {
 
       for (const carId in companyNode) {
         const car = companyNode[carId] || {};
-        const firebaseId = car.id || carId;
-        const firebaseNumber = car.number || "";
-        const positionMatch =
-          positionStatusMap.byId[String(firebaseId)] ||
-          positionStatusMap.byNumber[String(firebaseNumber)] ||
-          {};
 
-        const time = positionMatch.time || car.time || "";
+        const isParticipant = car.isParticipant === true;
+
+        if (!isParticipant) {
+          continue;
+        }
+
+        const firebaseId = normalizeKey(car.id || carId);
+        const firebaseNumber = normalizeKey(car.number);
+
+        let positionMatch = {};
+
+        if (firebaseId && positionStatusMap.byId[firebaseId]) {
+          positionMatch = positionStatusMap.byId[firebaseId];
+        } else if (isValidNumber(firebaseNumber) && positionStatusMap.byNumber[firebaseNumber]) {
+          positionMatch = positionStatusMap.byNumber[firebaseNumber];
+        }
+
+        const time = positionMatch.time || "";
+        const type = cleanValue(car.type, cleanValue(positionMatch.type, "Ukjent"));
+        const palleplasser = cleanPalleplasser(car.palleplasser ?? positionMatch.palleplasser);
 
         vehicleData.push({
-          id: firebaseId,
+          id: cleanValue(car.id, cleanValue(positionMatch.id, carId)),
           firebaseKey: carId,
-          number: car.number || positionMatch.number || "",
-          name: car.name || positionMatch.name || "",
-          type: car.type || positionMatch.type || "Ukjent",
-          palleplasser: car.palleplasser != null ? Number(car.palleplasser) : Number(positionMatch.palleplasser || 0),
+          number: cleanNumber(car.number || positionMatch.number),
+          name: cleanValue(car.name, cleanValue(positionMatch.name, "")),
+          type,
+          palleplasser,
           company,
           time,
           positionStatus: getPositionStatus(time),
-          isParticipant: car.isParticipant !== false,
+          isParticipant,
           isActiveToday: positionMatch.isActiveToday === true,
           customFields: car.customFields || {}
         });
@@ -373,7 +419,11 @@ function updateGlobalStats() {
   const old = vehicleData.filter(v => v.positionStatus.level === "old").length;
   const veryOld = vehicleData.filter(v => v.positionStatus.level === "very-old").length;
 
-  const validType = vehicleData.filter(v => (v.type || "").toLowerCase() !== "ukjent" && (v.type || "").toLowerCase() !== "unknown").length;
+  const validType = vehicleData.filter(v => {
+    const type = (v.type || "").toLowerCase();
+    return type !== "ukjent" && type !== "unknown" && type !== "";
+  }).length;
+
   const quality = total ? Math.round((validType / total) * 100) : 0;
 
   document.getElementById("totalCars").textContent = total;
@@ -402,7 +452,12 @@ function renderScoreboard() {
     const old = cars.filter(v => v.positionStatus.level === "old").length;
     const veryOld = cars.filter(v => v.positionStatus.level === "very-old").length;
     const avgPalle = total ? cars.reduce((s,v) => s + (v.palleplasser || 0), 0) / total : 0;
-    const filledCount = cars.filter(v => (v.type || "").toLowerCase() !== "ukjent" && (v.type || "").toLowerCase() !== "unknown").length;
+
+    const filledCount = cars.filter(v => {
+      const type = (v.type || "").toLowerCase();
+      return type !== "ukjent" && type !== "unknown" && type !== "";
+    }).length;
+
     const percentFilled = total ? Math.round((filledCount / total) * 100) : 0;
 
     const tr = document.createElement("tr");
@@ -465,7 +520,7 @@ function updateTable() {
       <td>${escapeHtml(v.name || "")}</td>
       <td>${escapeHtml(v.number || "-")}</td>
       <td>${escapeHtml(v.type || "")}</td>
-      <td>${v.palleplasser != null ? v.palleplasser : ""}</td>
+      <td>${v.palleplasser || "-"}</td>
       <td>${escapeHtml(v.company || "")}</td>
       <td>${v.isActiveToday ? '<span class="badge green">Ja</span>' : '<span class="badge gray">Nei</span>'}</td>
       <td>${formatTimestamp(v.time)}<br><span class="small">${getPositionAgeText(v.time)}</span></td>
@@ -483,7 +538,7 @@ function updateTable() {
 
 window.sortTable = function(idx) {
   const table = document.querySelector("table.main-table");
-  const rows = Array.from(table.rows).slice(1);
+  const rows = Array.from(table.tBodies[0].rows);
 
   if (lastSortedColumn === idx) sortDirection *= -1;
   else sortDirection = 1;
@@ -495,11 +550,11 @@ window.sortTable = function(idx) {
     let valB = b.cells[idx]?.innerText || "";
 
     if (idx === 4) {
-      valA = Number(valA) || 0;
-      valB = Number(valB) || 0;
+      valA = Number(valA.replace("-", "0")) || 0;
+      valB = Number(valB.replace("-", "0")) || 0;
     } else if (idx === 7) {
-      valA = new Date(valA.split("\n")[0]).getTime() || 0;
-      valB = new Date(valB.split("\n")[0]).getTime() || 0;
+      valA = parseNorwegianDate(valA.split("\n")[0]);
+      valB = parseNorwegianDate(valB.split("\n")[0]);
     } else {
       valA = valA.toLowerCase();
       valB = valB.toLowerCase();
@@ -512,6 +567,16 @@ window.sortTable = function(idx) {
 
   rows.forEach(r => table.tBodies[0].appendChild(r));
 };
+
+function parseNorwegianDate(value) {
+  if (!value || value === "-") return 0;
+
+  const match = value.match(/(\d{2})\.(\d{2})\.(\d{4}),?\s*(\d{2}):(\d{2})/);
+  if (!match) return 0;
+
+  const [, day, month, year, hour, minute] = match;
+  return new Date(`${year}-${month}-${day}T${hour}:${minute}:00`).getTime();
+}
 
 function escapeHtml(str) {
   return String(str || "")
