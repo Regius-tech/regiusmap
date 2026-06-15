@@ -14,7 +14,9 @@ body {
   display:flex;
   justify-content:center;
   align-items:center;
-  height:100vh;
+  min-height:100vh;
+  padding:20px;
+  box-sizing:border-box;
 }
 
 .register-container {
@@ -22,7 +24,7 @@ body {
   padding:40px;
   border-radius:12px;
   width:100%;
-  max-width:460px;
+  max-width:480px;
   box-shadow:0 4px 15px rgba(0,0,0,0.5);
   text-align:center;
   display:flex;
@@ -36,6 +38,10 @@ body {
   object-fit:contain;
   margin:0 auto 10px auto;
   display:block;
+}
+
+h2 {
+  margin:0 0 5px 0;
 }
 
 input, button {
@@ -96,6 +102,14 @@ button:disabled {
   text-align:left;
 }
 
+.detected-company {
+  min-height:18px;
+  color:#7FDBFF;
+  font-size:0.9rem;
+  font-weight:600;
+  text-align:left;
+}
+
 footer {
   font-size:0.8rem;
   color:rgba(255,255,255,0.7);
@@ -116,7 +130,10 @@ footer {
     @bla-kurer.no
   </div>
 
+  <input type="text" id="displayName" placeholder="Navn">
   <input type="email" id="email" placeholder="E-post">
+  <div class="detected-company" id="detectedCompany"></div>
+
   <input type="password" id="password" placeholder="Passord">
   <input type="password" id="confirmPassword" placeholder="Gjenta passord">
 
@@ -148,27 +165,32 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const auth = getAuth(app);
 
+const displayNameInput = document.getElementById("displayName");
 const emailInput = document.getElementById("email");
 const passwordInput = document.getElementById("password");
 const confirmPasswordInput = document.getElementById("confirmPassword");
 const registerBtn = document.getElementById("registerBtn");
 const message = document.getElementById("message");
+const detectedCompany = document.getElementById("detectedCompany");
 
 const domainMap = {
   "tsoslo.no": {
     company: "Transportsentralen Oslo",
     companyKey: "tsoslo",
-    companyName: "Transportsentralen Oslo"
+    companyName: "Transportsentralen Oslo",
+    companyKeys: ["tsoslo", "tsoslobud"]
   },
   "mtf.no": {
     company: "Moss Transportforum",
     companyKey: "mtf",
-    companyName: "Moss Transportforum"
+    companyName: "Moss Transportforum",
+    companyKeys: ["mtf"]
   },
   "bla-kurer.no": {
     company: "Blå Kurér",
     companyKey: "blakurer",
-    companyName: "Blå Kurér"
+    companyName: "Blå Kurér",
+    companyKeys: ["blakurer"]
   }
 };
 
@@ -182,17 +204,35 @@ function showMessage(text, color = "#FF4136") {
   message.textContent = text;
 }
 
+function getCompanyFromEmail(email) {
+  const domain = getDomain(email);
+  return domainMap[domain] || null;
+}
+
+emailInput.addEventListener("input", () => {
+  const companyData = getCompanyFromEmail(emailInput.value.trim().toLowerCase());
+
+  detectedCompany.textContent = companyData
+    ? `Oppdaget selskap: ${companyData.companyName}`
+    : "";
+});
+
 async function handleRegister() {
+  const displayName = displayNameInput.value.trim();
   const email = emailInput.value.trim().toLowerCase();
   const password = passwordInput.value.trim();
   const confirmPassword = confirmPasswordInput.value.trim();
-  const domain = getDomain(email);
-  const companyData = domainMap[domain];
+  const companyData = getCompanyFromEmail(email);
 
   showMessage("");
 
-  if (!email || !password || !confirmPassword) {
-    showMessage("Fyll inn alle feltene.");
+  if (!displayName || !email || !password || !confirmPassword) {
+    showMessage("Fyll inn navn, e-post og passord.");
+    return;
+  }
+
+  if (displayName.length < 2) {
+    showMessage("Navn må være minst 2 tegn.");
     return;
   }
 
@@ -219,10 +259,12 @@ async function handleRegister() {
     const uid = userCredential.user.uid;
 
     await set(ref(db, "users/" + uid), {
-      email: email,
+      displayName,
+      email,
       company: companyData.company,
       companyKey: companyData.companyKey,
       companyName: companyData.companyName,
+      companyKeys: companyData.companyKeys,
       role: "user",
       approved: false,
       active: true,
@@ -236,6 +278,8 @@ async function handleRegister() {
       "Kontoen er opprettet og sendt til godkjenning. Du får tilgang så snart en administrator har godkjent kontoen.",
       "#2ECC40"
     );
+
+    registerBtn.textContent = "Venter på godkjenning...";
 
     setTimeout(() => {
       window.location.href = "index.html";
@@ -264,7 +308,9 @@ async function handleRegister() {
 registerBtn.addEventListener("click", handleRegister);
 
 document.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") handleRegister();
+  if (e.key === "Enter" && !registerBtn.disabled) {
+    handleRegister();
+  }
 });
 </script>
 
