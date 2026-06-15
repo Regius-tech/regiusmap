@@ -493,8 +493,8 @@
                 <b>Navn:</b> ${v.name || "-"}<br>
                 <b>Type:</b> ${v.type || "-"}<br>
                 <b>Palleplasser:</b> ${v.palleplasser || "-"}<br>
-                <b>Siste posisjon:</b> ${formatTimestamp(v.time)}<br>
-                <b>Alder:</b> <span class="${ageClass}">${ageText}</span><br>
+                <b>Siste posisjon:</b> <span class="${ageClass}">${ageText}</span><br>
+                <b>Dato & Tid:</b> ${formatTimestamp(v.time)}<br>
                 <b>Aktiv i dag:</b> ${v.isActiveToday ? "Ja" : "Nei"}<br>
                 <b>Selskap:</b> ${v.company || "-"}
               </div>`;
