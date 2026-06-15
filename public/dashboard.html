@@ -5,73 +5,87 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Triflex Admin Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
   body { margin:0; font-family:Poppins,sans-serif; background:#001f3f; color:white; }
-  .container { max-width:1400px; margin:20px auto; padding:20px; position:relative; }
+  .container { max-width:1500px; margin:20px auto; padding:20px; position:relative; }
 
-  /* Fanemeny */
-  .nav-tabs {
-    width: 100%;
-    background: #001f3f;
-    text-align: center;
-    margin-bottom: 20px;
-  }
-  .nav-tabs ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: inline-flex;
-  }
-  .nav-tabs ul li { margin: 0 10px; }
+  .nav-tabs { width:100%; background:#001f3f; text-align:center; margin-bottom:20px; }
+  .nav-tabs ul { list-style:none; padding:0; margin:0; display:inline-flex; flex-wrap:wrap; }
+  .nav-tabs ul li { margin:0 10px; }
   .nav-tabs ul li a {
-    display: block;
-    padding: 12px 20px;
-    color: white;
-    text-decoration: none;
-    font-weight: 600;
-    border-radius: 8px 8px 0 0;
-    transition: 0.3s;
+    display:block; padding:12px 20px; color:white; text-decoration:none; font-weight:600;
+    border-radius:8px 8px 0 0; transition:0.3s;
   }
-  .nav-tabs ul li a:hover,
-  .nav-tabs ul li.active a { background: #023060; }
+  .nav-tabs ul li a:hover, .nav-tabs ul li.active a { background:#023060; }
 
-  /* Stats grid */
-  .stats-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:20px; margin-bottom:20px; }
-  .stat-card { background: rgba(2,28,60,0.95); padding:16px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.5); text-align:center; transition: transform 0.18s; }
-  .stat-card h3 { font-size:1.6rem; margin:6px 0; }
+  h1 { text-align:center; margin-bottom:20px; }
+
+  .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:20px; margin-bottom:20px; }
+  .stat-card {
+    background:rgba(2,28,60,0.95); padding:16px; border-radius:12px;
+    box-shadow:0 4px 15px rgba(0,0,0,0.5); text-align:center;
+  }
+  .stat-card h3 { font-size:1.8rem; margin:6px 0; }
   .stat-card p { margin:0; color:#cfcfcf; font-size:0.95rem; }
 
-  /* Scoreboard */
-  .scoreboard { margin: 18px 0 24px 0; background: rgba(2,28,60,0.95); padding: 12px; border-radius: 12px; box-shadow:0 4px 15px rgba(0,0,0,0.5); }
-  .scoreboard table { width:100%; border-collapse:collapse; }
-  .scoreboard th, .scoreboard td { padding:10px; text-align:left; border-bottom:1px solid rgba(255,255,255,0.04); color:#e6eef6; }
-  .scoreboard th { font-weight:600; color:#fff; }
-  .scoreboard .small { color:#bfcfe0; font-size:0.9rem; }
+  .status-card.green h3 { color:#2ECC40; }
+  .status-card.yellow h3 { color:#FFDC00; }
+  .status-card.red h3 { color:#FF4136; }
 
-  /* Filter */
-  .filter-container { display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:20px; }
-  .filter-container select, .filter-container input { padding:10px; border-radius:8px; border:none; background:#023060; color:white; min-width:160px; }
+  .status-dot {
+    width:10px; height:10px; border-radius:50%; display:inline-block; margin-right:7px;
+    box-shadow:0 0 7px rgba(0,0,0,0.45);
+  }
+  .status-dot.green { background:#2ECC40; }
+  .status-dot.yellow { background:#FFDC00; }
+  .status-dot.red { background:#FF4136; }
+  .status-dot.gray { background:#8b98a8; }
 
-  /* Table */
-  table.main-table { width:100%; border-collapse: collapse; margin-bottom:40px; background: rgba(2,28,60,0.0); }
-  th, td { border:1px solid #072D60; padding:10px; text-align:left; color:#eaf2ff; }
+  .badge {
+    display:inline-flex; align-items:center; gap:6px; padding:5px 9px; border-radius:999px;
+    font-size:12px; font-weight:700; white-space:nowrap;
+  }
+  .badge.green { background:rgba(46,204,64,0.18); color:#2ECC40; }
+  .badge.yellow { background:rgba(255,220,0,0.18); color:#FFDC00; }
+  .badge.red { background:rgba(255,65,54,0.18); color:#FF4136; }
+  .badge.blue { background:rgba(0,116,217,0.18); color:#7FDBFF; }
+  .badge.gray { background:rgba(255,255,255,0.12); color:#cfcfcf; }
+
+  .scoreboard {
+    margin:18px 0 24px 0; background:rgba(2,28,60,0.95); padding:12px;
+    border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.5); overflow-x:auto;
+  }
+
+  table { width:100%; border-collapse:collapse; }
+  th, td { border:1px solid #072D60; padding:10px; text-align:left; color:#eaf2ff; vertical-align:middle; }
   th { background:#072D60; cursor:pointer; }
   th:hover { background:#09458c; }
-  tr:nth-child(even) { background-color: rgba(255,255,255,0.02); }
-  tr:hover { background-color: rgba(255,255,255,0.04); }
+  tr:nth-child(even) { background-color:rgba(255,255,255,0.025); }
+  tr:hover { background-color:rgba(255,255,255,0.06); }
 
-  .chart-container { display:none; } /* behold plassering men skjul grafer per ønske */
+  .filter-container { display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:20px; }
+  .filter-container select, .filter-container input {
+    padding:10px; border-radius:8px; border:none; background:#023060; color:white; min-width:160px;
+  }
 
-  @media (max-width: 800px) {
+  .dashboard-meta {
+    background:rgba(255,255,255,0.08); color:#cfcfcf; padding:10px 12px; border-radius:10px;
+    margin-bottom:18px; display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; font-size:13px;
+  }
+  .dashboard-meta strong { color:white; }
+
+  .small { color:#bfcfe0; font-size:0.9rem; }
+
+  @media (max-width:800px) {
     .filter-container { flex-direction:column; }
-    .stats-grid { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+    .stats-grid { grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); }
+    table { font-size:13px; }
   }
 </style>
 </head>
+
 <body>
 
-<!-- Fanemeny -->
 <nav class="nav-tabs">
   <ul>
     <li><a href="admin.html">Administrer biler</a></li>
@@ -84,59 +98,74 @@
 </nav>
 
 <div class="container">
-  
-  <!-- Globale tall -->
-  <div class="stats-grid" id="globalStats">
-    <div class="stat-card"><p class="small">Totalt biler</p><h3 id="totalCars">0</h3></div>
-    <div class="stat-card"><p class="small">Totalt deltakere (isParticipant)</p><h3 id="totalParticipants">0</h3></div>
-    <div class="stat-card"><p class="small">Aktive biler i dag</p><h3 id="activeCars">0</h3></div>
-    <div class="stat-card"><p class="small">Gj.snitt palleplasser</p><h3 id="avgPalle">0</h3></div>
+  <h1>Triflex Dashboard</h1>
+
+  <div class="dashboard-meta">
+    <div><strong>Driftsstatus:</strong> Posisjoner klassifiseres etter siste registrerte tidspunkt</div>
+    <div id="lastUpdated">Sist oppdatert: -</div>
   </div>
 
-  <!-- Scoreboard per selskap -->
-  <div class="scoreboard" id="scoreboardContainer">
+  <div class="stats-grid">
+    <div class="stat-card"><p>Totalt biler</p><h3 id="totalCars">0</h3></div>
+    <div class="stat-card"><p>Deltakere i Triflex</p><h3 id="totalParticipants">0</h3></div>
+    <div class="stat-card"><p>Aktive biler i dag</p><h3 id="activeCars">0</h3></div>
+    <div class="stat-card"><p>Gj.snitt palleplasser</p><h3 id="avgPalle">0</h3></div>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card status-card green"><p><span class="status-dot green"></span>Oppdatert siste 2 timer</p><h3 id="freshCars">0</h3></div>
+    <div class="stat-card status-card yellow"><p><span class="status-dot yellow"></span>Eldre enn 2 timer</p><h3 id="oldCars">0</h3></div>
+    <div class="stat-card status-card red"><p><span class="status-dot red"></span>Eldre enn 24 timer</p><h3 id="veryOldCars">0</h3></div>
+    <div class="stat-card"><p>Datakvalitet type utfylt</p><h3 id="dataQuality">0%</h3></div>
+  </div>
+
+  <div class="scoreboard">
     <table>
       <thead>
         <tr>
           <th>Selskap</th>
-          <th>Totalt biler</th>
+          <th>Totalt</th>
           <th>Deltakere</th>
           <th>Aktive i dag</th>
+          <th><span class="status-dot green"></span>Oppdatert</th>
+          <th><span class="status-dot yellow"></span>Eldre</th>
+          <th><span class="status-dot red"></span>Gammel</th>
           <th>Gj.snitt palleplasser</th>
-          <th>% utfylt type</th>
+          <th>% type utfylt</th>
         </tr>
       </thead>
       <tbody id="scoreboardBody"></tbody>
     </table>
   </div>
 
-  <!-- (Skjult) chart-container plassert dersom dere vil gjenbruke -->
-  <div class="chart-container">
-    <canvas id="carsChart"></canvas>
-  </div>
-
-  <!-- Filter / søk -->
   <div class="filter-container">
-    <input type="text" id="searchInput" placeholder="Søk bil...">
+    <input type="text" id="searchInput" placeholder="Søk bil, type, selskap, nummer...">
     <select id="companyFilter"><option value="all">Alle selskap</option></select>
     <select id="typeFilter"><option value="all">Alle typer</option></select>
+    <select id="statusFilter">
+      <option value="all">Alle statuser</option>
+      <option value="fresh">Oppdatert</option>
+      <option value="old">Eldre enn 2 timer</option>
+      <option value="very-old">Eldre enn 24 timer</option>
+    </select>
     <input type="date" id="dateFilter">
   </div>
 
-  <!-- Tabell med biler (detaljer) -->
   <table class="main-table">
     <thead>
       <tr>
-        <th onclick="sortTable(0)">Navn</th>
-        <th onclick="sortTable(1)">Type</th>
-        <th onclick="sortTable(2)">Palleplasser</th>
-        <th onclick="sortTable(3)">Selskap</th>
-        <th onclick="sortTable(4)">Dato & Tid</th>
+        <th onclick="sortTable(0)">Status</th>
+        <th onclick="sortTable(1)">Navn</th>
+        <th onclick="sortTable(2)">Nummer</th>
+        <th onclick="sortTable(3)">Type</th>
+        <th onclick="sortTable(4)">Palleplasser</th>
+        <th onclick="sortTable(5)">Selskap</th>
+        <th onclick="sortTable(6)">Aktiv i dag</th>
+        <th onclick="sortTable(7)">Siste posisjon</th>
       </tr>
     </thead>
     <tbody id="vehicleTableBody"></tbody>
   </table>
-
 </div>
 
 <script type="module">
@@ -153,20 +182,21 @@ const firebaseConfig = {
   appId: "1:835381689765:web:e0be4b22e5f35ca1e0bc4c",
   databaseURL: "https://triflex-a08c7-default-rtdb.europe-west1.firebasedatabase.app"
 };
+
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const auth = getAuth(app);
 
 let vehicleData = [];
+let sortDirection = 1;
+let lastSortedColumn = -1;
 
-// Sjekk login
 onAuthStateChanged(auth, user => {
   if (!user) window.location.href = "index.html";
 });
 
-// Logout
-document.getElementById('logoutTab').addEventListener('click', ()=> {
-  signOut(auth).then(()=>window.location.href='index.html');
+document.getElementById("logoutTab").addEventListener("click", () => {
+  signOut(auth).then(() => window.location.href = "index.html");
 });
 
 async function getPositionStatusMap() {
@@ -174,6 +204,9 @@ async function getPositionStatusMap() {
     const response = await fetch("/api/positions");
     if (!response.ok) throw new Error("Kunne ikke hente /api/positions");
     const positions = await response.json();
+
+    document.getElementById("lastUpdated").textContent =
+      "Sist oppdatert: " + formatTimestamp(new Date().toISOString());
 
     const byId = {};
     const byNumber = {};
@@ -186,13 +219,13 @@ async function getPositionStatusMap() {
     return { byId, byNumber };
   } catch (error) {
     console.error("Feil ved henting av aktive statuser:", error);
+    document.getElementById("lastUpdated").textContent = "Sist oppdatert: Feil ved henting";
     return { byId: {}, byNumber: {} };
   }
 }
 
-// Hent biler og live update
 function loadVehicles() {
-  onValue(ref(db, 'cars'), async snapshot => {
+  onValue(ref(db, "cars"), async snapshot => {
     if (!snapshot.exists()) {
       vehicleData = [];
       renderAll();
@@ -200,27 +233,34 @@ function loadVehicles() {
     }
 
     const positionStatusMap = await getPositionStatusMap();
-
     const data = snapshot.val();
     vehicleData = [];
 
-    // Struktur: cars -> COMPANY -> CARID -> carObject
     for (const company in data) {
       const companyNode = data[company] || {};
+
       for (const carId in companyNode) {
         const car = companyNode[carId] || {};
         const firebaseId = car.id || carId;
         const firebaseNumber = car.number || "";
-        const positionMatch = positionStatusMap.byId[String(firebaseId)] || positionStatusMap.byNumber[String(firebaseNumber)] || {};
+        const positionMatch =
+          positionStatusMap.byId[String(firebaseId)] ||
+          positionStatusMap.byNumber[String(firebaseNumber)] ||
+          {};
+
+        const time = positionMatch.time || car.time || "";
 
         vehicleData.push({
-          id: carId,
-          name: car.name || "",
-          type: car.type || "Ukjent",
-          palleplasser: car.palleplasser != null ? Number(car.palleplasser) : 0,
-          company: company,
-          time: positionMatch.time || car.time || "",
-          isParticipant: car.isParticipant !== false, // default true hvis ikke satt
+          id: firebaseId,
+          firebaseKey: carId,
+          number: car.number || positionMatch.number || "",
+          name: car.name || positionMatch.name || "",
+          type: car.type || positionMatch.type || "Ukjent",
+          palleplasser: car.palleplasser != null ? Number(car.palleplasser) : Number(positionMatch.palleplasser || 0),
+          company,
+          time,
+          positionStatus: getPositionStatus(time),
+          isParticipant: car.isParticipant !== false,
           isActiveToday: positionMatch.isActiveToday === true,
           customFields: car.customFields || {}
         });
@@ -231,7 +271,6 @@ function loadVehicles() {
   });
 }
 
-// Oppdater både scoreboard, globale tall, filters og tabell
 function renderAll() {
   updateFilters();
   renderScoreboard();
@@ -239,10 +278,67 @@ function renderAll() {
   updateTable();
 }
 
-// Update filter dropdowns
+function getPositionStatus(timestamp) {
+  if (!timestamp) {
+    return { level:"very-old", label:"Ingen posisjon", className:"red", sortValue:3 };
+  }
+
+  const date = new Date(timestamp);
+  if (isNaN(date.getTime())) {
+    return { level:"very-old", label:"Ugyldig tidspunkt", className:"red", sortValue:3 };
+  }
+
+  const diffHours = (Date.now() - date.getTime()) / 1000 / 60 / 60;
+
+  if (diffHours <= 2) {
+    return { level:"fresh", label:"Oppdatert", className:"green", sortValue:1 };
+  }
+
+  if (diffHours <= 24) {
+    return { level:"old", label:"Eldre", className:"yellow", sortValue:2 };
+  }
+
+  return { level:"very-old", label:"Gammel", className:"red", sortValue:3 };
+}
+
+function getPositionAgeText(timestamp) {
+  if (!timestamp) return "Ukjent";
+
+  const date = new Date(timestamp);
+  if (isNaN(date.getTime())) return "Ukjent";
+
+  const diffMs = Date.now() - date.getTime();
+  const diffMinutes = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMinutes / 60);
+  const diffDays = Math.floor(diffHours / 24);
+
+  if (diffMinutes < 1) return "Akkurat nå";
+  if (diffMinutes < 60) return `${diffMinutes} min siden`;
+  if (diffHours < 24) return `${diffHours} t siden`;
+  return `${diffDays} d siden`;
+}
+
+function formatTimestamp(value) {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (isNaN(date.getTime())) return "-";
+
+  return date.toLocaleString("no-NO", {
+    day:"2-digit",
+    month:"2-digit",
+    year:"numeric",
+    hour:"2-digit",
+    minute:"2-digit"
+  });
+}
+
 function updateFilters() {
-  const companySelect = document.getElementById('companyFilter');
-  const typeSelect = document.getElementById('typeFilter');
+  const companySelect = document.getElementById("companyFilter");
+  const typeSelect = document.getElementById("typeFilter");
+
+  const currentCompany = companySelect.value;
+  const currentType = typeSelect.value;
+
   const companies = [...new Set(vehicleData.map(v => v.company))].sort();
   const types = [...new Set(vehicleData.map(v => v.type))].sort();
 
@@ -250,32 +346,50 @@ function updateFilters() {
   typeSelect.innerHTML = '<option value="all">Alle typer</option>';
 
   companies.forEach(c => {
-    const opt = document.createElement('option'); opt.value = c; opt.textContent = c;
+    const opt = document.createElement("option");
+    opt.value = c;
+    opt.textContent = c;
     companySelect.appendChild(opt);
   });
+
   types.forEach(t => {
-    const opt = document.createElement('option'); opt.value = t; opt.textContent = t;
+    const opt = document.createElement("option");
+    opt.value = t;
+    opt.textContent = t;
     typeSelect.appendChild(opt);
   });
+
+  if (companies.includes(currentCompany)) companySelect.value = currentCompany;
+  if (types.includes(currentType)) typeSelect.value = currentType;
 }
 
-// Global stats
 function updateGlobalStats() {
   const total = vehicleData.length;
   const totalParticipants = vehicleData.filter(v => v.isParticipant).length;
   const activeToday = vehicleData.filter(v => v.isActiveToday === true).length;
-  const avgPalle = total ? (vehicleData.reduce((s,v)=>s + (v.palleplasser||0),0) / total) : 0;
+  const avgPalle = total ? vehicleData.reduce((s,v) => s + (v.palleplasser || 0), 0) / total : 0;
 
-  document.getElementById('totalCars').textContent = total;
-  document.getElementById('totalParticipants').textContent = totalParticipants;
-  document.getElementById('activeCars').textContent = activeToday;
-  document.getElementById('avgPalle').textContent = avgPalle ? avgPalle.toFixed(1) : '0';
+  const fresh = vehicleData.filter(v => v.positionStatus.level === "fresh").length;
+  const old = vehicleData.filter(v => v.positionStatus.level === "old").length;
+  const veryOld = vehicleData.filter(v => v.positionStatus.level === "very-old").length;
+
+  const validType = vehicleData.filter(v => (v.type || "").toLowerCase() !== "ukjent" && (v.type || "").toLowerCase() !== "unknown").length;
+  const quality = total ? Math.round((validType / total) * 100) : 0;
+
+  document.getElementById("totalCars").textContent = total;
+  document.getElementById("totalParticipants").textContent = totalParticipants;
+  document.getElementById("activeCars").textContent = activeToday;
+  document.getElementById("avgPalle").textContent = avgPalle ? avgPalle.toFixed(1) : "0";
+
+  document.getElementById("freshCars").textContent = fresh;
+  document.getElementById("oldCars").textContent = old;
+  document.getElementById("veryOldCars").textContent = veryOld;
+  document.getElementById("dataQuality").textContent = quality + "%";
 }
 
-// Scoreboard per selskap
 function renderScoreboard() {
-  const tbody = document.getElementById('scoreboardBody');
-  tbody.innerHTML = '';
+  const tbody = document.getElementById("scoreboardBody");
+  tbody.innerHTML = "";
 
   const companies = [...new Set(vehicleData.map(v => v.company))].sort();
 
@@ -284,104 +398,139 @@ function renderScoreboard() {
     const total = cars.length;
     const participants = cars.filter(v => v.isParticipant).length;
     const active = cars.filter(v => v.isActiveToday === true).length;
-    const avgPalle = total ? (cars.reduce((s,v)=>s + (v.palleplasser||0),0) / total) : 0;
-    // prosent som ikke har "Ukjent" som type
-    const filledCount = cars.filter(v => (v.type || '').toLowerCase() !== 'ukjent' && (v.type || '').toLowerCase() !== 'unknown').length;
+    const fresh = cars.filter(v => v.positionStatus.level === "fresh").length;
+    const old = cars.filter(v => v.positionStatus.level === "old").length;
+    const veryOld = cars.filter(v => v.positionStatus.level === "very-old").length;
+    const avgPalle = total ? cars.reduce((s,v) => s + (v.palleplasser || 0), 0) / total : 0;
+    const filledCount = cars.filter(v => (v.type || "").toLowerCase() !== "ukjent" && (v.type || "").toLowerCase() !== "unknown").length;
     const percentFilled = total ? Math.round((filledCount / total) * 100) : 0;
 
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td><strong>${escapeHtml(company)}</strong></td>
-                    <td>${total}</td>
-                    <td>${participants}</td>
-                    <td>${active}</td>
-                    <td>${avgPalle ? avgPalle.toFixed(1) : '0'}</td>
-                    <td>${percentFilled}%</td>`;
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><strong>${escapeHtml(company)}</strong></td>
+      <td>${total}</td>
+      <td>${participants}</td>
+      <td>${active}</td>
+      <td><span class="badge green"><span class="status-dot green"></span>${fresh}</span></td>
+      <td><span class="badge yellow"><span class="status-dot yellow"></span>${old}</span></td>
+      <td><span class="badge red"><span class="status-dot red"></span>${veryOld}</span></td>
+      <td>${avgPalle ? avgPalle.toFixed(1) : "0"}</td>
+      <td>${percentFilled}%</td>
+    `;
     tbody.appendChild(tr);
   });
 
-  if (companies.length === 0) {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td colspan="6" class="small">Ingen data tilgjengelig</td>`;
+  if (!companies.length) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td colspan="9" class="small">Ingen data tilgjengelig</td>`;
     tbody.appendChild(tr);
   }
 }
 
-// Tabell med biler (detalj)
+function getFilteredVehicles() {
+  const search = (document.getElementById("searchInput").value || "").toLowerCase();
+  const companyVal = document.getElementById("companyFilter").value;
+  const typeVal = document.getElementById("typeFilter").value;
+  const statusVal = document.getElementById("statusFilter").value;
+  const dateVal = document.getElementById("dateFilter").value;
+
+  return vehicleData.filter(v => {
+    const matchSearch =
+      (v.name || "").toLowerCase().includes(search) ||
+      (v.type || "").toLowerCase().includes(search) ||
+      (v.company || "").toLowerCase().includes(search) ||
+      String(v.number || "").toLowerCase().includes(search) ||
+      String(v.id || "").toLowerCase().includes(search);
+
+    const matchCompany = companyVal === "all" || v.company === companyVal;
+    const matchType = typeVal === "all" || v.type === typeVal;
+    const matchStatus = statusVal === "all" || v.positionStatus.level === statusVal;
+    const matchDate = !dateVal || (v.time || "").split("T")[0] === dateVal;
+
+    return matchSearch && matchCompany && matchType && matchStatus && matchDate;
+  });
+}
+
 function updateTable() {
-  const tbody = document.getElementById('vehicleTableBody');
-  tbody.innerHTML = '';
+  const tbody = document.getElementById("vehicleTableBody");
+  tbody.innerHTML = "";
 
-  const search = (document.getElementById('searchInput').value || '').toLowerCase();
-  const companyVal = document.getElementById('companyFilter').value;
-  const typeVal = document.getElementById('typeFilter').value;
-  const dateVal = document.getElementById('dateFilter').value;
+  const filtered = getFilteredVehicles();
 
-  vehicleData.filter(v => {
-    const matchSearch = (v.name || '').toLowerCase().includes(search) || (v.type || '').toLowerCase().includes(search) || (v.company || '').toLowerCase().includes(search);
-    const matchCompany = companyVal === 'all' || v.company === companyVal;
-    const matchType = typeVal === 'all' || v.type === typeVal;
-    const matchDate = !dateVal || (v.time||'').split('T')[0] === dateVal;
-    return matchSearch && matchCompany && matchType && matchDate;
-  }).forEach(v => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${escapeHtml(v.name || '')}</td>
-                    <td>${escapeHtml(v.type || '')}</td>
-                    <td>${v.palleplasser != null ? v.palleplasser : ''}</td>
-                    <td>${escapeHtml(v.company || '')}</td>
-                    <td>${v.time ? new Date(v.time).toLocaleString('no-NO') : '-'}</td>`;
+  filtered.forEach(v => {
+    const tr = document.createElement("tr");
+
+    tr.innerHTML = `
+      <td><span class="badge ${v.positionStatus.className}"><span class="status-dot ${v.positionStatus.className}"></span>${v.positionStatus.label}</span></td>
+      <td>${escapeHtml(v.name || "")}</td>
+      <td>${escapeHtml(v.number || "-")}</td>
+      <td>${escapeHtml(v.type || "")}</td>
+      <td>${v.palleplasser != null ? v.palleplasser : ""}</td>
+      <td>${escapeHtml(v.company || "")}</td>
+      <td>${v.isActiveToday ? '<span class="badge green">Ja</span>' : '<span class="badge gray">Nei</span>'}</td>
+      <td>${formatTimestamp(v.time)}<br><span class="small">${getPositionAgeText(v.time)}</span></td>
+    `;
+
     tbody.appendChild(tr);
   });
 
-  // hvis ingenting matcher
   if (!tbody.children.length) {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td colspan="5" class="small">Ingen biler funnet</td>`;
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td colspan="8" class="small">Ingen biler funnet</td>`;
     tbody.appendChild(tr);
   }
 }
 
-// Escape for sikker innsetting i HTML
-function escapeHtml(str) {
-  if (!str) return '';
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}
-
-// Sorteringstabell
-let sortDirection = 1;
-let lastSortedColumn = -1;
-function sortTable(idx) {
-  const table = document.querySelector('table.main-table');
+window.sortTable = function(idx) {
+  const table = document.querySelector("table.main-table");
   const rows = Array.from(table.rows).slice(1);
-  const isNum = idx === 2;
-  const isDate = idx === 4;
-  if (lastSortedColumn === idx) sortDirection *= -1; else sortDirection = 1;
+
+  if (lastSortedColumn === idx) sortDirection *= -1;
+  else sortDirection = 1;
+
   lastSortedColumn = idx;
 
   rows.sort((a,b) => {
-    let valA = isDate ? new Date(a.cells[idx].innerText) : (isNum ? Number(a.cells[idx].innerText) : a.cells[idx].innerText.toLowerCase());
-    let valB = isDate ? new Date(b.cells[idx].innerText) : (isNum ? Number(b.cells[idx].innerText) : b.cells[idx].innerText.toLowerCase());
+    let valA = a.cells[idx]?.innerText || "";
+    let valB = b.cells[idx]?.innerText || "";
+
+    if (idx === 4) {
+      valA = Number(valA) || 0;
+      valB = Number(valB) || 0;
+    } else if (idx === 7) {
+      valA = new Date(valA.split("\n")[0]).getTime() || 0;
+      valB = new Date(valB.split("\n")[0]).getTime() || 0;
+    } else {
+      valA = valA.toLowerCase();
+      valB = valB.toLowerCase();
+    }
+
     if (valA < valB) return -1 * sortDirection;
     if (valA > valB) return 1 * sortDirection;
     return 0;
   });
 
-  rows.forEach(r => table.appendChild(r));
+  rows.forEach(r => table.tBodies[0].appendChild(r));
+};
+
+function escapeHtml(str) {
+  return String(str || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
-// Event listeners for filters/search
-document.getElementById('searchInput').addEventListener('input', updateTable);
-document.getElementById('companyFilter').addEventListener('change', () => { renderScoreboard(); updateTable(); });
-document.getElementById('typeFilter').addEventListener('change', updateTable);
-document.getElementById('dateFilter').addEventListener('change', updateTable);
+document.getElementById("searchInput").addEventListener("input", updateTable);
+document.getElementById("companyFilter").addEventListener("change", () => { renderScoreboard(); updateTable(); });
+document.getElementById("typeFilter").addEventListener("change", updateTable);
+document.getElementById("statusFilter").addEventListener("change", updateTable);
+document.getElementById("dateFilter").addEventListener("change", updateTable);
 
-// Init
 loadVehicles();
 </script>
+
 <script type="module" src="/public/chat-widget.js"></script>
 </body>
 </html>
