@@ -24,7 +24,7 @@
       top: 0;
       left: 0;
       height: 100%;
-      width: 280px;
+      width: 300px;
       background-color: rgba(2, 28, 60, 0.97);
       color: white;
       padding: 80px 20px 20px 20px;
@@ -33,6 +33,7 @@
       box-shadow: 3px 0 15px rgba(0,0,0,0.4);
       z-index: 1001;
       overflow-y: auto;
+      box-sizing: border-box;
     }
 
     .sidebar.open { transform: translateX(0); }
@@ -99,6 +100,7 @@
       display: inline-block;
       width: 50px;
       height: 26px;
+      flex-shrink: 0;
     }
 
     .switch input {
@@ -159,43 +161,116 @@
 
     .sidebar .btn-secondary:hover { background-color: #012448; }
 
-    .visible-count {
+    .visible-count,
+    .map-status-panel {
       margin-top: 15px;
       background: rgba(255,255,255,0.08);
       padding: 10px;
       border-radius: 8px;
-      font-weight: bold;
-      text-align: center;
       color: #cfcfcf;
       font-size: 14px;
+    }
+
+    .visible-count {
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .map-status-panel strong {
+      color: white;
+    }
+
+    .status-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 7px;
+      margin-top: 8px;
+    }
+
+    .status-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      font-size: 13px;
+    }
+
+    .status-left {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+      flex-shrink: 0;
+      box-shadow: 0 0 7px rgba(0,0,0,0.45);
+    }
+
+    .status-dot.green { background:#2ECC40; }
+    .status-dot.yellow { background:#FFDC00; }
+    .status-dot.red { background:#FF4136; }
+    .status-dot.gray { background:#8b98a8; }
+
+    .last-refresh {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #9fb3c8;
+      line-height: 1.4;
     }
 
     .info-window {
       background-color: #012040;
       color: #fff;
-      padding: 10px 12px;
+      padding: 11px 13px;
       border-radius: 10px;
       font-size: 14px;
       font-family: Poppins, sans-serif;
       box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-      min-width: 220px;
+      min-width: 240px;
     }
 
     .info-window b { color: #FFD700; }
 
-    .position-fresh {
-      color: #2ECC40;
-      font-weight: bold;
+    .position-status-line {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin: 6px 0;
+      padding: 7px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.08);
+      font-weight: 700;
     }
 
-    .position-old {
-      color: #FFDC00;
-      font-weight: bold;
+    .position-fresh { color: #2ECC40; font-weight: bold; }
+    .position-old { color: #FFDC00; font-weight: bold; }
+    .position-very-old { color: #FF4136; font-weight: bold; }
+    .position-unknown { color: #cfcfcf; font-weight: bold; }
+
+    .info-actions {
+      margin-top: 10px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
     }
 
-    .position-very-old {
-      color: #FF4136;
-      font-weight: bold;
+    .info-link {
+      display: inline-block;
+      background: #023060;
+      color: white;
+      text-decoration: none;
+      border-radius: 7px;
+      padding: 7px 9px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .info-link:hover {
+      background: #012448;
     }
 
     .suggestions {
@@ -269,7 +344,7 @@
     </div>
 
     <label for="vehicleSearch">Søk kjøretøy:</label>
-    <input type="text" id="vehicleSearch" placeholder="Søk navn eller nummer...">
+    <input type="text" id="vehicleSearch" placeholder="Søk navn, nummer eller ID...">
     <div id="vehicleSuggestions" class="suggestions"></div>
 
     <label for="typeSearch">Søk biltype:</label>
@@ -288,6 +363,25 @@
     </div>
 
     <div class="visible-count" id="visibleCount">Synlige biler: 0</div>
+
+    <div class="map-status-panel">
+      <strong>Posisjonsstatus</strong>
+      <div class="status-grid">
+        <div class="status-row">
+          <span class="status-left"><span class="status-dot green"></span>Oppdatert</span>
+          <span id="freshCount">0</span>
+        </div>
+        <div class="status-row">
+          <span class="status-left"><span class="status-dot yellow"></span>Eldre enn 2 timer</span>
+          <span id="oldCount">0</span>
+        </div>
+        <div class="status-row">
+          <span class="status-left"><span class="status-dot red"></span>Eldre enn 24 timer</span>
+          <span id="veryOldCount">0</span>
+        </div>
+      </div>
+      <div class="last-refresh" id="lastRefresh">Sist oppdatert: -</div>
+    </div>
 
     <button class="btn-secondary" id="fitMarkersBtn">Vis alle synlige biler</button>
     <button class="btn-secondary" id="resetFiltersBtn">Nullstill filter</button>
@@ -411,6 +505,24 @@
       document.getElementById("visibleCount").textContent = `Synlige biler: ${visibleMarkerIds.length}`;
     }
 
+    function updateStatusSummary(filteredVehicles) {
+      let fresh = 0;
+      let old = 0;
+      let veryOld = 0;
+
+      filteredVehicles.forEach(v => {
+        const status = getPositionStatus(v.time);
+        if (status.level === "fresh") fresh++;
+        else if (status.level === "old") old++;
+        else veryOld++;
+      });
+
+      document.getElementById("freshCount").textContent = fresh;
+      document.getElementById("oldCount").textContent = old;
+      document.getElementById("veryOldCount").textContent = veryOld;
+      document.getElementById("lastRefresh").textContent = `Sist oppdatert: ${formatTimestamp(new Date().toISOString())}`;
+    }
+
     function resetFilters() {
       document.getElementById("company-filter").value = "all";
       document.getElementById("activeToday").checked = true;
@@ -469,56 +581,103 @@
       return `${diffDays} d siden`;
     }
 
-    function getPositionAgeClass(timestamp) {
-      if (!timestamp) return "position-very-old";
+    function getPositionStatus(timestamp) {
+      if (!timestamp) {
+        return {
+          level: "very-old",
+          label: "Ingen posisjon",
+          dotClass: "red",
+          textClass: "position-very-old"
+        };
+      }
 
       const date = new Date(timestamp);
-      if (isNaN(date.getTime())) return "position-very-old";
 
-      const diffMs = Date.now() - date.getTime();
-      const diffHours = diffMs / 1000 / 60 / 60;
+      if (isNaN(date.getTime())) {
+        return {
+          level: "very-old",
+          label: "Ugyldig tidspunkt",
+          dotClass: "red",
+          textClass: "position-very-old"
+        };
+      }
 
-      if (diffHours <= 2) return "position-fresh";
-      if (diffHours <= 24) return "position-old";
-      return "position-very-old";
+      const diffHours = (Date.now() - date.getTime()) / 1000 / 60 / 60;
+
+      if (diffHours <= 2) {
+        return {
+          level: "fresh",
+          label: "Oppdatert",
+          dotClass: "green",
+          textClass: "position-fresh"
+        };
+      }
+
+      if (diffHours <= 24) {
+        return {
+          level: "old",
+          label: "Eldre posisjon",
+          dotClass: "yellow",
+          textClass: "position-old"
+        };
+      }
+
+      return {
+        level: "very-old",
+        label: "Gammel posisjon",
+        dotClass: "red",
+        textClass: "position-very-old"
+      };
     }
 
     function createInfoWindowContent(v) {
       const ageText = getPositionAgeText(v.time);
-      const ageClass = getPositionAgeClass(v.time);
+      const status = getPositionStatus(v.time);
+      const mapsLink = v.latitude && v.longitude
+        ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(v.latitude + "," + v.longitude)}`
+        : "";
 
       return `<div class="info-window">
+                <div class="position-status-line">
+                  <span class="status-dot ${status.dotClass}"></span>
+                  <span class="${status.textClass}">${status.label} · ${ageText}</span>
+                </div>
+
                 <b>ID:</b> ${v.id || "-"}<br>
                 <b>Nummer:</b> ${v.number || "-"}<br>
                 <b>Navn:</b> ${v.name || "-"}<br>
                 <b>Type:</b> ${v.type || "-"}<br>
                 <b>Palleplasser:</b> ${v.palleplasser || "-"}<br>
-                <b>Siste posisjon:</b> <span class="${ageClass}">${ageText}</span><br>
-                <b>Dato & Tid:</b> ${formatTimestamp(v.time)}<br>
+                <b>Dato & tid:</b> ${formatTimestamp(v.time)}<br>
                 <b>Aktiv i dag:</b> ${v.isActiveToday ? "Ja" : "Nei"}<br>
                 <b>Selskap:</b> ${v.company || "-"}
+
+                <div class="info-actions">
+                  ${mapsLink ? `<a class="info-link" href="${mapsLink}" target="_blank" rel="noopener">Åpne i Google Maps</a>` : ""}
+                </div>
               </div>`;
     }
 
     function createPinDataURL(vehicle) {
       return new Promise((resolve) => {
         const canvas = document.createElement("canvas");
-        canvas.width = 60;
-        canvas.height = 70;
+        canvas.width = 64;
+        canvas.height = 76;
 
         const ctx = canvas.getContext("2d");
         const color = companyColors[vehicle.company] || "#888";
+        const status = getPositionStatus(vehicle.time);
 
         ctx.fillStyle = Array.isArray(color) ? color[0] : color;
         ctx.beginPath();
-        ctx.moveTo(30, 70);
-        ctx.lineTo(20, 50);
-        ctx.lineTo(40, 50);
+        ctx.moveTo(32, 76);
+        ctx.lineTo(21, 54);
+        ctx.lineTo(43, 54);
         ctx.closePath();
         ctx.fill();
 
         if (Array.isArray(color)) {
-          const grad = ctx.createLinearGradient(0, 0, 60, 0);
+          const grad = ctx.createLinearGradient(0, 0, 64, 0);
           grad.addColorStop(0, color[0]);
           grad.addColorStop(1, color[1]);
           ctx.fillStyle = grad;
@@ -527,16 +686,27 @@
         }
 
         ctx.beginPath();
-        ctx.arc(30, 30, 20, 0, Math.PI * 2);
+        ctx.arc(32, 32, 21, 0, Math.PI * 2);
         ctx.fill();
 
         if (vehicle.company === "Transportsentralen Oslo") {
           ctx.lineWidth = 4;
           ctx.strokeStyle = "red";
           ctx.beginPath();
-          ctx.arc(30, 30, 20, 0, Math.PI * 2);
+          ctx.arc(32, 32, 21, 0, Math.PI * 2);
           ctx.stroke();
         }
+
+        ctx.beginPath();
+        ctx.arc(48, 17, 7, 0, Math.PI * 2);
+        ctx.fillStyle =
+          status.dotClass === "green" ? "#2ECC40" :
+          status.dotClass === "yellow" ? "#FFDC00" :
+          "#FF4136";
+        ctx.fill();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = "#012040";
+        ctx.stroke();
 
         const img = new Image();
         img.crossOrigin = "anonymous";
@@ -545,10 +715,10 @@
         img.onload = () => {
           ctx.save();
           ctx.beginPath();
-          ctx.arc(30, 30, 18, 0, Math.PI * 2);
+          ctx.arc(32, 32, 18, 0, Math.PI * 2);
           ctx.closePath();
           ctx.clip();
-          ctx.drawImage(img, 12, 12, 36, 36);
+          ctx.drawImage(img, 14, 14, 36, 36);
           ctx.restore();
           resolve(canvas.toDataURL());
         };
@@ -582,6 +752,7 @@
 
         visibleMarkerIds = filtered.map(v => String(v.id));
         updateVisibleCount();
+        updateStatusSummary(filtered);
 
         for (const v of filtered) {
           const id = String(v.id);
@@ -590,6 +761,12 @@
           if (markers[id]) {
             markers[id].setPosition(pos);
             markers[id].infoWindow.setContent(createInfoWindowContent(v));
+
+            const iconUrl = await createPinDataURL(v);
+            markers[id].setIcon({
+              url: iconUrl,
+              scaledSize: new google.maps.Size(48, 58)
+            });
           } else {
             const iconUrl = await createPinDataURL(v);
 
@@ -598,7 +775,7 @@
               position: pos,
               icon: {
                 url: iconUrl,
-                scaledSize: new google.maps.Size(45, 55)
+                scaledSize: new google.maps.Size(48, 58)
               },
               title: v.name
             });
@@ -655,8 +832,13 @@
       }
 
       matches.slice(0, 25).forEach(v => {
+        const status = getPositionStatus(v.time);
         const d = document.createElement("div");
-        d.textContent = `${v.name} (${v.number || v.id || "-"}) - ${v.company} - ${formatTimestamp(v.time)}`;
+        d.innerHTML = `<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${
+          status.dotClass === "green" ? "#2ECC40" :
+          status.dotClass === "yellow" ? "#FFDC00" :
+          "#FF4136"
+        };margin-right:6px;"></span>${v.name} (${v.number || v.id || "-"}) - ${v.company} - ${formatTimestamp(v.time)}`;
 
         d.onclick = () => {
           box.style.display = "none";
@@ -696,8 +878,13 @@
       }
 
       matches.slice(0, 25).forEach(v => {
+        const status = getPositionStatus(v.time);
         const d = document.createElement("div");
-        d.textContent = `${v.type} - ${v.name} - ${formatTimestamp(v.time)}`;
+        d.innerHTML = `<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${
+          status.dotClass === "green" ? "#2ECC40" :
+          status.dotClass === "yellow" ? "#FFDC00" :
+          "#FF4136"
+        };margin-right:6px;"></span>${v.type} - ${v.name} - ${formatTimestamp(v.time)}`;
 
         d.onclick = () => {
           box.style.display = "none";
