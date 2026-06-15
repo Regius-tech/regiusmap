@@ -51,6 +51,7 @@
       font-weight: bold;
       transition: background-color 0.3s ease;
     }
+
     .menu-toggle:hover { background-color: #012448; }
 
     .sidebar label {
@@ -84,6 +85,13 @@
 
     .active-row span {
       line-height: 26px;
+    }
+
+    .filter-help {
+      margin-top: 6px;
+      color: #cfcfcf;
+      font-size: 12px;
+      line-height: 1.4;
     }
 
     .switch {
@@ -148,6 +156,7 @@
       font-size: 14px;
       box-sizing: border-box;
     }
+
     .sidebar .btn-secondary:hover { background-color: #012448; }
 
     .visible-count {
@@ -169,8 +178,25 @@
       font-size: 14px;
       font-family: Poppins, sans-serif;
       box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+      min-width: 220px;
     }
+
     .info-window b { color: #FFD700; }
+
+    .position-fresh {
+      color: #2ECC40;
+      font-weight: bold;
+    }
+
+    .position-old {
+      color: #FFDC00;
+      font-weight: bold;
+    }
+
+    .position-very-old {
+      color: #FF4136;
+      font-weight: bold;
+    }
 
     .suggestions {
       background-color: white;
@@ -182,6 +208,7 @@
       box-shadow: 0 4px 10px rgba(0,0,0,0.2);
       display: none;
     }
+
     .suggestions div { padding: 8px; cursor: pointer; }
     .suggestions div:hover { background-color: #e0e0e0; }
 
@@ -197,17 +224,20 @@
       border-radius: 10px !important;
       max-width: none !important;
     }
+
     .gm-style-iw-t::after,
     .gm-style-iw-t::before {
       background: none !important;
       display: none !important;
     }
+
     .gm-style .gm-style-iw-c {
       padding: 0 !important;
       background: #012040 !important;
       box-shadow: none !important;
       border-radius: 10px !important;
     }
+
     .gm-style .gm-style-iw-d {
       overflow: visible !important;
     }
@@ -228,11 +258,14 @@
     </select>
 
     <div class="active-row">
-      <span>Aktive i dag</span>
+      <span>Kun aktive i dag</span>
       <label class="switch">
         <input type="checkbox" id="activeToday" checked>
         <span class="slider"></span>
       </label>
+    </div>
+    <div class="filter-help">
+      Skru av for å vise alle deltakende biler med siste kjente posisjon, også eldre posisjoner.
     </div>
 
     <label for="vehicleSearch">Søk kjøretøy:</label>
@@ -332,15 +365,18 @@
       });
 
       loadPositions();
+
       document.getElementById("company-filter").addEventListener("change", loadPositions);
       document.getElementById("activeToday").addEventListener("change", loadPositions);
       document.getElementById("fitMarkersBtn").addEventListener("click", fitVisibleMarkers);
       document.getElementById("resetFiltersBtn").addEventListener("click", resetFilters);
+
       setInterval(loadPositions, 10000);
 
       const placeInput = document.getElementById("placeSearch");
       const autocomplete = new google.maps.places.Autocomplete(placeInput);
       autocomplete.bindTo("bounds", map);
+
       autocomplete.addListener("place_changed", () => {
         const place = autocomplete.getPlace();
         if (place.geometry && place.geometry.location) {
@@ -402,42 +438,121 @@
     }
 
     function formatTimestamp(timestamp) {
-      if (!timestamp) return "Ukjent tid";
-      return new Date(timestamp).toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' });
+      if (!timestamp) return "Ukjent tidspunkt";
+
+      const date = new Date(timestamp);
+      if (isNaN(date.getTime())) return "Ukjent tidspunkt";
+
+      return date.toLocaleString("no-NO", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+    }
+
+    function getPositionAgeText(timestamp) {
+      if (!timestamp) return "Ukjent alder";
+
+      const date = new Date(timestamp);
+      if (isNaN(date.getTime())) return "Ukjent alder";
+
+      const diffMs = Date.now() - date.getTime();
+      const diffMinutes = Math.floor(diffMs / 60000);
+      const diffHours = Math.floor(diffMinutes / 60);
+      const diffDays = Math.floor(diffHours / 24);
+
+      if (diffMinutes < 1) return "Akkurat nå";
+      if (diffMinutes < 60) return `${diffMinutes} min siden`;
+      if (diffHours < 24) return `${diffHours} t siden`;
+      return `${diffDays} d siden`;
+    }
+
+    function getPositionAgeClass(timestamp) {
+      if (!timestamp) return "position-very-old";
+
+      const date = new Date(timestamp);
+      if (isNaN(date.getTime())) return "position-very-old";
+
+      const diffMs = Date.now() - date.getTime();
+      const diffHours = diffMs / 1000 / 60 / 60;
+
+      if (diffHours <= 2) return "position-fresh";
+      if (diffHours <= 24) return "position-old";
+      return "position-very-old";
+    }
+
+    function createInfoWindowContent(v) {
+      const ageText = getPositionAgeText(v.time);
+      const ageClass = getPositionAgeClass(v.time);
+
+      return `<div class="info-window">
+                <b>ID:</b> ${v.id || "-"}<br>
+                <b>Nummer:</b> ${v.number || "-"}<br>
+                <b>Navn:</b> ${v.name || "-"}<br>
+                <b>Type:</b> ${v.type || "-"}<br>
+                <b>Palleplasser:</b> ${v.palleplasser || "-"}<br>
+                <b>Siste posisjon:</b> ${formatTimestamp(v.time)}<br>
+                <b>Alder:</b> <span class="${ageClass}">${ageText}</span><br>
+                <b>Aktiv i dag:</b> ${v.isActiveToday ? "Ja" : "Nei"}<br>
+                <b>Selskap:</b> ${v.company || "-"}
+              </div>`;
     }
 
     function createPinDataURL(vehicle) {
       return new Promise((resolve) => {
         const canvas = document.createElement("canvas");
-        canvas.width = 60; canvas.height = 70;
+        canvas.width = 60;
+        canvas.height = 70;
+
         const ctx = canvas.getContext("2d");
         const color = companyColors[vehicle.company] || "#888";
 
         ctx.fillStyle = Array.isArray(color) ? color[0] : color;
         ctx.beginPath();
-        ctx.moveTo(30, 70); ctx.lineTo(20, 50); ctx.lineTo(40, 50); ctx.closePath(); ctx.fill();
+        ctx.moveTo(30, 70);
+        ctx.lineTo(20, 50);
+        ctx.lineTo(40, 50);
+        ctx.closePath();
+        ctx.fill();
 
         if (Array.isArray(color)) {
           const grad = ctx.createLinearGradient(0, 0, 60, 0);
-          grad.addColorStop(0, color[0]); grad.addColorStop(1, color[1]);
+          grad.addColorStop(0, color[0]);
+          grad.addColorStop(1, color[1]);
           ctx.fillStyle = grad;
-        } else ctx.fillStyle = color;
+        } else {
+          ctx.fillStyle = color;
+        }
 
-        ctx.beginPath(); ctx.arc(30, 30, 20, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath();
+        ctx.arc(30, 30, 20, 0, Math.PI * 2);
+        ctx.fill();
 
         if (vehicle.company === "Transportsentralen Oslo") {
-          ctx.lineWidth = 4; ctx.strokeStyle = "red";
-          ctx.beginPath(); ctx.arc(30, 30, 20, 0, Math.PI * 2); ctx.stroke();
+          ctx.lineWidth = 4;
+          ctx.strokeStyle = "red";
+          ctx.beginPath();
+          ctx.arc(30, 30, 20, 0, Math.PI * 2);
+          ctx.stroke();
         }
 
         const img = new Image();
         img.crossOrigin = "anonymous";
         img.src = vehicle.logo;
+
         img.onload = () => {
-          ctx.save(); ctx.beginPath(); ctx.arc(30, 30, 18, 0, Math.PI * 2);
-          ctx.closePath(); ctx.clip(); ctx.drawImage(img, 12, 12, 36, 36); ctx.restore();
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(30, 30, 18, 0, Math.PI * 2);
+          ctx.closePath();
+          ctx.clip();
+          ctx.drawImage(img, 12, 12, 36, 36);
+          ctx.restore();
           resolve(canvas.toDataURL());
         };
+
         img.onerror = () => resolve(canvas.toDataURL());
       });
     }
@@ -445,50 +560,58 @@
     async function loadPositions() {
       try {
         const response = await fetch("/api/positions");
-        if (!response.ok) throw new Error("Kunne ikke hente posisjoner fra API");
+
+        if (!response.ok) {
+          throw new Error("Kunne ikke hente posisjoner fra API");
+        }
+
         const data = await response.json();
         vehicleData = data;
 
-        const activeToday = document.getElementById('activeToday').checked;
-        const selectedCompany = document.getElementById('company-filter').value;
+        const activeToday = document.getElementById("activeToday").checked;
+        const selectedCompany = document.getElementById("company-filter").value;
 
         const filtered = data.filter(v => {
-          const c = selectedCompany === 'all' || v.company === selectedCompany;
-          const a = !activeToday || v.isActiveToday;
-          return c && a && v.isParticipant;
+          const matchCompany = selectedCompany === "all" || v.company === selectedCompany;
+          const matchActive = !activeToday || v.isActiveToday === true;
+          const hasCoordinates = v.latitude && v.longitude;
+          const isParticipant = v.isParticipant === true;
+
+          return matchCompany && matchActive && hasCoordinates && isParticipant;
         });
 
         visibleMarkerIds = filtered.map(v => String(v.id));
         updateVisibleCount();
 
         for (const v of filtered) {
-          if (!v.latitude || !v.longitude) continue;
           const id = String(v.id);
-          const pos = { lat: v.latitude, lng: v.longitude };
+          const pos = { lat: Number(v.latitude), lng: Number(v.longitude) };
 
-          if (markers[id]) markers[id].setPosition(pos);
-          else {
+          if (markers[id]) {
+            markers[id].setPosition(pos);
+            markers[id].infoWindow.setContent(createInfoWindowContent(v));
+          } else {
             const iconUrl = await createPinDataURL(v);
+
             const marker = new google.maps.Marker({
-              map, position: pos,
-              icon: { url: iconUrl, scaledSize: new google.maps.Size(45, 55) },
+              map,
+              position: pos,
+              icon: {
+                url: iconUrl,
+                scaledSize: new google.maps.Size(45, 55)
+              },
               title: v.name
             });
 
             const infoWindow = new google.maps.InfoWindow({
-              content: `<div class="info-window">
-                          <b>ID:</b> ${v.id || "-"}<br>
-                          <b>Nummer:</b> ${v.number || "-"}<br>
-                          <b>Navn:</b> ${v.name}<br>
-                          <b>Type:</b> ${v.type}<br>
-                          <b>Palleplasser:</b> ${v.palleplasser}<br>
-                          <b>Klokkeslett:</b> ${formatTimestamp(v.time)}<br>
-                          <b>Selskap:</b> ${v.company}
-                        </div>`
+              content: createInfoWindowContent(v)
             });
 
-            marker.addListener('click', () => {
+            marker.infoWindow = infoWindow;
+
+            marker.addListener("click", () => {
               if (activeInfoWindow) activeInfoWindow.close();
+
               activeInfoWindow = infoWindow;
               infoWindow.open(map, marker);
             });
@@ -497,17 +620,28 @@
           }
         }
 
-        for (const id in markers)
-          if (!visibleMarkerIds.includes(id)) { markers[id].setMap(null); delete markers[id]; }
+        for (const id in markers) {
+          if (!visibleMarkerIds.includes(id)) {
+            markers[id].setMap(null);
+            delete markers[id];
+          }
+        }
 
-      } catch (err) { console.error('Error loading positions:', err); }
+      } catch (err) {
+        console.error("Error loading positions:", err);
+      }
     }
 
     function showVehicleSuggestions(e) {
       const input = e.target.value.toLowerCase();
       const box = document.getElementById("vehicleSuggestions");
+
       box.innerHTML = "";
-      if (input.length < 2) return box.style.display = "none";
+
+      if (input.length < 2) {
+        box.style.display = "none";
+        return;
+      }
 
       const matches = vehicleData.filter(v =>
         (v.name && v.name.toLowerCase().includes(input)) ||
@@ -515,46 +649,70 @@
         (v.id && String(v.id).toLowerCase().includes(input))
       );
 
-      if (!matches.length) return box.style.display = "none";
+      if (!matches.length) {
+        box.style.display = "none";
+        return;
+      }
 
-      matches.forEach(v => {
+      matches.slice(0, 25).forEach(v => {
         const d = document.createElement("div");
-        d.textContent = `${v.name} (${v.number || v.id || "-"}) - ${v.company}`;
+        d.textContent = `${v.name} (${v.number || v.id || "-"}) - ${v.company} - ${formatTimestamp(v.time)}`;
+
         d.onclick = () => {
           box.style.display = "none";
           document.getElementById("vehicleSearch").value = v.name;
+
           if (markers[v.id]) {
             map.panTo(markers[v.id].getPosition());
             map.setZoom(14);
-            google.maps.event.trigger(markers[v.id], 'click');
+            google.maps.event.trigger(markers[v.id], "click");
           }
         };
+
         box.appendChild(d);
       });
+
       box.style.display = "block";
     }
 
     function showTypeSuggestions(e) {
       const input = e.target.value.toLowerCase();
       const box = document.getElementById("typeSuggestions");
+
       box.innerHTML = "";
-      if (input.length < 2) return box.style.display = "none";
-      const matches = vehicleData.filter(v => v.type && v.type.toLowerCase().includes(input));
-      if (!matches.length) return box.style.display = "none";
-      matches.forEach(v => {
+
+      if (input.length < 2) {
+        box.style.display = "none";
+        return;
+      }
+
+      const matches = vehicleData.filter(v =>
+        v.type && v.type.toLowerCase().includes(input)
+      );
+
+      if (!matches.length) {
+        box.style.display = "none";
+        return;
+      }
+
+      matches.slice(0, 25).forEach(v => {
         const d = document.createElement("div");
-        d.textContent = `${v.type} - ${v.name}`;
+        d.textContent = `${v.type} - ${v.name} - ${formatTimestamp(v.time)}`;
+
         d.onclick = () => {
           box.style.display = "none";
           document.getElementById("typeSearch").value = v.type;
+
           if (markers[v.id]) {
             map.panTo(markers[v.id].getPosition());
             map.setZoom(14);
-            google.maps.event.trigger(markers[v.id], 'click');
+            google.maps.event.trigger(markers[v.id], "click");
           }
         };
+
         box.appendChild(d);
       });
+
       box.style.display = "block";
     }
   </script>
@@ -563,6 +721,6 @@
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBtSvAG_uN9QBI0Fi_GOJVIyAjd1JlMvNg&callback=initMap&libraries=places&v=beta">
   </script>
 
-<script type="module" src="/public/chat-widget.js"></script>
+  <script type="module" src="/public/chat-widget.js"></script>
 </body>
 </html>
